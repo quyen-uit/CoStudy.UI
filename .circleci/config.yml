@@ -1,0 +1,19 @@
+version: 2.1
+orbs:
+  node: circleci/node@4.0.0
+jobs:
+  test-and-lint:
+    executor: node/default
+    steps:
+      - checkout
+      - node/install-packages
+      - run:
+          name: Run tests
+          command: npm run test
+      - run:
+          name: Run linter
+          command: npm run lint
+workflows:
+  test-and-lint:
+    jobs:
+      - test-and-lint
