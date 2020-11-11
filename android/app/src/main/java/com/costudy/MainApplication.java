@@ -1,4 +1,4 @@
-package com.rntemplate;
+package com.costudy;
 
 import android.app.Application;
 import android.content.Context;

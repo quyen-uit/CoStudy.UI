@@ -20,7 +20,7 @@ function App() {
   return (
     <Provider store={store}>
       <Navigation
-        theme={scheme === colorScheme.DARK ? DarkTheme : LightTheme}
+        theme={scheme === colorScheme.DARK ? 'DarkTheme' : 'LightTheme'}
       />
     </Provider>
   );
