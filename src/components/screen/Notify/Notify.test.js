@@ -1,5 +1,5 @@
 import React from 'react';
-import Home from 'components/Home';
+import Notify from 'components/screen/Notify';
 import { renderWithProviders } from 'test-utils/render';
 
 const fakeStore = {
@@ -12,13 +12,13 @@ const fakeStore = {
   status: {},
 };
 
-describe('Home', () => {
+describe('Notify', () => {
   test('should render a welcome message with the user name', () => {
-    const { getByText } = renderWithProviders(<Home />, {
+    const { getByText } = renderWithProviders(<Notify />, {
       initialState: fakeStore,
     });
 
-    expect(getByText('Home')).toBeTruthy();
+    expect(getByText('Notify')).toBeTruthy();
     expect(getByText('Welcome John')).toBeTruthy();
   });
 });
