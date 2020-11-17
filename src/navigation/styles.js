@@ -37,6 +37,14 @@ const styles = StyleSheet.create({
   btnSearch: {
     width: 40,
     height: 40,
+  },
+   //button
+   btnRight: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });
 

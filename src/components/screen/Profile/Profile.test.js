@@ -1,6 +1,6 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import Profile from 'components/Profile';
+import Profile from 'components/screen/Post';
 import UserController from 'controllers/UserController';
 import strings from 'localization';
 import { renderWithProviders } from 'test-utils/render';

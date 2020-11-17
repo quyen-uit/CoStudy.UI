@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
     margin: 8,
     borderRadius: 8,
   },
+  containerComment: { flexDirection: 'row', marginHorizontal: 8, marginVertical: 4 },
   header: {
     flexDirection: 'row',
     margin: 8,
@@ -42,7 +43,6 @@ const styles = StyleSheet.create({
     borderTopColor: main_color,
     borderTopWidth: 0.5,
   },
- 
   // image
   imgAvatar: {
     width: 48,
@@ -56,7 +56,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   // button
-
+  btnBigComment: {
+    marginLeft: 8,
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderColor: main_color,
+    borderWidth: 0.5,
+    flexShrink: 1
+  },
   btnVote: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -99,6 +108,7 @@ const styles = StyleSheet.create({
   txtContent: {
     fontSize: 15,
     marginHorizontal: 8,
+    textAlign: 'left',
   },
   txtTag: {
     fontSize: 12,
