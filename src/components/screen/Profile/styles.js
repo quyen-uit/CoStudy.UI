@@ -2,10 +2,23 @@ import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
+  flex1: {
+    flex: 1,
+  },
+  alignItemCenter: {
+    alignItems: 'center'
+  },
   container: {
     flex: 1,
-    
+
     backgroundColor: touch_color,
+  },
+  
+  containerButton: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    marginVertical: 4,
   },
   containerProfile: {
     backgroundColor: '#fff',
@@ -31,9 +44,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   //group
-  grAmount: {
-    flex: 1,
-  },
+ 
   grInfor: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -53,9 +64,8 @@ const styles = StyleSheet.create({
   // image
   imgCover: {
     width: '100%',
-    height: 180
-  }
-  ,
+    height: 180,
+  },
   imgAvatar: {
     width: 32,
     height: 32,
@@ -71,10 +81,16 @@ const styles = StyleSheet.create({
     borderColor: touch_color,
     position: 'absolute',
     top: -60,
-    alignSelf: 'center'
-
+    alignSelf: 'center',
   },
-  // button
+  //
+  btnFollow: {
+    backgroundColor: main_color,
+    paddingVertical: 8,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    flex: 1,
+  },
   btnBoxNew: {
     flex: 8,
     borderRadius: 24,
@@ -117,6 +133,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginHorizontal: 8,
     color: '#c4c4c4',
+  },
+  txtFollow: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: 'bold',
+    alignSelf: 'center',
   },
 });
 

@@ -7,9 +7,9 @@ import Navigation from 'navigation';
 import { DarkTheme, LightTheme } from 'helpers/Themes';
 import { DARK } from 'constants/colorScheme';
 import { persistor, store } from 'store';
-
+import Post from 'components/screen/Post';
+import Conversation from 'components/screen/Conversation';
 enableScreens();
-LogBox.ignoreLogs(["Require cycle:"]);
 
 
 function App() {
@@ -18,10 +18,13 @@ function App() {
   useEffect(() => {
     persistor(RNBootSplash.hide);
   }, []);
+  useEffect(() => {
+    LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+}, []);
 
   return (
     <Provider store={store}>
-      <Navigation theme={scheme === DARK ? DarkTheme : LightTheme} />
+        <Navigation theme={scheme === DARK ? DarkTheme : LightTheme} />
     </Provider>
   );
 }

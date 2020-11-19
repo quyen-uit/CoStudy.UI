@@ -30,6 +30,7 @@ const user = {
   specialized: 'Ngành kỹ thuật phần mềm',
   graduation: 'Đã tốt nghiệp',
 };
+
 const list = [
   {
     id: '1',
@@ -58,9 +59,9 @@ const list = [
 ];
 function GroupAmount(props) {
   return (
-    <View style={styles.grAmount}>
+    <View style={styles.flex1}>
       <TouchableOpacity onPress={() => alert('aa')}>
-        <View style={{ alignItems: 'center' }}>
+        <View style={styles.alignItemCenter}>
           <Text style={styles.txtAmount}>{props.amount}</Text>
           <Text style={styles.txtTitleAmount}>{props.title}</Text>
         </View>
@@ -79,9 +80,9 @@ function GroupInfor(props) {
 }
 function GroupOption(props) {
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.flex1}>
       <TouchableHighlight
-        style={{ borderRadius: 8 }}
+        
         underlayColor={touch_color}
         onPress={() => alert('option')}
       >
@@ -93,7 +94,7 @@ function GroupOption(props) {
     </View>
   );
 }
-function Profile() {
+function Profile({userId}) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const renderItem = ({ item }) => {
@@ -101,9 +102,10 @@ function Profile() {
   };
 
   return (
-    <ScrollView>
+    <ScrollView
+      showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
-        <View style={{ alignSelf: 'stretch' }}>
+        <View>
           <Image
             style={styles.imgCover}
             source={require('../../../assets/test.png')}
@@ -127,10 +129,18 @@ function Profile() {
           <TouchableOpacity>
             <GroupInfor name={'Xem chi tiết thông tin'} icon={'ellipsis-h'} />
           </TouchableOpacity>
+          <View style={styles.containerButton}>
+            <TouchableHighlight style={styles.btnFollow} underlayColor={touch_color}>
+                <Text style={styles.txtFollow}>Theo dõi</Text>
+            </TouchableHighlight>
+            <TouchableHighlight style={styles.btnFollow} underlayColor={touch_color} onPress={()=>alert('â')}>
+                <Text style={styles.txtFollow}>Nhắn tin</Text>
+            </TouchableHighlight>
+          </View>
         </View>
         <View style={styles.containerNew}>
           <View style={styles.grNew}>
-            <View style={{ flex: 1 }}>
+            <View style={styles.flex1}>
               <Image
                 style={styles.imgAvatar}
                 source={require('../../../assets/avatar.jpeg')}

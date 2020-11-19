@@ -3,6 +3,13 @@ import { main_2nd_color, main_color } from 'constants/colorCommon';
 
 const styles = StyleSheet.create({
   // container (view)
+  containerPopupVote: {
+    borderRadius: 32,
+    backgroundColor: '#f0f0f0',
+    position: 'absolute',
+    flexDirection: 'row',
+    bottom: 40,
+  },
   container: {
     padding: 0,
     margin: 8,
@@ -37,18 +44,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
 
-    marginTop: 8,
     justifyContent: 'center',
     borderTopColor: main_color,
     borderTopWidth: 0.5,
   },
- 
+
   // image
   imgAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderColor: '#c4c4c4',
+    marginRight: 8,
   },
   imgContent: {
     marginTop: 8,
@@ -56,7 +63,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   // button
-
+  btn3Dot: {
+    flex: 1,
+    alignItems: 'flex-end',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   btnVote: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -66,11 +79,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   btnOption: {
-    width: 28,
-    height: 32,
+    width: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
+    borderRadius: 16,
   },
   btnTag: {
     backgroundColor: main_2nd_color,
@@ -81,6 +93,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 16,
   },
+  btnCard: { borderRadius: 8, paddingBottom: 8 },
+  btnVoteInPopup: { marginHorizontal: 16, marginVertical: 8 },
   // text
   txtAuthor: {
     fontSize: 18,
@@ -98,12 +112,23 @@ const styles = StyleSheet.create({
   },
   txtContent: {
     fontSize: 15,
-    marginHorizontal: 8,
+    marginLeft: 16,
+    marginRight: 8,
   },
   txtTag: {
     fontSize: 12,
     color: '#fff',
     textAlign: 'center',
+  },
+  txtVoteNumber: {
+    marginRight: 12,
+    fontSize: 14,
+  },
+  iconTitle: {
+    marginLeft: 8,
+  },
+  flex1: {
+    flex: 1,
   },
 });
 

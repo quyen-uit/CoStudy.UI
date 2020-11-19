@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useTheme } from '@react-navigation/native';
+import { useTheme, DrawerActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import TabBarIcon from 'components/common/TabBarIcon';
@@ -15,11 +15,23 @@ import { main_color, touch_color } from 'constants/colorCommon';
 import { color } from 'react-native-reanimated';
 import styles from 'navigation/styles';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { Text, View, Button, Image, TouchableOpacity, TouchableHighlight } from 'react-native';
+import {
+  Text,
+  View,
+  Button,
+  Image,
+  TouchableOpacity,
+  TouchableHighlight,
+} from 'react-native';
+import Post from 'components/screen/Post';
+import Conversation from 'components/screen/Conversation';
+import Comment from 'components/screen/Comment';
+import { createDrawerNavigator, DrawerContent } from '@react-navigation/drawer';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 const BottomTab = createMaterialTopTabNavigator();
+const Drawer = createDrawerNavigator();
 
 const {
   home,
@@ -29,6 +41,9 @@ const {
   notify,
   newsfeed,
   chat,
+  post,
+  conversation,
+  comment,
 } = navigationConstants;
 
 function HomeNavigator() {
@@ -38,7 +53,8 @@ function HomeNavigator() {
     </Stack.Navigator>
   );
 }
-function NewsFeedNavigator() {
+
+function NewsFeedNavigator({ navigation }) {
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -55,7 +71,7 @@ function NewsFeedNavigator() {
           },
           headerLeft: () => (
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+              <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
                 <Image
                   style={styles.imgAvatar}
                   source={require('../assets/avatar.jpeg')}
@@ -136,7 +152,11 @@ function NotifyNavigator() {
           ),
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableHighlight style={styles.btnRight} underlayColor={touch_color} onPress={() => alert('search is clicked')}>
+              <TouchableHighlight
+                style={styles.btnRight}
+                underlayColor={touch_color}
+                onPress={() => alert('search is clicked')}
+              >
                 <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
               </TouchableHighlight>
             </View>
@@ -149,9 +169,9 @@ function NotifyNavigator() {
 function ListPostNavigator({ navigation }) {
   return (
     <Stack.Navigator>
-      <Stack.Screen 
-        name={list} 
-        component={ListPost} 
+      <Stack.Screen
+        name={list}
+        component={ListPost}
         options={{
           title: list,
           headerStyle: {
@@ -163,44 +183,7 @@ function ListPostNavigator({ navigation }) {
           },
           headerLeft: () => (
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => navigation.navigate(profile)}>
-                <Image
-                  style={styles.imgAvatar}
-                  source={require('../assets/avatar.jpeg')}
-                />
-              </TouchableOpacity>
-            </View>
-          ),
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'search'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
-      />
-    </Stack.Navigator>
-  );
-}
-function ProfileNavigator() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name={profile} 
-        component={Profile} 
-        options={{
-          title: profile,
-          headerStyle: {
-            backgroundColor: main_color,
-          },
-          headerTintColor: '#fff',
-          headerTitleStyle: {
-            alignSelf: 'center',
-          },
-          headerLeft: () => (
-            <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+              <TouchableOpacity onPress={() => alert('click')}>
                 <Image
                   style={styles.imgAvatar}
                   source={require('../assets/avatar.jpeg')}
@@ -221,26 +204,18 @@ function ProfileNavigator() {
   );
 }
 
-function AppNavigator1() {
+function DrawerNavigator() {
   const { colors } = useTheme();
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route: { name } }) => ({
-        tabBarIcon: ({ color }) => <TabBarIcon color={color} name={name} />,
-      })}
-      tabBarOptions={{
-        activeTintColor: colors.activeTab,
-        inactiveTintColor: colors.inactiveTab,
-      }}
-    >
-      <Tab.Screen name={home} component={HomeNavigator} />
-      <Tab.Screen name={profile} component={ProfileNavigator} />
-    </Tab.Navigator>
+    <Drawer.Navigator gestureEnabled={true} drawerContent={props=><DrawerContent {...props} />}>
+      <Drawer.Screen name={'Tap'} component={Home} />
+      <Drawer.Screen name={profile} component={Profile} />
+    </Drawer.Navigator>
   );
 }
 
-function AppNavigator() {
+function BottomTabNavigator() {
   return (
     <BottomTab.Navigator
       swipeEnabled={true}
@@ -308,6 +283,212 @@ function AppNavigator() {
         }}
       />
     </BottomTab.Navigator>
+  );
+}
+function AppNavigator() {
+  return (
+    <Drawer.Navigator initialRouteName={'bottom'} drawerContent={props=><DrawerContent {...props} />}>
+
+      <Drawer.Screen
+        name="bottom"
+        component={BottomTabNavigator}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Drawer.Screen
+        name={profile}
+        component={Profile}
+        options={{
+          title: profile,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name={post}
+        component={Post}
+        options={{
+          title: post,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name={conversation}
+        component={Conversation}
+        options={{
+          title: conversation,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name={comment}
+        component={Comment}
+        options={{
+          title: comment,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+     
+    </Drawer.Navigator>
+ 
+  );
+}
+function AppNavigator1() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="bottom"
+        component={BottomTabNavigator}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={profile}
+        component={Profile}
+        options={{
+          title: profile,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={post}
+        component={Post}
+        options={{
+          title: post,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={conversation}
+        component={Conversation}
+        options={{
+          title: conversation,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={comment}
+        component={Comment}
+        options={{
+          title: comment,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+     
+    </Stack.Navigator>
   );
 }
 export default AppNavigator;

@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    padding: 8
+    padding: 8,
   },
   headerAvatar: {
     flex: 1,
@@ -26,15 +26,19 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
-
+  btnCard: {
+    borderRadius: 8,
+  },
+  btnCancel: { flex: 1, alignItems: 'flex-end' },
   // image
   imgAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderColor: '#c4c4c4',
+    marginRight: 8
   },
- 
+
   // text
   txtAuthor: {
     fontSize: 16,
@@ -44,13 +48,15 @@ const styles = StyleSheet.create({
     color: '#c4c4c4',
     fontSize: 12,
     marginRight: 4,
-    marginTop: 4
+    marginTop: 4,
   },
   txtContent: {
     fontSize: 14,
-    marginTop: 2
+    marginTop: 2,
   },
- 
+  row: {
+    flexDirection: 'row',
+  },
 });
 
 export default styles;

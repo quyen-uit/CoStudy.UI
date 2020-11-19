@@ -11,6 +11,8 @@ import styles from 'components/common/PostCard/styles';
 import { Card } from 'react-native-elements';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import navigationConstants from 'constants/navigation';
+
 import {
   active_color,
   main_2nd_color,
@@ -18,15 +20,22 @@ import {
   touch_color,
 } from '../../../constants/colorCommon';
 import { useState } from 'react';
+import { func } from 'prop-types';
+import { useNavigation } from '@react-navigation/native';
+
 function PostCard(props) {
   const post = props.post;
   const [isVote, setIsVote] = useState(false);
+  const navigation = useNavigation();
+  const GoToPost = () => {
+    navigation.navigate(navigationConstants.post);
+  };
   return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
-        onPress={() => alert('aaa')}
+        onPress={() => GoToPost()}
         underlayColor={touch_color}
-        style={{ borderRadius: 8 }}
+        style={styles.btnCard}
       >
         <View>
           <View style={styles.header}>
@@ -37,7 +46,7 @@ function PostCard(props) {
                   source={require('../../../assets/avatar.jpeg')}
                 />
               </TouchableOpacity>
-              <View style={{ marginLeft: 8 }}>
+              <View>
                 <TouchableOpacity>
                   <Text style={styles.txtAuthor}>{post.author}</Text>
                 </TouchableOpacity>
@@ -48,11 +57,11 @@ function PostCard(props) {
               </View>
             </View>
 
-            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <View>
               <TouchableHighlight
                 activeOpacity={1}
                 underlayColor={touch_color}
-                style={{ borderRadius: 24 }}
+                style={styles.btn3Dot}
                 onPress={() => alert('avatar is clicked')}
               >
                 <View style={styles.btnOption}>
@@ -61,10 +70,10 @@ function PostCard(props) {
               </TouchableHighlight>
             </View>
           </View>
-          <View style={{ marginHorizontal: 8 }}>
+          <View>
             <View style={styles.rowFlexStart}>
               <FontAwesome
-                style={{ marginLeft: 8 }}
+                style={styles.iconTitle}
                 name={'angle-double-right'}
                 size={20}
                 color={main_color}
@@ -91,61 +100,52 @@ function PostCard(props) {
               </View>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.footer}>
-            <View style={{ flex: 1 }}>
-              <Pressable
-                style={({ pressed }) => [
-                  { backgroundColor: pressed ? touch_color : '#fff' },
-                  styles.btnVote,
-                ]}
-                onLongPress={() => setIsVote(true)}
-                on={()=>setIsVote(false)}
-              >
-                <Text style={{ marginRight: 12, fontSize: 14 }}>10</Text>
-                <FontAwesome5 name={'thumbs-up'} size={24} color={main_color} />
-              </Pressable>
-            </View>
-            {isVote ? (
-              <View
-                style={{
-                  borderRadius: 32,
-                  backgroundColor: '#f0f0f0',
-                  position: 'absolute',
-                  flexDirection: 'row',
-                  bottom: 40,
-                }}
-              >
-                <FontAwesome5
-                  style={{ marginHorizontal: 16, marginVertical: 8 }}
-                  name={'thumbs-up'}
-                  size={24}
-                  color={main_color}
-                />
-                <FontAwesome5
-                  style={{ margin: 16, marginVertical: 8 }}
-                  name={'thumbs-down'}
-                  size={24}
-                  color={main_2nd_color}
-                />
-              </View>
-            ) : null}
-            <View style={{ flex: 1 }}>
-              <Pressable
-                onPress={() => alert('comment')}
-                style={({ pressed }) => [
-                  { backgroundColor: pressed ? touch_color : '#fff' },
-                  styles.btnVote,
-                ]}
-                onPress={() => alert('Vote')}
-              >
-                <Text style={{ marginRight: 12, fontSize: 14 }}>10</Text>
-                <FontAwesome5 name={'comment-alt'} size={24} color={main_color}/>
-              </Pressable>
-            </View>
-          </View>
         </View>
       </TouchableHighlight>
+      <View style={styles.footer}>
+        <View style={styles.flex1}>
+          <Pressable
+            style={({ pressed }) => [
+              { backgroundColor: pressed ? touch_color : '#fff' },
+              styles.btnVote,
+            ]}
+            onLongPress={() => setIsVote(true)}
+            on={() => setIsVote(false)}
+          >
+            <Text style={styles.txtVoteNumber}>10</Text>
+            <FontAwesome5 name={'thumbs-up'} size={24} color={main_color} />
+          </Pressable>
+        </View>
+        {isVote ? (
+          <View style={styles.containerPopupVote}>
+            <FontAwesome5
+              style={styles.btnVoteInPopup}
+              name={'thumbs-up'}
+              size={24}
+              color={main_color}
+            />
+            <FontAwesome5
+              style={styles.btnVoteInPopup}
+              name={'thumbs-down'}
+              size={24}
+              color={main_2nd_color}
+            />
+          </View>
+        ) : null}
+        <View style={styles.flex1}>
+          <Pressable
+            onPress={() => alert('comment')}
+            style={({ pressed }) => [
+              { backgroundColor: pressed ? touch_color : '#fff' },
+              styles.btnVote,
+            ]}
+            onPress={() => alert('Vote')}
+          >
+            <Text style={styles.txtVoteNumber}>10</Text>
+            <FontAwesome5 name={'comment-alt'} size={24} color={main_color} />
+          </Pressable>
+        </View>
+      </View>
     </Card>
   );
 }
