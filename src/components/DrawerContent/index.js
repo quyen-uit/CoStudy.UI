@@ -1,3 +1,3 @@
-import DrawerContent from 'components/screen/DrawerContent/DrawerContent';
+import DrawerContent from 'components/DrawerContent/DrawerContent';
 
 export default DrawerContent;

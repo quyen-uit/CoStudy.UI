@@ -1,6 +1,9 @@
 const navigationConstants = {
-  home: 'Home',
-  login: 'Login',
+  home: 'Trang chủ',
+  login: 'Đăng nhập',
+  signup: 'Đăng kí',
+  tabNav: 'Bottom Tab',
+  drawerNav: 'Drawer',
   profile: 'Thông tin cá nhân',
   newsfeed: ' Bảng tin',
   chat: 'Nhắn tin',
@@ -9,7 +12,10 @@ const navigationConstants = {
   create: 'Đăng ',
   post: 'Bài đăng',
   conversation: 'Hội thoại',
-  comment: 'Bình luận'
+  comment: 'Bình luận',
+  help: 'Hỗ trợ',
+  setting: 'Cài đặt',
+  field: 'Lĩnh vực'
 };
 
 export default navigationConstants;

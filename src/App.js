@@ -7,8 +7,7 @@ import Navigation from 'navigation';
 import { DarkTheme, LightTheme } from 'helpers/Themes';
 import { DARK } from 'constants/colorScheme';
 import { persistor, store } from 'store';
-import Post from 'components/screen/Post';
-import Conversation from 'components/screen/Conversation';
+import Login from 'components/authScreen/Login';
 enableScreens();
 
 
@@ -26,6 +25,7 @@ function App() {
     <Provider store={store}>
         <Navigation theme={scheme === DARK ? DarkTheme : LightTheme} />
     </Provider>
+
   );
 }
 
