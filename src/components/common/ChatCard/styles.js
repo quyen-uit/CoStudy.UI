@@ -7,6 +7,8 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 8,
     borderRadius: 8,
+    borderWidth: 0, // Remove Border
+    elevation: 0
   },
   header: {
     flexDirection: 'row',
