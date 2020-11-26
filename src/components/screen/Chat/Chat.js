@@ -22,9 +22,10 @@ import {
   main_color,
   touch_color,
 } from 'constants/colorCommon';
-import Modal from 'react-native-modal';
+// import Modal from 'react-native-modal';
+import Modal, { ModalContent, BottomModal } from 'react-native-modals';
 
-const deviceWidth= Dimensions.get('window').width;
+const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 const list = [
   {
@@ -49,11 +50,153 @@ const list = [
     latestTime: '10 phut truoc',
   },
 ];
+// function Chat() {
+//   const { colors } = useTheme();
+//   const [modalVisible, setModalVisible] = useState(false);
+//   const [useNativeDriver, setUseNativeDriver] = useState(false);
+//   const user = useSelector(getUser);
+//   function isClose(){
+//     setModalVisible(true);
+//   }
+//   const renderItem = ({ item }) => {
+//     return (
+//       <Pressable onLongPress={() => setModalVisible(true)}>
+//         <ChatCard chat={item} />
+//       </Pressable>
+//     );
+//   };
+//   return (
+//     <View
+//       style={[{ flex: 1, justifyContent: 'flex-end' }]}
+//     >
+//       <Pressable onPress={() => {
+//         setModalVisible(true);
+//       }}>
+//         <Text>show modal</Text>
+//       </Pressable>
+//       <FlatList
+//         showsVerticalScrollIndicator={false}
+//         data={list}
+//         renderItem={renderItem}
+//         keyExtractor={item => item.id}
+//       />
+//       <Modal
+//         animationType={'slide'}
+//         onRequestClose={() => isClose()}
+//         visible={modalVisible}
+//         transparent={true}
+//         swipeDirection={'down'}
+//         backdropOpacity={0.5}
+//         useNativeDriver={useNativeDriver}
+//         onSwipeComplete={()=>setModalVisible(false)}
+//         backdropColor={'rgba(100,100,100)'}
+//         deviceHeight={deviceHeight}
+//         deviceWidth={deviceWidth}
+//         style={{
+//           margin: 0,
+//         }}
+
+//       >
+//         <TouchableHighlight
+//           onLayout={()=>setUseNativeDriver(false)}
+//           underlayColor={'#00000000'}
+//           style={{ flex: 1}}
+//           onPress={() => setModalVisible(false)}
+//         >
+//           <View
+//           style={{
+//             position: 'absolute',
+//             width: '100%',
+//             height: '100%',
+//             justifyContent: 'flex-end',
+//             backgroundColor: 'rgba(100,100,100, 0.5)',
+//           }}
+
+//           >
+//             <TouchableHighlight
+//               underlayColor={touch_color}
+//               onPress={() => alert('a')}
+//             >
+//               <View
+//                 style={{
+//                   flexDirection: 'row',
+//                   alignItems: 'center',
+//
+//                   paddingVertical: 12,
+//                   backgroundColor: '#fff'
+//                 }}
+//               >
+//                 <Icon
+//                   style={{ marginHorizontal: 12 }}
+//                   name={'home'}
+//                   color={main_color}
+//                   size={24}
+//                 />
+//                 <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
+//               </View>
+//             </TouchableHighlight>
+//             <TouchableHighlight
+//               underlayColor={'#00000000'}
+//               onPress={() => alert('a')}
+//             >
+//               <View
+//                 style={{
+//                   flexDirection: 'row',
+//                   alignItems: 'center',
+//
+//                   paddingVertical: 12,
+//                   backgroundColor: '#fff'
+
+//                 }}
+//               >
+//                 <Icon
+//                   style={{ marginHorizontal: 12 }}
+//                   name={'home'}
+//                   color={main_color}
+//                   size={24}
+//                 />
+//                 <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
+//               </View>
+//             </TouchableHighlight>
+//             <TouchableHighlight
+//               underlayColor={touch_color}
+//               onPress={() => {
+//                 setModalVisible(false);
+//               }}
+//             >
+//               <View
+//                 style={{
+//                   flexDirection: 'row',
+//                   alignItems: 'center',
+//
+//                   paddingVertical: 12,
+//                   backgroundColor: '#fff'
+
+//                 }}
+//               >
+//                 <Icon
+//                   style={{ marginHorizontal: 12 }}
+//                   name={'home'}
+//                   color={main_color}
+//                   size={24}
+//                 />
+//                 <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
+//               </View>
+//             </TouchableHighlight>
+//           </View>
+//         </TouchableHighlight>
+//       </Modal>
+//     </View>
+//   );
+// }
 function Chat() {
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [useNativeDriver, setUseNativeDriver] = useState(false);
   const user = useSelector(getUser);
+  function isClose() {
+    setModalVisible(true);
+  }
   const renderItem = ({ item }) => {
     return (
       <Pressable onLongPress={() => setModalVisible(true)}>
@@ -62,12 +205,12 @@ function Chat() {
     );
   };
   return (
-    <View
-      style={[{ flex: 1, justifyContent: 'flex-end' }]}
-    >
-      <Pressable onPress={() => {
-        setModalVisible(true);
-      }}>
+    <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
+      <Pressable
+        onPress={() => {
+          setModalVisible(true);
+        }}
+      >
         <Text>show modal</Text>
       </Pressable>
       <FlatList
@@ -76,112 +219,83 @@ function Chat() {
         renderItem={renderItem}
         keyExtractor={item => item.id}
       />
-      <Modal
-        animationType={'slide'}
-        onRequestClose={() => setModalVisible(false)}
+      <BottomModal
         visible={modalVisible}
-        transparent={true}
-        swipeDirection={'down'}
-        backdropOpacity={0.5}
-        backdropColor={'rgba(100,100,100)'}
-        deviceHeight={deviceHeight}
-        deviceWidth={deviceWidth}
-        onSwipeComplete= {() => setModalVisible(false)}
-        style={{
-          margin: 0,
+        swipeDirection={['up', 'down']} // can be string or an array
+        swipeThreshold={100} // default 100
+        useNativeDriver={true}
+        onSwipeOut={event => {
+          setModalVisible(false);
         }}
-      
+        onTouchOutside={() => setModalVisible(false)}
+         
       >
-        <TouchableHighlight
-          underlayColor={'#00000000'}
-          style={{ flex: 1}}
-          onPress={() => setModalVisible(false)}
-        >
+        <ModalContent style={{ marginHorizontal: -16}} >
           <View
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            justifyContent: 'flex-end',
-            backgroundColor: 'rgba(100,100,100, 0.5)',
-          }}
-   
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingVertical: 12,
+              backgroundColor: '#fff',
+            }}
           >
-            <TouchableHighlight
-              underlayColor={touch_color}
-              onPress={() => alert('a')}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 8,
-                  paddingVertical: 12,
-                  backgroundColor: '#fff'
-                }}
-              >
-                <Icon
-                  style={{ marginHorizontal: 12 }}
-                  name={'home'}
-                  color={main_color}
-                  size={24}
-                />
-                <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
-              </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              underlayColor={'#00000000'}
-              onPress={() => alert('a')}
-            >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 8,
-                  paddingVertical: 12,
-                  backgroundColor: '#fff'
+            <Icon
+              style={{ marginHorizontal: 12 }}
+              name={'home'}
+              color={main_color}
+              size={24}
+            />
+            <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
+          </View>
+          <TouchableHighlight
+            underlayColor={'#00000000'}
+            onPress={() => alert('a')}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
 
-                }}
-              >
-                <Icon
-                  style={{ marginHorizontal: 12 }}
-                  name={'home'}
-                  color={main_color}
-                  size={24}
-                />
-                <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
-              </View>
-            </TouchableHighlight>
-            <TouchableHighlight
-              underlayColor={touch_color}
-              onPress={() => {
-                setModalVisible(false);
+                paddingVertical: 12,
+                backgroundColor: '#fff',
               }}
             >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 8,
-                  paddingVertical: 12,
-                  backgroundColor: '#fff'
+              <Icon
+                style={{ marginHorizontal: 12 }}
+                name={'home'}
+                color={main_color}
+                size={24}
+              />
+              <Text style={{ fontSize: 16 }}>Đánh dấu chưa đọc</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight
+            underlayColor={touch_color}
+            onPress={() => {
+              setModalVisible(false);
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
 
-                }}
-              >
-                <Icon
-                  style={{ marginHorizontal: 12 }}
-                  name={'home'}
-                  color={main_color}
-                  size={24}
-                />
-                <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
-              </View>
-            </TouchableHighlight>
-          </View>
-        </TouchableHighlight>
-      </Modal>
+                paddingVertical: 12,
+                backgroundColor: '#fff',
+              }}
+            >
+              <Icon
+                style={{ marginHorizontal: 12 }}
+                name={'home'}
+                color={main_color}
+                size={24}
+              />
+              <Text style={{ fontSize: 16 }}>Báo cáo</Text>
+            </View>
+          </TouchableHighlight>
+        </ModalContent>
+      </BottomModal>
     </View>
   );
 }
-
 export default Chat;
