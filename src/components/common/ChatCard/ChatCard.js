@@ -7,7 +7,6 @@ import {
   TouchableHighlight,
 } from 'react-native';
 import styles from 'components/common/ChatCard/styles';
-import { Card } from 'react-native-elements';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { active_color, touch_color } from '../../../constants/colorCommon';
 import { useNavigation } from '@react-navigation/native';
@@ -27,12 +26,6 @@ function ChatCard(props) {
     navigation.navigate(navigationConstants.conversation);
   };
   return (
-    <Card containerStyle={styles.container}>
-      <TouchableHighlight
-        style={styles.btnCard}
-        onPress={() => GoToConversation()}
-        underlayColor={touch_color}
-      >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
             <TouchableOpacity onPress={() => alert('avatar is clicked')}>
@@ -54,8 +47,6 @@ function ChatCard(props) {
             </View>
           </View>
         </View>
-      </TouchableHighlight>
-    </Card>
   );
 }
 

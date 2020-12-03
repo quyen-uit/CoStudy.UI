@@ -10,7 +10,6 @@ import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { main_color, main_2nd_color } from '../../constants/colorCommon';
 import navigationConstants from '../../constants/navigation';
-LogBox.ignoreLogs(["Require cycle:"]);
 
 
 const { tabNav, profile, field, home, help, setting } = navigationConstants;

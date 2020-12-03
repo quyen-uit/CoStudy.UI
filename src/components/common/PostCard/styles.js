@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderTopColor: main_color,
     borderTopWidth: 0.5,
+    marginTop: 8
   },
 
   // image

@@ -12,7 +12,7 @@ import { Card } from 'react-native-elements';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
-
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 import {
   active_color,
   main_2nd_color,
@@ -27,15 +27,16 @@ function PostCard(props) {
   const post = props.post;
   const [isVote, setIsVote] = useState(false);
   const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post);
-  };
+  }
   return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
         onPress={() => GoToPost()}
         underlayColor={touch_color}
-        style={styles.btnCard}
+        style={styles.card}
       >
         <View>
           <View style={styles.header}>
@@ -62,7 +63,7 @@ function PostCard(props) {
                 activeOpacity={1}
                 underlayColor={touch_color}
                 style={styles.btn3Dot}
-                onPress={() => alert('avatar is clicked')}
+                onPress={() => setModalVisible(true)}
               >
                 <View style={styles.btnOption}>
                   <FontAwesome name={'ellipsis-v'} size={24} color="#c4c4c4" />
@@ -146,6 +147,19 @@ function PostCard(props) {
           </Pressable>
         </View>
       </View>
+      <PostOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+      />
     </Card>
   );
 }

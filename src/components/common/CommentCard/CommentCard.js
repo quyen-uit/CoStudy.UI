@@ -28,6 +28,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import navigationConstants from 'constants/navigation';
+import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
+
 const tmpComment = {
   id: '1',
   title: 'Đây là title 1',
@@ -45,6 +47,8 @@ const comment = {
   amountComment: 20,
 };
 function ChildComment(props) {
+  const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
   return (
     <View style={styles.containerComment}>
       <TouchableOpacity onPress={() => alert('avatar is clicked')}>
@@ -57,16 +61,13 @@ function ChildComment(props) {
         style={styles.btnChildComment}
         underlayColor={touch_color}
         onPress={() => alert('click')}
+        onLongPress={()=>setModalVisible(true)} 
       >
         <View>
           <Text style={styles.txtChildAuthor}>{comment.author}</Text>
           <Text style={styles.txtChildContent}>{comment.content}</Text>
-          <View
-            style={styles.footer}
-          >
-            <View
-              style={styles.containerCreatedTime}
-            >
+          <View style={styles.footer}>
+            <View style={styles.containerCreatedTime}>
               <FontAwesome name={'circle'} size={6} color={active_color} />
               <Text style={styles.txtChildCreateDate}>
                 {comment.createdDate}
@@ -93,6 +94,19 @@ function ChildComment(props) {
           </View>
         </View>
       </TouchableHighlight>
+      <CommentOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 }
@@ -106,6 +120,8 @@ function CommentCard(props) {
   const [showOption, setShowOption] = useState(true);
   const comment = props.comment;
   const isInPost = props.isInPost;
+  const [modalVisible, setModalVisible] = useState(false);
+
   const GoToComment = () => {
     if (isInPost) {
       navigation.navigate(navigationConstants.comment);
@@ -125,16 +141,13 @@ function CommentCard(props) {
             style={styles.btnBigComment}
             underlayColor={touch_color}
             onPress={() => GoToComment()}
+            onLongPress={()=>setModalVisible(true)} 
           >
             <View>
               <Text style={styles.txtAuthor}>{comment.author}</Text>
               <Text style={styles.txtContent}>{comment.content}</Text>
-              <View
-                style={styles.footer}
-              >
-                <View
-                  style={styles.containerCreatedTime}
-                >
+              <View style={styles.footer}>
+                <View style={styles.containerCreatedTime}>
                   <FontAwesome name={'circle'} size={8} color={active_color} />
                   <Text style={styles.txtCreateDate}>
                     {comment.createdDate}
@@ -142,9 +155,7 @@ function CommentCard(props) {
                 </View>
                 <View style={styles.row}>
                   <View style={styles.rowFlexStart}>
-                    <Text style={styles.txtVoteNumber}>
-                      10
-                    </Text>
+                    <Text style={styles.txtVoteNumber}>10</Text>
                     <TouchableOpacity>
                       <FontAwesome5
                         name={'thumbs-up'}
@@ -154,9 +165,7 @@ function CommentCard(props) {
                     </TouchableOpacity>
                   </View>
                   <View style={styles.rowFlexStart}>
-                    <Text style={styles.txtVoteNumber}>
-                      11
-                    </Text>
+                    <Text style={styles.txtVoteNumber}>11</Text>
                     <TouchableOpacity>
                       <FontAwesome5
                         name={'comment'}
@@ -172,6 +181,19 @@ function CommentCard(props) {
           {isInPost ? <ChildComment /> : null}
         </View>
       </View>
+      <CommentOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 }

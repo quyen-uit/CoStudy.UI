@@ -1,18 +1,17 @@
 import { useTheme } from '@react-navigation/native';
-import React from 'react';
-import { Text, FlatList, View, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { Text, FlatList, View, TouchableOpacity, TouchableHighlight } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/NewsFeed/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
 import { getUser } from 'selectors/UserSelectors';
 import { Card } from 'react-native-elements';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-
-import { main_color } from 'constants/colorCommon';
+import navigationConstants from 'constants/navigation';
+import { touch_color } from 'constants/colorCommon';
 import PostCard from '../../common/PostCard';
 import Button from 'components/common/Button';
+import { useNavigation } from '@react-navigation/native';
 
 const list = [
   {
@@ -44,9 +43,17 @@ const list = [
 function NewsFeed() {
   const { colors } = useTheme();
   const user = useSelector(getUser);
-
+  const navigation = useNavigation();
+  const [modalVisible, setModalVisible] = useState(false);
+  const GoToPost = () => {
+    navigation.navigate(navigationConstants.post);
+  }
   const renderItem = ({ item }) => {
-    return <PostCard post={item} />;
+    return (
+ 
+          <PostCard post={item} />
+ 
+    );
   };
   return (
     <View>

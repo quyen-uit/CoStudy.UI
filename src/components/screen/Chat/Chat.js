@@ -1,5 +1,7 @@
 import { useTheme } from '@react-navigation/native';
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { Card } from 'react-native-elements';
 import {
   Text,
   View,
@@ -16,14 +18,9 @@ import strings from 'localization';
 import { getUser } from 'selectors/UserSelectors';
 import ChatCard from '../../common/ChatCard';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import {
-  background_gray_color,
-  main_2nd_color,
-  main_color,
-  touch_color,
-} from 'constants/colorCommon';
-// import Modal from 'react-native-modal';
-import Modal, { ModalContent, BottomModal } from 'react-native-modals';
+import navigationConstants from 'constants/navigation';
+import ChatOptionModal from 'components/modal/ChatOptionModal/ChatOptionModal';
+import { touch_color } from 'constants/colorCommon';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -191,111 +188,143 @@ const list = [
 // }
 function Chat() {
   const { colors } = useTheme();
+  const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
-  const [useNativeDriver, setUseNativeDriver] = useState(false);
   const user = useSelector(getUser);
   function isClose() {
     setModalVisible(true);
   }
+  function callbackVisibleModal(isVisible) {
+    setModalVisible(false);
+  }
+  const GoToConversation = () => {
+    navigation.navigate(navigationConstants.conversation);
+  };
   const renderItem = ({ item }) => {
     return (
-      <Pressable onLongPress={() => setModalVisible(true)}>
-        <ChatCard chat={item} />
-      </Pressable>
+      <Card containerStyle={styles.cardContainer}>
+        <TouchableHighlight
+          onPress={() => GoToConversation()}
+          onLongPress={() => setModalVisible(true)}
+          underlayColor={touch_color}
+          style={styles.card}
+        >
+          <ChatCard chat={item} />
+        </TouchableHighlight>
+      </Card>
     );
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
-      <Pressable
-        onPress={() => {
-          setModalVisible(true);
-        }}
-      >
-        <Text>show modal</Text>
-      </Pressable>
       <FlatList
         showsVerticalScrollIndicator={false}
         data={list}
         renderItem={renderItem}
         keyExtractor={item => item.id}
       />
-      <BottomModal
+
+      <ChatOptionModal
         visible={modalVisible}
-        swipeDirection={['up', 'down']} // can be string or an array
-        swipeThreshold={100} // default 100
-        useNativeDriver={true}
         onSwipeOut={event => {
           setModalVisible(false);
         }}
-        onTouchOutside={() => setModalVisible(false)}
-         
-      >
-        <ModalContent style={{ marginHorizontal: -16}} >
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 12,
-              backgroundColor: '#fff',
-            }}
-          >
-            <Icon
-              style={{ marginHorizontal: 12 }}
-              name={'home'}
-              color={main_color}
-              size={24}
-            />
-            <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
-          </View>
-          <TouchableHighlight
-            underlayColor={'#00000000'}
-            onPress={() => alert('a')}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-
-                paddingVertical: 12,
-                backgroundColor: '#fff',
-              }}
-            >
-              <Icon
-                style={{ marginHorizontal: 12 }}
-                name={'home'}
-                color={main_color}
-                size={24}
-              />
-              <Text style={{ fontSize: 16 }}>Đánh dấu chưa đọc</Text>
-            </View>
-          </TouchableHighlight>
-          <TouchableHighlight
-            underlayColor={touch_color}
-            onPress={() => {
-              setModalVisible(false);
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-
-                paddingVertical: 12,
-                backgroundColor: '#fff',
-              }}
-            >
-              <Icon
-                style={{ marginHorizontal: 12 }}
-                name={'home'}
-                color={main_color}
-                size={24}
-              />
-              <Text style={{ fontSize: 16 }}>Báo cáo</Text>
-            </View>
-          </TouchableHighlight>
-        </ModalContent>
-      </BottomModal>
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+      />
     </View>
   );
 }
 export default Chat;
+
+// <BottomModal
+//         visible={modalVisible}
+//         swipeDirection={['up', 'down']} // can be string or an array
+//         swipeThreshold={100} // default 100
+//         useNativeDriver={true}
+//         modalTitle={<Icon name={'chevron-down'} color={main_color} size={16} style={{alignSelf: 'center', marginTop: 2}}/>}
+
+//         modalAnimation={
+//           new SlideAnimation({
+//             initialValue: 0, // optional
+//             slideFrom: 'bottom', // optional
+//             useNativeDriver: true, // optional
+//           })
+//         }
+//         useNativeDriver={true}
+//         onSwipeOut={event => {
+//           setModalVisible(false);
+//         }}
+//         onTouchOutside={() => setModalVisible(false)}
+//       >
+//         <ModalContent style={{ marginHorizontal: -16 }}>
+//           <TouchableHighlight underlayColor={'#000'} onPress={()=>alert('a')}>
+//           <View
+//             style={{
+//               flexDirection: 'row',
+//               alignItems: 'center',
+//               paddingVertical: 12,
+//               backgroundColor: '#fff',
+//             }}
+//           >
+//             <Icon
+//               style={{ marginHorizontal: 12 }}
+//               name={'home'}
+//               color={main_color}
+//               size={24}
+//             />
+//             <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
+//           </View>
+//           </TouchableHighlight>
+//           <TouchableHighlight
+//             underlayColor={'#000'}
+//             onPress={() => alert('a')}
+//           >
+//             <View
+//               style={{
+//                 flexDirection: 'row',
+//                 alignItems: 'center',
+
+//                 paddingVertical: 12,
+//                 backgroundColor: '#fff',
+//               }}
+//             >
+//               <Icon
+//                 style={{ marginHorizontal: 12 }}
+//                 name={'home'}
+//                 color={main_color}
+//                 size={24}
+//               />
+//               <Text style={{ fontSize: 16 }}>Đánh dấu chưa đọc</Text>
+//             </View>
+//           </TouchableHighlight>
+//           <TouchableHighlight
+//             underlayColor={'#000'}
+//             onPress={() => {
+//               setModalVisible(false);
+//             }}
+//           >
+//             <View
+//               style={{
+//                 flexDirection: 'row',
+//                 alignItems: 'center',
+
+//                 paddingVertical: 12,
+//                 backgroundColor: '#fff',
+//               }}
+//             >
+//               <Icon
+//                 style={{ marginHorizontal: 12 }}
+//                 name={'home'}
+//                 color={main_color}
+//                 size={24}
+//               />
+//               <Text style={{ fontSize: 16 }}>Báo cáo</Text>
+//             </View>
+//           </TouchableHighlight>
+//         </ModalContent>
+//       </BottomModal>
