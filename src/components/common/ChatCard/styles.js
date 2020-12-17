@@ -4,13 +4,19 @@ import { main_2nd_color, main_color } from 'constants/colorCommon';
 const styles = StyleSheet.create({
   // container (view)
   container: {
-    padding: 8,
+    padding: 0,
     margin: 8,
     borderRadius: 8,
+    borderWidth: 0, // Remove Border
+    elevation: 0,
+    backgroundColor: '#fff',
+    position: 'relative'
   },
   header: {
     flexDirection: 'row',
+    padding: 8,
   },
+  headerTime: { flex: 1, alignItems: 'flex-end' },
   headerAvatar: {
     flex: 1,
     flexDirection: 'row',
@@ -25,54 +31,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'flex-end',
   },
-  containerTag: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginLeft: 8,
-    marginTop: 8,
-  },
-  footer: {
-    alignItems: 'stretch',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    marginHorizontal: -8,
-    paddingTop: 8,
-    justifyContent: 'center',
-    borderTopColor: main_color,
-    borderTopWidth: 0.5,
-  },
+
   // image
   imgAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderColor: '#c4c4c4',
+    marginRight: 8
   },
-  imgContent: {
-    marginTop: 8,
-    width: '100%',
-  },
-  // button
-  btnVote: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  btnOption: {
-    width: 28,
-    height: 32,
-    alignItems: 'center',
-  },
-  btnTag: {
-    backgroundColor: main_2nd_color,
-    marginRight: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 16,
-  },
+
   // text
   txtAuthor: {
     fontSize: 16,
@@ -85,7 +53,15 @@ const styles = StyleSheet.create({
   },
   txtContent: {
     fontSize: 14,
+    marginTop: 2,
   },
+  row: {
+    flexDirection: 'row',
+  },
+  btnCard: {
+    borderRadius: 8,
+  },
+  btnCancel: { flex: 1, alignItems: 'flex-end' },
 });
 
 export default styles;

@@ -1,6 +1,6 @@
 import LocalizedStrings from 'react-native-localization';
-import en from 'localization/en';
+import vi from 'localization/vi';
 
-const strings = new LocalizedStrings({ en });
+const strings = new LocalizedStrings({ vi });
 
 export default strings;

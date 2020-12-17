@@ -1,6 +1,7 @@
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
-import Login from 'components/Login';
+import Login from 'components/authScreen/Login';
+import SignUp from 'components/authScreen/SignUp';
 import navigationConstants from 'constants/navigation';
 
 const Stack = createStackNavigator();
@@ -13,6 +14,7 @@ function AuthNavigator() {
         name={navigationConstants.login}
         options={{ headerShown: false }}
       />
+      <Stack.Screen component={SignUp} name={navigationConstants.signup} />
     </Stack.Navigator>
   );
 }

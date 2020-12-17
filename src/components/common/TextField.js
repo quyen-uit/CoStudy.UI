@@ -3,39 +3,48 @@ import PropTypes from 'prop-types';
 import { useTheme } from '@react-navigation/native';
 import { View, TextInput, StyleSheet } from 'react-native';
 import TextStyles from 'helpers/TextStyles';
+import Icon  from 'react-native-vector-icons/FontAwesome5';
+import { hint_color, main_2nd_color } from 'constants/colorCommon';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
   container: {
-    alignSelf: 'stretch',
-    marginVertical: 10,
+   alignSelf: 'stretch',
+   marginHorizontal: 56,
+   marginVertical: 10,
+   justifyContent: 'center'
   },
-  line: {
-    marginTop: 2,
-    height: 1,
-    flexDirection: 'column',
-    alignSelf: 'stretch',
+ 
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 32,
+    paddingRight: 16,
+    paddingLeft: 48,
+    fontSize: 16,
+    color: '#000'
   },
-  field: {
-    alignSelf: 'stretch',
-  },
+  icon: {
+    paddingLeft: 12,
+    position: 'absolute'
+  }
 });
 
-function TextField({ style, ...rest }) {
+function TextField({ icon, ...rest }) {
   const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
       <TextInput
         {...rest}
-        style={[
-          { color: colors.text },
-          TextStyles.textField,
-          styles.field,
-          style,
-        ]}
+        window
+        placeholderTextColor={hint_color}
+        style={styles.input}
         underlineColorAndroid="transparent"
       />
-      <View style={styles.line} />
+      <View style={styles.icon}>
+        <Icon name={icon} size={22} color={main_2nd_color}/>
+      </View>
+     
     </View>
   );
 }

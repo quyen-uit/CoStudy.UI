@@ -1,6 +1,6 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import Profile from 'components/Profile';
+import Comment from 'components/screen/Comment';
 import UserController from 'controllers/UserController';
 import strings from 'localization';
 import { renderWithProviders } from 'test-utils/render';
@@ -11,18 +11,18 @@ jest.mock('controllers/UserController', () => ({
   }),
 }));
 
-describe('Profile', () => {
+describe('Comment', () => {
   test('should render the title and logout button', () => {
-    const { getByText } = renderWithProviders(<Profile />);
-    const profileTitle = getByText(strings.profile);
+    const { getByText } = renderWithProviders(<Comment />);
+    const CommentTitle = getByText(strings.Comment);
     const logoutButton = getByText(strings.logout);
 
-    expect(profileTitle).toBeTruthy();
+    expect(CommentTitle).toBeTruthy();
     expect(logoutButton).toBeTruthy();
   });
 
   test('should logout the user', async () => {
-    const { getByText } = renderWithProviders(<Profile />);
+    const { getByText } = renderWithProviders(<Comment />);
     const logoutButton = getByText(strings.logout);
 
     fireEvent.press(logoutButton);

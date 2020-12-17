@@ -1,6 +1,6 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import Login from 'components/Login';
+import SignUp from 'components/authScreen/SignUp';
 import UserController from 'controllers/UserController';
 import strings from 'localization';
 import { renderWithProviders } from 'test-utils/render';
@@ -14,14 +14,14 @@ jest.mock('controllers/UserController', () => ({
   }),
 }));
 
-describe('Login', () => {
+describe('SignUp', () => {
   const fakeUser = {
     email: 'user@example.com',
     password: 'password',
   };
 
   it('should submit correctly', async () => {
-    const { getByHintText, getByText } = renderWithProviders(<Login />);
+    const { getByHintText, getByText } = renderWithProviders(<SignUp />);
     const submitButton = getByText(strings.login);
     const emailInput = getByHintText(strings.emailHint);
     const passwordInput = getByHintText(strings.passwordHint);
@@ -39,7 +39,7 @@ describe('Login', () => {
   });
 
   it('should show error on response failure', async () => {
-    const { getByHintText, getByText } = renderWithProviders(<Login />);
+    const { getByHintText, getByText } = renderWithProviders(<SignUp />);
     const submitButton = getByText(strings.login);
     const emailInput = getByHintText(strings.emailHint);
 
