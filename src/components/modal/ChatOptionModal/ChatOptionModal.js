@@ -17,7 +17,6 @@ import styles from './styles';
 //   latestTime: '10 phut truoc',
 // }
 function ChatOptionModal({ ...rest }) {
-  const [modalVisible, setModalVisible] = useState(true);
 
   return (
     <BottomModal

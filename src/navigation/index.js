@@ -8,7 +8,6 @@ import { getUser } from 'selectors/UserSelectors';
 
 function Navigation({ theme }) {
   const user = useSelector(getUser);
-
   return (
     <NavigationContainer theme={theme}>
       {user ? <AppNavigator /> : <AuthNavigator />}

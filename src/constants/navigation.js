@@ -15,7 +15,8 @@ const navigationConstants = {
   comment: 'Bình luận',
   help: 'Hỗ trợ',
   setting: 'Cài đặt',
-  field: 'Lĩnh vực'
+  field: 'Lĩnh vực',
+  profileDetail: 'Chi tiết thông tin'
 };
 
 export default navigationConstants;

@@ -1,4 +1,7 @@
 import UserController from 'controllers/UserController';
+import axios from 'axios';
+import { api } from '../constants/route';
+import { Alert } from 'react-native';
 
 export const actionTypes = {
   CLEAR_STORE: 'CLEAR_STORE',
@@ -31,8 +34,17 @@ const clearStore = () => ({
 export const login = (email, password) => async dispatch => {
   dispatch(loginRequest());
   try {
-    const user = await UserController.login(email, password);
-    dispatch(loginSuccess(user));
+    axios
+      .post(api + `Accounts/login`, { email: email, password: password })
+      .then(res => {
+        dispatch(loginSuccess(res.data.result));
+      })
+      .catch(error => {
+        Alert.alert(
+          'Thông báo',
+          'Email hoặc mật khẩu không đúng.',
+        );
+      });
   } catch (error) {
     dispatch(loginError(error.message));
   }

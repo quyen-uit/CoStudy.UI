@@ -1,5 +1,5 @@
 import { useTheme } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Card } from 'react-native-elements';
 import {
@@ -21,6 +21,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
 import ChatOptionModal from 'components/modal/ChatOptionModal/ChatOptionModal';
 import { touch_color } from 'constants/colorCommon';
+import * as signalR from '@microsoft/signalr';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -191,6 +192,17 @@ function Chat() {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const user = useSelector(getUser);
+
+  // useEffect(() => {
+  //   let connection = new signalR.HubConnectionBuilder()
+  //     .withUrl('https://e-mobile-shop.azurewebsites.net/signalr')
+  //     .build();
+
+  //   connection.on('SendNofti', data => {
+  //     console.log('s');
+  //   });
+  //   connection.start().catch(err=>console.log(err));
+  // }, []);
   function isClose() {
     setModalVisible(true);
   }

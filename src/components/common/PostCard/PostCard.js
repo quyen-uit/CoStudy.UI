@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Text,
   View,
@@ -13,6 +14,13 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { getUser } from 'selectors/UserSelectors';
+import Modal, {
+  ModalContent,
+  BottomModal,
+  SlideAnimation,
+} from 'react-native-modals';
 import {
   active_color,
   main_2nd_color,
@@ -22,15 +30,35 @@ import {
 import { useState } from 'react';
 import { func } from 'prop-types';
 import { useNavigation } from '@react-navigation/native';
-
+import axios from 'axios';
+import { api } from 'constants/route';
 function PostCard(props) {
   const post = props.post;
   const [isVote, setIsVote] = useState(false);
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
+  const [author, setAuthor] = useState();
+  const curUser = useSelector(getUser);
+   useEffect(() => {
+    const config = {
+      headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+    };
+    const fetchData = async () => {
+      await axios
+        .get(api + 'User/get/' + post.author_id, config)
+        .then(response => {
+          setAuthor(response.data.result);
+        })
+        .catch(error => alert(error));
+    };
+    fetchData();
+  }, []);
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post);
-  }
+  };
+  const GoToProfile = () => {
+    navigation.navigate(navigationConstants.profile);
+  };
   return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
@@ -41,7 +69,7 @@ function PostCard(props) {
         <View>
           <View style={styles.header}>
             <View style={styles.headerAvatar}>
-              <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+              <TouchableOpacity onPress={() => GoToProfile()}>
                 <Image
                   style={styles.imgAvatar}
                   source={require('../../../assets/avatar.jpeg')}
@@ -49,11 +77,14 @@ function PostCard(props) {
               </TouchableOpacity>
               <View>
                 <TouchableOpacity>
-                  <Text style={styles.txtAuthor}>{post.author}</Text>
+                  <Text style={styles.txtAuthor}>
+                    {author ? author.first_name : ''}{' '}
+                    {author ? author.last_name : ''}
+                  </Text>
                 </TouchableOpacity>
                 <View style={styles.rowFlexStart}>
                   <FontAwesome name={'circle'} size={8} color={active_color} />
-                  <Text style={styles.txtCreateDate}>{post.createdDate}</Text>
+                  <Text style={styles.txtCreateDate}>10 phut truoc</Text>
                 </View>
               </View>
             </View>
@@ -81,7 +112,9 @@ function PostCard(props) {
               />
               <Text style={styles.txtTitle}>{post.title}</Text>
             </View>
-            <Text style={styles.txtContent}>{post.content}</Text>
+            <Text style={styles.txtContent}>
+            {post.string_contents[0].content}
+            </Text>
           </View>
 
           <Image
@@ -147,7 +180,7 @@ function PostCard(props) {
           </Pressable>
         </View>
       </View>
-      <PostOptionModal
+      <BottomModal
         visible={modalVisible}
         onSwipeOut={event => {
           setModalVisible(false);
@@ -159,7 +192,66 @@ function PostCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
-      />
+        swipeDirection={['down']} // can be string or an array
+        swipeThreshold={100} // default 100
+        useNativeDriver={true}
+        modalAnimation={
+          new SlideAnimation({
+            slideFrom: 'bottom',
+          })
+        }
+        modalTitle={
+          <Icon
+            name={'chevron-down'}
+            color={main_color}
+            size={16}
+            style={styles.headerIcon}
+          />
+        }
+        modalAnimation={
+          new SlideAnimation({
+            initialValue: 0, // optional
+            slideFrom: 'bottom', // optional
+            useNativeDriver: true, // optional
+          })
+        }
+      >
+        <ModalContent style={styles.content}>
+          <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'times'}
+                color={main_color}
+                size={24}
+                style={{ marginHorizontal: 5 }}
+              />
+              <Text style={styles.txtOption}>Ẩn bài viết này</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+            <View style={styles.optionContainer}>
+              <Icon name={'eye'} color={main_color} size={24} />
+              <Text style={styles.txtOption}>Thêm vào danh sách quan tâm</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight
+            underlayColor={'#000'}
+            onPress={() => {
+              setModalVisible(false);
+            }}
+          >
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'flag'}
+                color={main_color}
+                size={24}
+                style={{ marginHorizontal: 2 }}
+              />
+              <Text style={styles.txtOption}>Báo cáo</Text>
+            </View>
+          </TouchableHighlight>
+        </ModalContent>
+      </BottomModal>
     </Card>
   );
 }

@@ -10,11 +10,14 @@ import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { main_color, main_2nd_color } from '../../constants/colorCommon';
 import navigationConstants from '../../constants/navigation';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../actions/UserActions';
 
 
 const { tabNav, profile, field, home, help, setting } = navigationConstants;
 function ItemDrawer({ icon, route }) {
     const navigation = useNavigation();
+  
   return (
     <DrawerItem
       icon={() => <Icon name={icon} color={main_color} size={28} />}
@@ -27,6 +30,12 @@ function ItemDrawer({ icon, route }) {
   );
 }
 function DrawerContent(props) {
+  const dispatch = useDispatch();
+
+  const logoutUser = () => {
+    dispatch(logout());
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
@@ -72,7 +81,7 @@ function DrawerContent(props) {
             <Icon name="sign-out-alt" color={main_2nd_color} size={size} />
           )}
           label="Sign Out"
-          onPress={() => alert('sign out')}
+          onPress={() => logoutUser()}
         />
       </Drawer.Section>
     </View>

@@ -57,14 +57,16 @@ function NewsFeed() {
   };
   return (
     <View>
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        data={list}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-      />
+      
     </View>
   );
 }
 
 export default NewsFeed;
+
+// <FlatList
+//         showsVerticalScrollIndicator={false}
+//         data={list}
+//         renderItem={renderItem}
+//         keyExtractor={item => item.id}
+//       />

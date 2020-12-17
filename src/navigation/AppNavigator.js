@@ -5,6 +5,8 @@ import React from 'react';
 import TabBarIcon from 'components/common/TabBarIcon';
 import Home from 'components/screen/Home';
 import Profile from 'components/screen/Profile';
+import ProfileDetail from 'components/screen/ProfileDetail';
+
 import NewsFeed from 'components/screen/NewsFeed';
 import Chat from 'components/screen/Chat';
 import Notify from 'components/screen/Notify';
@@ -38,7 +40,8 @@ const {
   profile,
   conversation,
   comment,
-  drawerNav
+  drawerNav,
+  profileDetail
 } = navigationConstants;
 
 function AppNavigator() {
@@ -80,6 +83,31 @@ function AppNavigator() {
         ),
       }}
     />
+    <Stack.Screen
+    name={profileDetail}
+    component={ProfileDetail}
+    
+    options={{
+      
+      title: profileDetail,
+      headerShown: true,
+      headerStyle: {
+        backgroundColor: main_color,
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        alignSelf: 'center',
+      },
+   
+      headerRight: () => (
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => alert('search is clicked')}>
+            <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+          </TouchableOpacity>
+        </View>
+      ),
+    }}
+  />
       <Stack.Screen
         name={post}
         component={Post}
