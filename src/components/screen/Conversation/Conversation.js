@@ -1,5 +1,5 @@
 import { useTheme } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Text,
@@ -27,6 +27,8 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
+import * as signalR from '@microsoft/signalr';
+import axios from 'axios';
 const tmpConversation = {
   id: '1',
   title: 'Đây là title 1',
@@ -99,6 +101,7 @@ const comment = {
 
 function RightMessage({ content }) {
   const [showTime, setShowTime] = useState(false);
+
   return (
     <TouchableOpacity onPress={() => setShowTime(!showTime)}>
       <View style={styles.containerRightMessage}>
@@ -138,9 +141,7 @@ function LeftMessage({ content }) {
             <Text>{content}</Text>
           </View>
           {showTime ? (
-            <View
-              style={styles.timeLeft}
-            >
+            <View style={styles.timeLeft}>
               <Text>11:00</Text>
             </View>
           ) : null}
@@ -154,22 +155,63 @@ function Conversation(props) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [showOption, setShowOption] = useState(true);
+  const [listMes, setListMes] = useState([]);
 
+  useEffect(() => {
+    let connection = new signalR.HubConnectionBuilder()
+      .withUrl('https://e-mobile-shop.azurewebsites.net/signalr')
+      .build();
+
+    connection.on('SendNofti', data => {
+      alert(data);
+    });
+    connection.start().catch(err => console.log(err));
+  }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      await axios
+        .get('https://e-mobile-shop.azurewebsites.net/api/Message/all')
+        .then(response => {
+          setListMes(response.data);
+        })
+        .catch(error => alert(error));
+    };
+    fetchData();
+  }, []);
+
+  const addToGroup = async () => {
+    await axios.post(
+      'https://e-mobile-shop.azurewebsites.net/api/Message/group/add',
+      { groupName: 'fbb12f15-e823-45d8-931b-29ba01926ffa' }
+    );
+  };
+  const send = async () => {
+    await axios.post(
+      'https://e-mobile-shop.azurewebsites.net/api/Message/send',
+      { message: 'clmm', id: {}, timestamp: '', from: '', connectionId: '' }
+    );
+  };
   const renderItem = ({ item }) => {
     if (item.userId == '1') return <RightMessage content={item.content} />;
     else return <LeftMessage content={item.content} />;
   };
   return (
     <View style={styles.largeContainer}>
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.containerChat}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.containerChat}
+      >
         <SafeAreaView>
           <FlatList
             inverted={-1}
-            initialScrollIndex={1}
             showsVerticalScrollIndicator={false}
-            data={list}
-            renderItem={renderItem}
-            keyExtractor={item => item.id}
+            data={listMes}
+            renderItem={item => (
+              <View>
+                <Text>{item.item.message}</Text>
+              </View>
+            )}
+            keyExtractor={(item, index) => index.toString()}
           />
         </SafeAreaView>
       </ScrollView>
@@ -192,8 +234,8 @@ function Conversation(props) {
           </View>
         ) : (
           <TouchableOpacity
-          style={styles.btnInputOption}
-          onPress={() => setShowOption(true)}
+            style={styles.btnInputOption}
+            onPress={() => setShowOption(true)}
           >
             <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
           </TouchableOpacity>
@@ -204,7 +246,15 @@ function Conversation(props) {
           onTouchEnd={() => setShowOption(false)}
           placeholder="Nhập j đi tml.."
         />
-        <TouchableOpacity style={styles.btnInputOption}>
+        <TouchableOpacity
+          style={styles.btnInputOption}
+          onPress={() => {
+            axios
+              .post('https://e-mobile-shop.azurewebsites.net/api/Message/send')
+              .then(console.log('send'))
+              .catch(error => alert(error));
+          }}
+        >
           <FontAwesome5 name={'paper-plane'} size={24} color={main_color} />
         </TouchableOpacity>
       </View>
@@ -213,3 +263,11 @@ function Conversation(props) {
 }
 
 export default Conversation;
+// <FlatList
+//             inverted={-1}
+//             initialScrollIndex={1}
+//             showsVerticalScrollIndicator={false}
+//             data={list}
+//             renderItem={renderItem}
+//             keyExtractor={item => item.id}
+//           />

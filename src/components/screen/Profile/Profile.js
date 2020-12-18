@@ -28,6 +28,7 @@ import { useSelector } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import { useTheme, useNavigation } from '@react-navigation/native';
 import navigationConstants from 'constants/navigation';
+import { FormData } from 'form-data';
 const user = {
   name: 'Nguyễn Văn Nam',
   follower: 20,
@@ -159,26 +160,25 @@ function Profile({ userId }) {
       width: 300,
       height: 400,
       cropping: true,
+      mediaType: 'photo',
     }).then(image => {
       const options = {
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${curUser.jwtToken}`,
+          'Content-Type': 'multipart/form-data',
         },
       };
-
+      console.log(image);
       const form_data = new FormData();
       form_data.append('Image', {
-        uri: image.path,
-        name: 'avatar_' + data.user_id,
+        uri: '../../../assets/avatar.jpeg',
+        name: 'avatar.jpg',
         type: image.mime,
       });
       form_data.append('Description', 'a');
-      console.log(form_data);
       axios
         .post(api + 'User/avatar', form_data, options)
-        .then(response => alert(response))
+        .then(response => console.log(response))
         .catch(error => alert(error));
     });
   };

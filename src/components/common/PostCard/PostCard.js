@@ -54,7 +54,7 @@ function PostCard(props) {
     fetchData();
   }, []);
   const GoToPost = () => {
-    navigation.navigate(navigationConstants.post);
+    navigation.navigate(navigationConstants.post,{postId: JSON.stringify(post.id)});
   };
   const GoToProfile = () => {
     navigation.navigate(navigationConstants.profile);
@@ -112,8 +112,11 @@ function PostCard(props) {
               />
               <Text style={styles.txtTitle}>{post.title}</Text>
             </View>
-            <Text style={styles.txtContent}>
-            {post.string_contents[0].content}
+            <Text style={styles.txtContent} numberOfLines={3}>
+            {}
+            {post.string_contents[0].content.length < 80
+              ? `${post.string_contents[0].content}`
+              : `${post.string_contents[0].content.substring(0, 200)}...`}
             </Text>
           </View>
 
@@ -180,7 +183,7 @@ function PostCard(props) {
           </Pressable>
         </View>
       </View>
-      <BottomModal
+      <PostOptionModal
         visible={modalVisible}
         onSwipeOut={event => {
           setModalVisible(false);
@@ -192,67 +195,8 @@ function PostCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
-        swipeDirection={['down']} // can be string or an array
-        swipeThreshold={100} // default 100
-        useNativeDriver={true}
-        modalAnimation={
-          new SlideAnimation({
-            slideFrom: 'bottom',
-          })
-        }
-        modalTitle={
-          <Icon
-            name={'chevron-down'}
-            color={main_color}
-            size={16}
-            style={styles.headerIcon}
-          />
-        }
-        modalAnimation={
-          new SlideAnimation({
-            initialValue: 0, // optional
-            slideFrom: 'bottom', // optional
-            useNativeDriver: true, // optional
-          })
-        }
-      >
-        <ModalContent style={styles.content}>
-          <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
-            <View style={styles.optionContainer}>
-              <Icon
-                name={'times'}
-                color={main_color}
-                size={24}
-                style={{ marginHorizontal: 5 }}
-              />
-              <Text style={styles.txtOption}>Ẩn bài viết này</Text>
-            </View>
-          </TouchableHighlight>
-          <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
-            <View style={styles.optionContainer}>
-              <Icon name={'eye'} color={main_color} size={24} />
-              <Text style={styles.txtOption}>Thêm vào danh sách quan tâm</Text>
-            </View>
-          </TouchableHighlight>
-          <TouchableHighlight
-            underlayColor={'#000'}
-            onPress={() => {
-              setModalVisible(false);
-            }}
-          >
-            <View style={styles.optionContainer}>
-              <Icon
-                name={'flag'}
-                color={main_color}
-                size={24}
-                style={{ marginHorizontal: 2 }}
-              />
-              <Text style={styles.txtOption}>Báo cáo</Text>
-            </View>
-          </TouchableHighlight>
-        </ModalContent>
-      </BottomModal>
-    </Card>
+      />
+      </Card>
   );
 }
 

@@ -28,6 +28,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import CommentCard from 'components/common/CommentCard';
+import { useRoute  } from '@react-navigation/native';
+
 const tmpPost = {
   id: '1',
   title: 'Đây là title 1',
@@ -78,7 +80,9 @@ function Post(props) {
   const dispatch = useDispatch();
   const [isVote, setIsVote] = useState(false);
   const [showOption, setShowOption] = useState(true);
+  const route = useRoute();
 
+  console.log(route.params.postId.str);
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} isInPost={true} />;
   };
