@@ -1,5 +1,5 @@
 import { useTheme } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Text,
@@ -11,6 +11,8 @@ import {
   Pressable,
   SafeAreaView,
   TextInput,
+  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Post/styles';
@@ -28,7 +30,12 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import CommentCard from 'components/common/CommentCard';
-import { useRoute  } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
+import { getUser } from 'selectors/UserSelectors';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { api } from 'constants/route';
+import moment from 'moment';
 
 const tmpPost = {
   id: '1',
@@ -74,18 +81,31 @@ const list = [
     id: '4',
   },
 ];
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 function Post(props) {
-  const post = tmpPost;
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [isVote, setIsVote] = useState(false);
   const [showOption, setShowOption] = useState(true);
   const route = useRoute();
+  const [post, setPost] = useState(route.params.post);
+  const [author, setAuthor] = useState([]);
+  const curUser = useSelector(getUser);
+  const [isLoading, setIsLoading] = useState(true);
 
-  console.log(route.params.postId.str);
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} isInPost={true} />;
   };
+  useEffect(() => {
+    const config = {
+      headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+    };
+    const fetchData = async () => {
+       
+    };
+    fetchData();
+  }, []);
   return (
     <View style={styles.largeContainer}>
       <ScrollView>
@@ -101,7 +121,9 @@ function Post(props) {
                 </TouchableOpacity>
                 <View>
                   <TouchableOpacity>
-                    <Text style={styles.txtAuthor}>{post.author}</Text>
+                    <Text style={styles.txtAuthor}>
+                      {post.author_name}
+                    </Text>
                   </TouchableOpacity>
                   <View style={styles.rowFlexStart}>
                     <FontAwesome
@@ -109,7 +131,25 @@ function Post(props) {
                       size={8}
                       color={active_color}
                     />
-                    <Text style={styles.txtCreateDate}>{post.createdDate}</Text>
+                    <Text style={styles.txtCreateDate}>
+                      {moment(new Date()).diff(
+                        moment(post.created_date),
+                        'minutes'
+                      ) < 60
+                        ? moment(new Date()).diff(
+                            moment(post.created_date),
+                            'minutes'
+                          ) + ' phút trước'
+                        : moment(new Date()).diff(
+                            moment(post.created_date),
+                            'hours'
+                          ) < 24
+                        ? moment(new Date()).diff(
+                            moment(post.created_date),
+                            'hours'
+                          ) + ' giờ trước'
+                        : moment(post.created_date).format('hh:mm MM-DD-YYYY')}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -141,7 +181,9 @@ function Post(props) {
                 />
                 <Text style={styles.txtTitle}>{post.title}</Text>
               </View>
-              <Text style={styles.txtContent}>{post.content}</Text>
+              <Text style={styles.txtContent}>
+                {post.string_contents[0].content}
+              </Text>
             </View>
 
             <Image
@@ -172,7 +214,7 @@ function Post(props) {
                   onLongPress={() => setIsVote(true)}
                   on={() => setIsVote(false)}
                 >
-                  <Text style={styles.txtVoteNumber}>10</Text>
+                  <Text style={styles.txtVoteNumber}>{post.upvote}</Text>
                   <FontAwesome5
                     name={'thumbs-up'}
                     size={24}
@@ -264,6 +306,24 @@ function Post(props) {
           <FontAwesome5 name={'paper-plane'} size={24} color={main_color} />
         </TouchableOpacity>
       </View>
+      {isLoading ? (
+        <View
+          style={{
+            position: 'absolute',
+            justifyContent: 'center',
+            backgroundColor: '#cccccc',
+            opacity: 0.5,
+            width: deviceWidth,
+            height: deviceHeight - 20,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={main_color}
+            style={{ marginBottom: 100 }}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }

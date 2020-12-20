@@ -27,6 +27,8 @@ import {
   main_color,
   touch_color,
 } from '../../../constants/colorCommon';
+import moment from 'moment';
+
 import { useState } from 'react';
 import { func } from 'prop-types';
 import { useNavigation } from '@react-navigation/native';
@@ -39,22 +41,18 @@ function PostCard(props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [author, setAuthor] = useState();
   const curUser = useSelector(getUser);
-   useEffect(() => {
+  useEffect(() => {
     const config = {
       headers: { Authorization: `Bearer ${curUser.jwtToken}` },
     };
-    const fetchData = async () => {
-      await axios
-        .get(api + 'User/get/' + post.author_id, config)
-        .then(response => {
-          setAuthor(response.data.result);
-        })
-        .catch(error => alert(error));
-    };
+    const fetchData = async () => {};
     fetchData();
   }, []);
   const GoToPost = () => {
-    navigation.navigate(navigationConstants.post,{postId: JSON.stringify(post.id)});
+    navigation.navigate(navigationConstants.post, {
+      post: post,
+      author: author,
+    });
   };
   const GoToProfile = () => {
     navigation.navigate(navigationConstants.profile);
@@ -72,19 +70,36 @@ function PostCard(props) {
               <TouchableOpacity onPress={() => GoToProfile()}>
                 <Image
                   style={styles.imgAvatar}
-                  source={require('../../../assets/avatar.jpeg')}
+                  source={{
+                    uri: `data:image/gif;base64,${post.author_avatar}`
+                  }}
                 />
               </TouchableOpacity>
               <View>
                 <TouchableOpacity>
-                  <Text style={styles.txtAuthor}>
-                    {author ? author.first_name : ''}{' '}
-                    {author ? author.last_name : ''}
-                  </Text>
+                  <Text style={styles.txtAuthor}>{post.author_name}</Text>
                 </TouchableOpacity>
                 <View style={styles.rowFlexStart}>
                   <FontAwesome name={'circle'} size={8} color={active_color} />
-                  <Text style={styles.txtCreateDate}>10 phut truoc</Text>
+                  <Text style={styles.txtCreateDate}>
+                    {moment(new Date()).diff(
+                      moment(post.created_date),
+                      'minutes'
+                    ) < 60
+                      ? moment(new Date()).diff(
+                          moment(post.created_date),
+                          'minutes'
+                        ) + ' phút trước'
+                      : moment(new Date()).diff(
+                          moment(post.created_date),
+                          'hours'
+                        ) < 24
+                      ? moment(new Date()).diff(
+                          moment(post.created_date),
+                          'hours'
+                        ) + ' giờ trước'
+                      : moment(post.created_date).format('hh:mm MM-DD-YYYY')}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -113,10 +128,10 @@ function PostCard(props) {
               <Text style={styles.txtTitle}>{post.title}</Text>
             </View>
             <Text style={styles.txtContent} numberOfLines={3}>
-            {}
-            {post.string_contents[0].content.length < 80
-              ? `${post.string_contents[0].content}`
-              : `${post.string_contents[0].content.substring(0, 200)}...`}
+              {}
+              {post.string_contents[0].content.length < 80
+                ? `${post.string_contents[0].content}`
+                : `${post.string_contents[0].content.substring(0, 200)}...`}
             </Text>
           </View>
 
@@ -149,26 +164,11 @@ function PostCard(props) {
             onLongPress={() => setIsVote(true)}
             on={() => setIsVote(false)}
           >
-            <Text style={styles.txtVoteNumber}>10</Text>
-            <FontAwesome5 name={'thumbs-up'} size={24} color={main_color} />
+            <Text style={styles.txtVoteNumber}>{post.upvote}</Text>
+            <FontAwesome5 name={'thumbs-down'} size={24} color={main_color} />
           </Pressable>
         </View>
-        {isVote ? (
-          <View style={styles.containerPopupVote}>
-            <FontAwesome5
-              style={styles.btnVoteInPopup}
-              name={'thumbs-up'}
-              size={24}
-              color={main_color}
-            />
-            <FontAwesome5
-              style={styles.btnVoteInPopup}
-              name={'thumbs-down'}
-              size={24}
-              color={main_2nd_color}
-            />
-          </View>
-        ) : null}
+
         <View style={styles.flex1}>
           <Pressable
             onPress={() => alert('comment')}
@@ -179,7 +179,24 @@ function PostCard(props) {
             onPress={() => alert('Vote')}
           >
             <Text style={styles.txtVoteNumber}>10</Text>
-            <FontAwesome5 name={'comment-alt'} size={24} color={main_color} />
+            <FontAwesome5
+              name={'comment-alt'}
+              size={22}
+              color={main_color}
+            />
+          </Pressable>
+        </View>
+        <View style={styles.flex1}>
+          <Pressable
+            style={({ pressed }) => [
+              { backgroundColor: pressed ? touch_color : '#fff' },
+              styles.btnVote,
+            ]}
+            onLongPress={() => setIsVote(true)}
+            on={() => setIsVote(false)}
+          >
+            <Text style={styles.txtVoteNumber}>{post.upvote}</Text>
+            <FontAwesome5 name={'thumbs-up'} size={24} color={main_color} />
           </Pressable>
         </View>
       </View>
@@ -196,8 +213,25 @@ function PostCard(props) {
           setModalVisible(false);
         }}
       />
-      </Card>
+    </Card>
   );
 }
 
 export default PostCard;
+
+// {isVote ? (
+//   <View style={styles.containerPopupVote}>
+//     <FontAwesome5
+//       style={styles.btnVoteInPopup}
+//       name={'thumbs-up'}
+//       size={24}
+//       color={main_color}
+//     />
+//     <FontAwesome5
+//       style={styles.btnVoteInPopup}
+//       name={'thumbs-down'}
+//       size={24}
+//       color={main_2nd_color}
+//     />
+//   </View>
+// ) : null}

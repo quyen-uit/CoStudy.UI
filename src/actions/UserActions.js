@@ -40,10 +40,8 @@ export const login = (email, password) => async dispatch => {
         dispatch(loginSuccess(res.data.result));
       })
       .catch(error => {
-        Alert.alert(
-          'Thông báo',
-          'Email hoặc mật khẩu không đúng.',
-        );
+        Alert.alert('Thông báo', 'Email hoặc mật khẩu không đúng.');
+        dispatch(loginSuccess());
       });
   } catch (error) {
     dispatch(loginError(error.message));

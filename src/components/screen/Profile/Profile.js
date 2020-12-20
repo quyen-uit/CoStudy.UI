@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
+  ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
@@ -28,7 +29,8 @@ import { useSelector } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import { useTheme, useNavigation } from '@react-navigation/native';
 import navigationConstants from 'constants/navigation';
-import { FormData } from 'form-data';
+import Toast from 'react-native-toast-message';
+
 const user = {
   name: 'Nguyễn Văn Nam',
   follower: 20,
@@ -129,21 +131,27 @@ function Profile({ userId }) {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
-
+  const [avatar, setAvatar] = useState('');
+  const config = {
+    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+  };
+  const showToast = () => {
+    ToastAndroid.show('A pikachu appeared nearby !', ToastAndroid.SHORT);
+  };
   useEffect(() => {
-    const config = {
-      headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-    };
     const fetchData = async () => {
       await axios
         .get(api + 'User/current', config)
         .then(response => {
           setData(response.data.result);
+          setAvatar(response.data.result.avatar.image_hash);
+
           axios
             .get(api + 'Post/get/user/' + response.data.result.user_id, config)
             .then(res => {
               setPosts(res.data.result.posts);
-              response.json;
+              
+
               setIsLoading(false);
             })
             .catch(error => alert(error));
@@ -158,28 +166,29 @@ function Profile({ userId }) {
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 300,
-      height: 400,
-      cropping: true,
+      height: 300,
       mediaType: 'photo',
-    }).then(image => {
-      const options = {
-        headers: {
-          Authorization: `Bearer ${curUser.jwtToken}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      };
-      console.log(image);
-      const form_data = new FormData();
-      form_data.append('Image', {
-        uri: '../../../assets/avatar.jpeg',
-        name: 'avatar.jpg',
-        type: image.mime,
-      });
-      form_data.append('Description', 'a');
-      axios
-        .post(api + 'User/avatar', form_data, options)
-        .then(response => console.log(response))
-        .catch(error => alert(error));
+      cropping: true,
+      includeBase64: true,
+      compressImageQuality: 0.5,
+    }).then(async image => {
+      if (image)
+        await axios
+          .post(
+            api + 'User/avatar/update',
+            { image: '', description: '', avatar_hash: image.data },
+            config
+          )
+          .then(response => {
+            Toast.show({
+              type: 'success',
+              position: 'bottom',
+              text1: 'Ảnh đại diện đã được thay đổi.',
+              visibilityTime: 2000,
+            });
+            setAvatar(image.data);
+          })
+          .catch(error => alert(error));
     });
   };
   return (
@@ -194,28 +203,57 @@ function Profile({ userId }) {
         <View style={styles.containerProfile}>
           <Image
             style={styles.imgBigAvatar}
-            source={require('../../../assets/avatar.jpeg')}
+            source={
+              avatar == ''
+                ? require('../../../assets/test.png')
+                : { uri: `data:image/gif;base64,${avatar}` }
+            }
           />
           <TouchableOpacity
             onPress={() => pickImage()}
             style={{
               alignSelf: 'center',
-              top: 30,
-              left: deviceWidth / 2 + 24,
+              top: 24,
+              left: deviceWidth / 2 + 12,
               position: 'absolute',
             }}
           >
-            <View>
-              <Icon name={'edit'} size={24} />
+            <View
+              style={{
+                backgroundColor: main_2nd_color,
+                padding: 8,
+                borderRadius: 30,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Icon name={'edit'} size={20} color={'#fff'}/>
             </View>
           </TouchableOpacity>
           <Text style={styles.txtName}>
             {data ? data.first_name : null} {data ? data.last_name : null}
           </Text>
           <View style={styles.containerAmount}>
-            <GroupAmount amount={data.post_count} title={'Bài đăng'} />
-            <GroupAmount amount={0} title={'Người theo dõi'} />
-            <GroupAmount amount={0} title={'Đang theo dõi'} />
+            <GroupAmount
+              amount={typeof data.posts === 'undefined' ? 0 : data.post_count}
+              title={'Bài đăng'}
+            />
+            <GroupAmount
+              amount={
+                typeof data.followers === 'undefined'
+                  ? 0
+                  : Object.keys(data.followers).length
+              }
+              title={'Người theo dõi'}
+            />
+            <GroupAmount
+              amount={
+                typeof data.followings === 'undefined'
+                  ? 0
+                  : Object.keys(data.followings).length
+              }
+              title={'Đang theo dõi'}
+            />
           </View>
           <GroupInfor name={user.school} icon={'school'} />
           <GroupInfor name={user.specialized} icon={'user-cog'} />

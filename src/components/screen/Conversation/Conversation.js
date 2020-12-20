@@ -157,27 +157,27 @@ function Conversation(props) {
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
 
-  useEffect(() => {
-    let connection = new signalR.HubConnectionBuilder()
-      .withUrl('https://e-mobile-shop.azurewebsites.net/signalr')
-      .build();
+  // useEffect(() => {
+  //   let connection = new signalR.HubConnectionBuilder()
+  //     .withUrl('https://e-mobile-shop.azurewebsites.net/signalr')
+  //     .build();
 
-    connection.on('SendNofti', data => {
-      alert(data);
-    });
-    connection.start().catch(err => console.log(err));
-  }, []);
-  useEffect(() => {
-    const fetchData = async () => {
-      await axios
-        .get('https://e-mobile-shop.azurewebsites.net/api/Message/all')
-        .then(response => {
-          setListMes(response.data);
-        })
-        .catch(error => alert(error));
-    };
-    fetchData();
-  }, []);
+  //   connection.on('SendNofti', data => {
+  //     alert(data);
+  //   });
+  //   connection.start().catch(err => console.log(err));
+  // }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     await axios
+  //       .get('https://e-mobile-shop.azurewebsites.net/api/Message/all')
+  //       .then(response => {
+  //         setListMes(response.data);
+  //       })
+  //       .catch(error => alert(error));
+  //   };
+  //   fetchData();
+  // }, []);
 
   const addToGroup = async () => {
     await axios.post(
@@ -205,13 +205,9 @@ function Conversation(props) {
           <FlatList
             inverted={-1}
             showsVerticalScrollIndicator={false}
-            data={listMes}
-            renderItem={item => (
-              <View>
-                <Text>{item.item.message}</Text>
-              </View>
-            )}
-            keyExtractor={(item, index) => index.toString()}
+            data={list}
+            renderItem={renderItem}
+            keyExtractor={item => item.id}
           />
         </SafeAreaView>
       </ScrollView>
