@@ -6,6 +6,7 @@ import TabBarIcon from 'components/common/TabBarIcon';
 import Home from 'components/screen/Home';
 import Profile from 'components/screen/Profile';
 import ProfileDetail from 'components/screen/ProfileDetail';
+import Create from 'components/screen/Create';
 
 import NewsFeed from 'components/screen/NewsFeed';
 import Chat from 'components/screen/Chat';
@@ -41,7 +42,8 @@ const {
   conversation,
   comment,
   drawerNav,
-  profileDetail
+  profileDetail,
+  create
 } = navigationConstants;
 
 function AppNavigator() {
@@ -172,6 +174,18 @@ function AppNavigator() {
               </TouchableOpacity>
             </View>
           ),
+        }}
+      />
+      <Stack.Screen
+        name={create}
+        component={Create}
+        options={{
+          title: create,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          
         }}
       />
     </Stack.Navigator>

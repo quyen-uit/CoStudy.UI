@@ -2,10 +2,13 @@ import { useTheme, DrawerActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import Home from 'components/screen/Home';
-import NewsFeed from 'components/screen/NewsFeed';
 import Chat from 'components/screen/Chat';
 import Notify from 'components/screen/Notify';
 import ListPost from 'components/screen/ListPost';
+import Create from 'components/screen/Create';
+import NewsFeed from 'components/screen/NewsFeed';
+import { useNavigation, StackActions,CommonActions } from '@react-navigation/native';
+
 import navigationConstants from 'constants/navigation';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { main_color, touch_color } from 'constants/colorCommon';
@@ -22,7 +25,7 @@ import {
 } from 'react-native';
 import { Badge } from 'react-native-elements';
 
-const { home, create, list, notify, newsfeed, chat } = navigationConstants;
+const { home, create, list, notify, newsfeed, chat,tabNav } = navigationConstants;
 
 const BottomTab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
@@ -188,6 +191,8 @@ function ListPostNavigator({ navigation }) {
 }
 
 function TabNavigator() {
+  const navigation = useNavigation();
+
   return (
     <BottomTab.Navigator
       swipeEnabled={true}
@@ -225,14 +230,26 @@ function TabNavigator() {
         }}
       />
       <BottomTab.Screen
-        name={create}
+        name={home}
         component={HomeNavigator}
-        options={{
-          tabBarLabel: create,
+        listeners={{
+          tabPress: e => {
+            // Prevent default action
+            navigation.dispatch(
+              CommonActions.navigate({
+                name: create,
+                params: {},
+              })
+            );
+          },
+        }}
+        options={navigation => ({
+          unmountOnBlur: true,
+          tabBarLabel: home,
           tabBarIcon: ({ color }) => (
             <Icon name="plus-square" color={color} size={26} />
           ),
-        }}
+        })}
       />
       <BottomTab.Screen
         name={chat}

@@ -37,7 +37,7 @@ function App() {
     success: ({ text1, text2, ...rest }) => (
       <BaseToast
         {...rest}
-        style={{ borderColor: main_color }}
+        style={{ borderColor: main_color, marginTop: 40 }}
         contentContainerStyle={{ paddingHorizontal: 15 }}
         text1={text1}
         text2={text2}

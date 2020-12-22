@@ -135,9 +135,7 @@ function Profile({ userId }) {
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
-  const showToast = () => {
-    ToastAndroid.show('A pikachu appeared nearby !', ToastAndroid.SHORT);
-  };
+  
   useEffect(() => {
     const fetchData = async () => {
       await axios
@@ -182,7 +180,7 @@ function Profile({ userId }) {
           .then(response => {
             Toast.show({
               type: 'success',
-              position: 'bottom',
+              position: 'top',
               text1: 'Ảnh đại diện đã được thay đổi.',
               visibilityTime: 2000,
             });

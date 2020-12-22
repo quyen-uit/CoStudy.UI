@@ -9,7 +9,7 @@ const navigationConstants = {
   chat: 'Nhắn tin',
   list: 'Danh sách',
   notify: 'Thông báo',
-  create: 'Đăng ',
+  create: 'Tạo bài đăng',
   post: 'Bài đăng',
   conversation: 'Hội thoại',
   comment: 'Bình luận',

@@ -62,6 +62,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
 
     width: '100%',
+    height: 200,
   },
   // button
   btn3Dot: {

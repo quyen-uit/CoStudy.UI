@@ -71,7 +71,7 @@ function PostCard(props) {
                 <Image
                   style={styles.imgAvatar}
                   source={{
-                    uri: `data:image/gif;base64,${post.author_avatar}`
+                    uri: `data:image/gif;base64,${post.author_avatar}`,
                   }}
                 />
               </TouchableOpacity>
@@ -135,22 +135,23 @@ function PostCard(props) {
             </Text>
           </View>
 
-          <Image
-            style={styles.imgContent}
-            source={require('../../../assets/test.png')}
-          />
+          {post.image_contents.length > 0 ? (
+            <Image
+              style={styles.imgContent}
+              source={{
+                uri: `data:image/gif;base64,${post.image_contents[0].image_hash}`,
+              }}
+            />
+          ) : null}
 
           <View style={styles.containerTag}>
-            <TouchableOpacity onPress={() => alert('tag screen')}>
-              <View style={styles.btnTag}>
-                <Text style={styles.txtTag}>Design pattern</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => alert('tag screen')}>
-              <View style={styles.btnTag}>
-                <Text style={styles.txtTag}>Cơ sở dữ liệu</Text>
-              </View>
-            </TouchableOpacity>
+            {post.fields.map((item, index) => (
+              <TouchableOpacity key={index} onPress={() => alert('tag screen')}>
+                <View style={styles.btnTag}>
+                  <Text style={styles.txtTag}>{item.value}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </TouchableHighlight>
@@ -179,11 +180,7 @@ function PostCard(props) {
             onPress={() => alert('Vote')}
           >
             <Text style={styles.txtVoteNumber}>10</Text>
-            <FontAwesome5
-              name={'comment-alt'}
-              size={22}
-              color={main_color}
-            />
+            <FontAwesome5 name={'comment-alt'} size={22} color={main_color} />
           </Pressable>
         </View>
         <View style={styles.flex1}>

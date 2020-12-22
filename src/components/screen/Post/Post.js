@@ -92,7 +92,7 @@ function Post(props) {
   const [post, setPost] = useState(route.params.post);
   const [author, setAuthor] = useState([]);
   const curUser = useSelector(getUser);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} isInPost={true} />;
@@ -101,9 +101,7 @@ function Post(props) {
     const config = {
       headers: { Authorization: `Bearer ${curUser.jwtToken}` },
     };
-    const fetchData = async () => {
-       
-    };
+    const fetchData = async () => {};
     fetchData();
   }, []);
   return (
@@ -121,9 +119,7 @@ function Post(props) {
                 </TouchableOpacity>
                 <View>
                   <TouchableOpacity>
-                    <Text style={styles.txtAuthor}>
-                      {post.author_name}
-                    </Text>
+                    <Text style={styles.txtAuthor}>{post.author_name}</Text>
                   </TouchableOpacity>
                   <View style={styles.rowFlexStart}>
                     <FontAwesome
@@ -186,22 +182,45 @@ function Post(props) {
               </Text>
             </View>
 
-            <Image
-              style={styles.imgContent}
-              source={require('../../../assets/test.png')}
-            />
+            <View>
+              {post.image_contents
+                ? post.image_contents.map((item, index) => {
+                     return (
+                      <View
+                        style={{
+                          marginHorizontal: 16,
+                          borderBottomColor: main_color,
+                          borderBottomWidth: 0.5,
+                        }}
+                        key={index}
+                      >
+                        <Image
+                          style={{
+                            width: '100%',
+                            height: 400,
+                            alignSelf: 'center',
+                            marginVertical: 8,
+                          }}
+                          source={{
+                            uri: `data:image/gif;base64,${item.image_hash}`,
+                          }}
+                        />
+
+                        <Text style={styles.txtDes}>{item.discription}</Text>
+                      </View>
+                    );
+                  })
+                : null}
+            </View>
 
             <View style={styles.containerTag}>
-              <TouchableOpacity onPress={() => alert('tag screen')}>
+            {post.fields.map((item, index) => (
+              <TouchableOpacity key={index} onPress={() => alert('tag screen')}>
                 <View style={styles.btnTag}>
-                  <Text style={styles.txtTag}>Design pattern</Text>
+                  <Text style={styles.txtTag}>{item.value}</Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => alert('tag screen')}>
-                <View style={styles.btnTag}>
-                  <Text style={styles.txtTag}>Cơ sở dữ liệu</Text>
-                </View>
-              </TouchableOpacity>
+            ))}
             </View>
 
             <View style={styles.footer}>

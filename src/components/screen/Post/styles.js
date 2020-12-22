@@ -156,6 +156,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
     textAlign: 'left',
   },
+  txtDes: {
+    fontSize: 15,
+    marginVertical: 8,
+    textAlign: 'left',
+  },
   txtTag: {
     fontSize: 12,
     color: '#fff',
