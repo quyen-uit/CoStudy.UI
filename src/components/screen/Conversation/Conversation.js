@@ -29,6 +29,10 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import * as signalR from '@microsoft/signalr';
 import axios from 'axios';
+import { getUser } from 'selectors/UserSelectors';
+import { useSelector } from 'react-redux';
+import { api } from 'constants/route';
+
 const tmpConversation = {
   id: '1',
   title: 'Đây là title 1',
@@ -156,10 +160,19 @@ function Conversation(props) {
   const dispatch = useDispatch();
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
-
+  const curUser = useSelector(getUser);
+  const config = {
+    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+  };
   // useEffect(() => {
   //   let connection = new signalR.HubConnectionBuilder()
-  //     .withUrl('https://e-mobile-shop.azurewebsites.net/signalr')
+  //     .withUrl('https://costudyapi.azurewebsites.net/messagehub', {
+  //       skipNegotiation: true,
+  //       transport: signalR.HttpTransportType.WebSockets,
+  //       accessTokenFactory: () => {
+  //         return curUser.jwtToken;
+  //       },
+  //     })
   //     .build();
 
   //   connection.on('SendNofti', data => {

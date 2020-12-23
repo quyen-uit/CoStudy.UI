@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     marginTop: 8,
     marginLeft: 8,
+    flexWrap: 'wrap'
   },
   footer: {
     alignItems: 'stretch',
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 16,
+    marginTop: 8
   },
   // text
   txtAuthor: {

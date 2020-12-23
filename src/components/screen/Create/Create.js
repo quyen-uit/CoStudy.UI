@@ -30,6 +30,10 @@ import ImagePicker from 'react-native-image-crop-picker';
 import axios from 'axios';
 import { api } from 'constants/route';
 import Toast from 'react-native-toast-message';
+import 'react-native-get-random-values'
+import { v4 as uuidv4 } from 'uuid';
+import storage from '@react-native-firebase/storage';
+
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 import Modal, {
@@ -48,7 +52,7 @@ function Create() {
   const curUser = useSelector(getUser);
   const [data, setData] = useState([]);
   const [fieldPickers, setFieldPickers] = useState([]);
-   const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
@@ -81,10 +85,12 @@ function Create() {
   }, []);
 
   useEffect(() => {
+    let isOut = false;
     const fetchData = async () => {
       await axios
         .get(api + 'User/current', config)
         .then(response => {
+          if (isOut) return;
           setData(response.data.result);
           setIsLoading(false);
         })
@@ -92,6 +98,7 @@ function Create() {
       await axios
         .get(api + 'User/field/all', config)
         .then(response => {
+          if (isOut) return;
           response.data.result.forEach(element => {
             element.isPick = false;
           });
@@ -101,6 +108,9 @@ function Create() {
         .catch(error => alert(error));
     };
     fetchData();
+    return () => {
+      isOut = true;
+    };
   }, []);
 
   React.useEffect(() => {
@@ -112,12 +122,10 @@ function Create() {
       height: 1000,
       mediaType: 'photo',
       cropping: true,
-      includeBase64: true,
       compressImageQuality: 1,
     }).then(image => {
       if (image) {
-        let i = { discription: '', image_hash: image.data };
-        setListImg([...listImg, i]);
+        setListImg([...listImg, image]);
       }
     });
   };
@@ -127,7 +135,7 @@ function Create() {
     fieldPickers.forEach(item => {
       if (item.isPick == true) temp.push(item.oid);
     });
-    
+
     if (title == '') {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập tiêu đề');
       return;
@@ -136,21 +144,48 @@ function Create() {
       return;
     }
     setIsLoading(true);
-
-    await axios
+    // add list image
+    let list = [];
+    
+    let promises = listImg.map(async image => {
+      const uri = image.path;
+      const filename = uuidv4();
+      const uploadUri =
+        Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+      const task = storage()
+        .ref('post/' + curUser.id + '/' + filename)
+        .putFile(uploadUri);
+      // set progress state
+      task.on('state_changed', snapshot => {});
+      try {
+        await task.then(async response => {
+          await storage()
+            .ref(response.metadata.fullPath)
+            .getDownloadURL()
+            .then(url => {
+              list = [
+                ...list,
+                { discription: image.discription, image_hash: url },
+              ];
+            });
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    });
+    Promise.all(promises).then( async ()=>{await axios
       .post(
         api + 'Post/add',
         {
           title: title,
           string_contents: [{ content_type: 0, content: content }],
-          image_contents: listImg,
+          image_contents: list,
           fields: temp,
         },
         config
       )
       .then(response => {
         setIsLoading(false);
-        console.log(response)
         Toast.show({
           type: 'success',
           position: 'top',
@@ -158,7 +193,8 @@ function Create() {
           visibilityTime: 2000,
         });
       })
-      .catch(error => alert(error));
+      .catch(error => alert(error));});
+    
   };
   const addField = val => {
     setListImg([...fieldPickers, val]);
@@ -172,7 +208,7 @@ function Create() {
               source={
                 typeof data.avatar == 'undefined'
                   ? require('../../../assets/test.png')
-                  : { uri: `data:image/gif;base64,${data.avatar.image_hash}` }
+                  : { uri: data.avatar.image_hash }
               }
               style={styles.imgAvatar}
             />
@@ -247,7 +283,7 @@ function Create() {
                           marginVertical: 8,
                         }}
                         source={{
-                          uri: `data:image/gif;base64,${item.image_hash}`,
+                          uri: item.path,
                         }}
                       />
                       <TouchableOpacity

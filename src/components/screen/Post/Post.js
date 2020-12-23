@@ -93,16 +93,37 @@ function Post(props) {
   const [author, setAuthor] = useState([]);
   const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [comments, setComments] = useState([]);
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} isInPost={true} />;
   };
+  const config = {
+    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+  };
+
   useEffect(() => {
     const config = {
       headers: { Authorization: `Bearer ${curUser.jwtToken}` },
     };
     const fetchData = async () => {};
     fetchData();
+  }, []);
+  useEffect(() => {
+    let isOut = false;
+    const fetchData = async () => {
+      await axios
+        .get(api + 'Post/comments/' + post.oid,config)
+        .then(response => {
+          
+           console.log(response.data.result);
+           setComments(response.data.result);
+        })
+        .catch(error => alert(error));
+    };
+    fetchData();
+    return () => {
+      isOut = true;
+    };
   }, []);
   return (
     <View style={styles.largeContainer}>
@@ -114,7 +135,9 @@ function Post(props) {
                 <TouchableOpacity onPress={() => alert('avatar is clicked')}>
                   <Image
                     style={styles.imgAvatar}
-                    source={require('../../../assets/avatar.jpeg')}
+                    source={{
+                      uri: post.author_avatar,
+                    }}
                   />
                 </TouchableOpacity>
                 <View>
@@ -185,7 +208,7 @@ function Post(props) {
             <View>
               {post.image_contents
                 ? post.image_contents.map((item, index) => {
-                     return (
+                    return (
                       <View
                         style={{
                           marginHorizontal: 16,
@@ -201,9 +224,7 @@ function Post(props) {
                             alignSelf: 'center',
                             marginVertical: 8,
                           }}
-                          source={{
-                            uri: `data:image/gif;base64,${item.image_hash}`,
-                          }}
+                          source={{ uri: item.image_hash }}
                         />
 
                         <Text style={styles.txtDes}>{item.discription}</Text>
@@ -214,13 +235,16 @@ function Post(props) {
             </View>
 
             <View style={styles.containerTag}>
-            {post.fields.map((item, index) => (
-              <TouchableOpacity key={index} onPress={() => alert('tag screen')}>
-                <View style={styles.btnTag}>
-                  <Text style={styles.txtTag}>{item.value}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+              {post.fields.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => alert('tag screen')}
+                >
+                  <View style={styles.btnTag}>
+                    <Text style={styles.txtTag}>{item.value}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
 
             <View style={styles.footer}>

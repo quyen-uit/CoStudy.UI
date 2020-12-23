@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   TouchableHighlight,
   Image,
+  ScrollView,
+  ToastAndroid,
   Pressable,
 } from 'react-native';
 import styles from 'components/common/PostCard/styles';
@@ -40,11 +42,13 @@ function PostCard(props) {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [author, setAuthor] = useState();
+  const [upvote, setUpvote] = useState(post.upvote);
+  const [downvote, setDownvote] = useState(post.downvote);
   const curUser = useSelector(getUser);
+  const config = {
+    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+  };
   useEffect(() => {
-    const config = {
-      headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-    };
     const fetchData = async () => {};
     fetchData();
   }, []);
@@ -53,6 +57,19 @@ function PostCard(props) {
       post: post,
       author: author,
     });
+  };
+   
+  const onUpvote = async () => {
+    setUpvote(upvote + 1);
+    await axios
+    .post(api + 'Post/post/upvote/' + post.oid , {id: post.oid}, config)
+    .then((response) => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+  };
+  const onDownvote = async () =>{
+    setDownvote(upvote - 1);
+    await axios
+    .post(api + 'Post/post/downvote/' + post.oid , {id: post.oid}, config)
+    .then((response) => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
   };
   const GoToProfile = () => {
     navigation.navigate(navigationConstants.profile);
@@ -71,7 +88,7 @@ function PostCard(props) {
                 <Image
                   style={styles.imgAvatar}
                   source={{
-                    uri: `data:image/gif;base64,${post.author_avatar}`,
+                    uri: post.author_avatar,
                   }}
                 />
               </TouchableOpacity>
@@ -139,19 +156,27 @@ function PostCard(props) {
             <Image
               style={styles.imgContent}
               source={{
-                uri: `data:image/gif;base64,${post.image_contents[0].image_hash}`,
+                uri: post.image_contents[0].image_hash,
               }}
             />
           ) : null}
 
           <View style={styles.containerTag}>
-            {post.fields.map((item, index) => (
-              <TouchableOpacity key={index} onPress={() => alert('tag screen')}>
-                <View style={styles.btnTag}>
-                  <Text style={styles.txtTag}>{item.value}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+            <ScrollView
+              horizontal={true}
+              showsHorizontalScrollIndicator={false}
+            >
+              {post.fields.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => alert('tag screen')}
+                >
+                  <View style={styles.btnTag}>
+                    <Text style={styles.txtTag}>{item.value}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
       </TouchableHighlight>
@@ -162,10 +187,9 @@ function PostCard(props) {
               { backgroundColor: pressed ? touch_color : '#fff' },
               styles.btnVote,
             ]}
-            onLongPress={() => setIsVote(true)}
-            on={() => setIsVote(false)}
+            onPress={() => onDownvote()}
           >
-            <Text style={styles.txtVoteNumber}>{post.upvote}</Text>
+            <Text style={styles.txtVoteNumber}>{downvote}</Text>
             <FontAwesome5 name={'thumbs-down'} size={24} color={main_color} />
           </Pressable>
         </View>
@@ -177,9 +201,8 @@ function PostCard(props) {
               { backgroundColor: pressed ? touch_color : '#fff' },
               styles.btnVote,
             ]}
-            onPress={() => alert('Vote')}
           >
-            <Text style={styles.txtVoteNumber}>10</Text>
+            <Text style={styles.txtVoteNumber}>{post.comments_count}</Text>
             <FontAwesome5 name={'comment-alt'} size={22} color={main_color} />
           </Pressable>
         </View>
@@ -189,10 +212,9 @@ function PostCard(props) {
               { backgroundColor: pressed ? touch_color : '#fff' },
               styles.btnVote,
             ]}
-            onLongPress={() => setIsVote(true)}
-            on={() => setIsVote(false)}
+            onPress={() => onUpvote()}
           >
-            <Text style={styles.txtVoteNumber}>{post.upvote}</Text>
+            <Text style={styles.txtVoteNumber}>{upvote}</Text>
             <FontAwesome5 name={'thumbs-up'} size={24} color={main_color} />
           </Pressable>
         </View>

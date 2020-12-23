@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TouchableHighlight,
   RefreshControl,
+  ToastAndroid,
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
@@ -25,32 +26,6 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { api } from 'constants/route';
 
-const list = [
-  {
-    id: '1',
-    title: 'Đây là title 1',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    id: '2',
-    title: 'Đây là title',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    title: 'Đây là title 2',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-    id: '3',
-  },
-];
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function NewsFeed() {
@@ -66,35 +41,53 @@ function NewsFeed() {
   const [data, setData] = useState([]);
   const [posts, setPosts] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [isEnd, setIsEnd] = useState(false);
+  const [skip, setSkip] = useState(0);
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    const fetchData = async () => {
+    setIsEnd(false);
+    const fetchData1 = async () => {
       await axios
-        .get(api + 'Post/timeline', config)
+        .get(api + `Post/timeline/skip/0/count/5`, config)
         .then(res => {
           setPosts(res.data.result);
+          setSkip(5);
           setRefreshing(false);
+           ToastAndroid.show('Dữ liệu đã được cập nhật.', ToastAndroid.SHORT);
         })
-
         .catch(error => alert(error));
     };
-    fetchData();
+    fetchData1();
   }, []);
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData1 = async () => {
       await axios
-        .get(api + 'Post/timeline', config)
+        .get(api + `Post/timeline/skip/${skip}/count/5`, config)
         .then(res => {
           setPosts(res.data.result);
           setIsLoading(false);
+
+          setSkip(5);
         })
         .catch(error => alert(error));
     };
-    fetchData();
+    fetchData1();
   }, []);
+  const fetchData = async () => {
+    await axios
+      .get(api + `Post/timeline/skip/${skip}/count/5`, config)
+      .then(res => {
+        if (isEnd == false) return;
+        setPosts(posts.concat(res.data.result));
+        setIsEnd(false);
+        setSkip(skip + 5);
+        ToastAndroid.show('Dữ liệu đã được cập nhật.', ToastAndroid.SHORT);
+      })
+      .catch(error => alert(error));
+  };
   const renderItem = ({ item }) => {
     return <PostCard post={item} />;
   };
@@ -104,10 +97,33 @@ function NewsFeed() {
         <FlatList
           showsVerticalScrollIndicator={false}
           data={posts}
+          onEndReached={async () => {
+            setIsEnd(true);
+            if (refreshing) {
+              setIsEnd(false);
+              return;
+            };
+           
+            await fetchData();
+          }}
+          onEndReachedThreshold={0.1}
           renderItem={item => renderItem(item)}
           keyExtractor={(item, index) => index.toString()}
           refreshControl={
-            <RefreshControl colors={[main_color]} refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              colors={[main_color]}
+              refreshing={refreshing}
+              onRefresh={()=>onRefresh()}
+            />
+          }
+          ListFooterComponent={() =>
+            isEnd ? (
+              <View style={{ marginVertical: 12 }}>
+                <ActivityIndicator size={'large'} color={main_color} />
+              </View>
+            ) : (
+              <View style={{ margin: 4 }}></View>
+            )
           }
         />
       </SafeAreaView>

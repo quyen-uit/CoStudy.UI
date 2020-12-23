@@ -8,6 +8,7 @@ import {
   TouchableHighlight,
   TouchableOpacity,
   Dimensions,
+  Platform,
   SafeAreaView,
   ToastAndroid,
   ActivityIndicator,
@@ -30,61 +31,8 @@ import ImagePicker from 'react-native-image-crop-picker';
 import { useTheme, useNavigation } from '@react-navigation/native';
 import navigationConstants from 'constants/navigation';
 import Toast from 'react-native-toast-message';
+import storage from '@react-native-firebase/storage';
 
-const user = {
-  name: 'Nguyễn Văn Nam',
-  follower: 20,
-  following: 21,
-  amountPost: 10,
-  school: 'Đại học Công nghệ thông tin - ĐHQG TPHCM',
-  specialized: 'Ngành kỹ thuật phần mềm',
-  graduation: 'Đã tốt nghiệp',
-};
-
-const list = [
-  {
-    author_id: '5fcf41d2c02620814ace9b4d',
-    comments: [],
-    comments_countd: 0,
-    created_date: '2020-12-15T05:23:10.437Z',
-    downvote: 0,
-    fields: [],
-    id: {
-      creationTime: '2020-12-15T05:23:10Z',
-      increment: 15713706,
-      machine: 3231656,
-      pid: -28756,
-      timestamp: 1608009790,
-    },
-    image_contents: [],
-    modified_date: '2020-12-15T05:23:10.437Z',
-    status: 0,
-    string_contents: [[Object]],
-    title: 'Lỗi khi nhập dữ liệu trong Mysql',
-    upvote: 0,
-  },
-  {
-    author_id: '5fcf41d2c02620814ace9b4d',
-    comments: [],
-    comments_countd: 0,
-    created_date: '2020-12-15T05:23:34.763Z',
-    downvote: 0,
-    fields: [],
-    id: {
-      creationTime: '2020-12-15T05:23:34Z',
-      increment: 15713821,
-      machine: 3231656,
-      pid: -28756,
-      timestamp: 1608009814,
-    },
-    image_contents: [],
-    modified_date: '2020-12-15T05:23:34.763Z',
-    status: 0,
-    string_contents: [[Object]],
-    title: 'Hỏi về thuật toán lùa bò về chuồng',
-    upvote: 0,
-  },
-];
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function GroupAmount(props) {
@@ -123,6 +71,16 @@ function GroupOption(props) {
     </View>
   );
 }
+const user = {
+  name: 'Nguyễn Văn Nam',
+  follower: 20,
+  following: 21,
+  amountPost: 10,
+  school: 'Đại học Công nghệ thông tin - ĐHQG TPHCM',
+  specialized: 'Ngành kỹ thuật phần mềm',
+  graduation: 'Đã tốt nghiệp',
+};
+
 function Profile({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -132,23 +90,27 @@ function Profile({ userId }) {
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
   const [avatar, setAvatar] = useState('');
+  const [bg, setBg] = useState();
+
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
-  
+
   useEffect(() => {
+    let isOut = false;
     const fetchData = async () => {
       await axios
         .get(api + 'User/current', config)
         .then(response => {
+          if (isOut) return;
           setData(response.data.result);
           setAvatar(response.data.result.avatar.image_hash);
-
-          axios
+           axios
             .get(api + 'Post/get/user/' + response.data.result.user_id, config)
             .then(res => {
+              if (isOut) return;
+
               setPosts(res.data.result.posts);
-              
 
               setIsLoading(false);
             })
@@ -157,6 +119,9 @@ function Profile({ userId }) {
         .catch(error => alert(error));
     };
     fetchData();
+    return () => {
+      isOut = true;
+    };
   }, []);
   const renderItem = ({ item }) => {
     return <PostCard post={item} />;
@@ -168,27 +133,87 @@ function Profile({ userId }) {
       mediaType: 'photo',
       cropping: true,
       includeBase64: true,
-      compressImageQuality: 0.5,
+      compressImageQuality: 1,
     }).then(async image => {
-      if (image)
-        await axios
-          .post(
-            api + 'User/avatar/update',
-            { image: '', description: '', avatar_hash: image.data },
-            config
-          )
-          .then(response => {
-            Toast.show({
-              type: 'success',
-              position: 'top',
-              text1: 'Ảnh đại diện đã được thay đổi.',
-              visibilityTime: 2000,
-            });
-            setAvatar(image.data);
-          })
-          .catch(error => alert(error));
+      if (image) {
+        const uri = image.path;
+        const filename = 'avatar_' + curUser.id;
+        const uploadUri =
+          Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        const task = storage()
+          .ref('avatar/' + filename)
+          .putFile(uploadUri);
+        // set progress state
+        task.on('state_changed', snapshot => {
+          console.log(
+           'uploading avatar..'
+          );
+        });
+        try {
+          await task.then(async response => {
+            
+            await storage()
+              .ref(response.metadata.fullPath)
+              .getDownloadURL()
+              .then(async url => {
+                setAvatar(url);
+                await axios
+                  .post(
+                    api + 'User/avatar/update',
+                    { discription: '', avatar_hash: url },
+                    config
+                  )
+                  .then(response => {
+                  
+                    Toast.show({
+                      type: 'success',
+                      position: 'top',
+                      text1: 'Ảnh đại diện đã được thay đổi.',
+                      visibilityTime: 2000,
+                    });
+                    
+                  })
+                  .catch(error => alert(error));
+              });
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
     });
   };
+
+  const uploadImage = async () => {
+    ImagePicker.openPicker({
+      width: 300,
+      height: 300,
+      mediaType: 'photo',
+      cropping: true,
+      compressImageQuality: 0.5,
+    }).then(async image => {
+      if (image) {
+        const uri = image.path;
+        const filename = 'avatar_' + curUser.id;
+        const uploadUri =
+          Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        const task = storage()
+          .ref('avatar/' + filename)
+          .putFile(uploadUri);
+        // set progress state
+        task.on('state_changed', snapshot => {
+          console.log(
+            Math.round(snapshot.bytesTransferred / snapshot.totalBytes) * 10000
+          );
+        });
+        try {
+          await task.then(response => console.log(response));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+  };
+
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
@@ -204,7 +229,7 @@ function Profile({ userId }) {
             source={
               avatar == ''
                 ? require('../../../assets/test.png')
-                : { uri: `data:image/gif;base64,${avatar}` }
+                : { uri: avatar }
             }
           />
           <TouchableOpacity
@@ -222,10 +247,10 @@ function Profile({ userId }) {
                 padding: 8,
                 borderRadius: 30,
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
               }}
             >
-              <Icon name={'edit'} size={20} color={'#fff'}/>
+              <Icon name={'edit'} size={20} color={'#fff'} />
             </View>
           </TouchableOpacity>
           <Text style={styles.txtName}>
