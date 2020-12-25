@@ -28,6 +28,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import CommentCard from 'components/common/CommentCard';
+
 const tmpComment = {
   id: '1',
   title: 'Đây là title 1',

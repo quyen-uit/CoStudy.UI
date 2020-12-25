@@ -164,22 +164,21 @@ function Conversation(props) {
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
-  // useEffect(() => {
-  //   let connection = new signalR.HubConnectionBuilder()
-  //     .withUrl('https://costudyapi.azurewebsites.net/messagehub', {
-  //       skipNegotiation: true,
-  //       transport: signalR.HttpTransportType.WebSockets,
-  //       accessTokenFactory: () => {
-  //         return curUser.jwtToken;
-  //       },
-  //     })
-  //     .build();
+  useEffect(() => {
+    let connection = new signalR.HubConnectionBuilder()
+      .withUrl('https://costudyapi.azurewebsites.net/messagehub', {
+        
+        accessTokenFactory: () => {
+          return curUser.jwtToken;
+        },
+      })
+      .build();
 
-  //   connection.on('SendNofti', data => {
-  //     alert(data);
-  //   });
-  //   connection.start().catch(err => console.log(err));
-  // }, []);
+    connection.on('SendNofti', data => {
+      console.log(data);
+    });
+    connection.start().catch(err => console.log(err));
+  }, []);
   // useEffect(() => {
   //   const fetchData = async () => {
   //     await axios

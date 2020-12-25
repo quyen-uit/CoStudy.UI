@@ -8,9 +8,11 @@ import {
   ScrollView,
   TouchableHighlight,
   TouchableOpacity,
+  Alert,
   Pressable,
   SafeAreaView,
   TextInput,
+  ToastAndroid,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
@@ -24,6 +26,8 @@ import {
   main_color,
   touch_color,
   active_color,
+  btn_not_selected,
+  btn_selected,
   background_gray_color,
 } from 'constants/colorCommon';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -36,6 +40,11 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { api } from 'constants/route';
 import moment from 'moment';
+import ImagePicker from 'react-native-image-crop-picker';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import storage from '@react-native-firebase/storage';
+import Toast from 'react-native-toast-message';
 
 const tmpPost = {
   id: '1',
@@ -94,6 +103,13 @@ function Post(props) {
   const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(false);
   const [comments, setComments] = useState([]);
+  const [upvote, setUpvote] = useState(route.params.upvote);
+  const [downvote, setDownvote] = useState(route.params.downvote);
+  const [vote, setVote] = useState(route.params.vote);
+
+  const [imgComment, setImgComment] = useState('');
+  const [comment, setComment] = useState('');
+
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} isInPost={true} />;
   };
@@ -112,11 +128,9 @@ function Post(props) {
     let isOut = false;
     const fetchData = async () => {
       await axios
-        .get(api + 'Post/comments/' + post.oid,config)
+        .get(api + 'Post/comments/' + post.oid, config)
         .then(response => {
-          
-           console.log(response.data.result);
-           setComments(response.data.result);
+          setComments(response.data.result);
         })
         .catch(error => alert(error));
     };
@@ -125,6 +139,109 @@ function Post(props) {
       isOut = true;
     };
   }, []);
+  const onUpvote = async () => {
+    if (vote == 1) {
+      ToastAndroid.show('Bạn đã upvote cho bài viết này.')
+      return;
+    } else if (vote == 0) {
+      setVote(1);
+      setUpvote(upvote + 1);
+    } else 
+    {
+      setVote(1);
+      setUpvote(upvote + 1);
+      setDownvote(downvote - 1);
+    }
+    await axios
+      .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid }, config)
+      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+  };
+  const onDownvote = async () => {
+    if (vote == -1) {
+      ToastAndroid.show('Bạn đã downvote cho bài viết này.')
+      return;
+    } else if (vote == 0) {
+      setVote(-1);
+      setDownvote(downvote + 1);
+    } else 
+    {
+      setVote(-1);
+      setDownvote(downvote + 1);
+      setUpvote(upvote - 1);
+    }
+    await axios
+      .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid }, config)
+      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
+  };
+  const pickImage = () => {
+ 
+
+    ImagePicker.openPicker({
+      width: 800,
+      height: 1000,
+      mediaType: 'photo',
+      cropping: true,
+
+      compressImageQuality: 1,
+    }).then(async image => {
+      if (image) {
+        setImgComment(image);
+      }
+    });
+  };
+  const postComment = async () => {
+    let img = '';
+     if (comment == '') {
+      Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+      return;
+    }
+
+    if (imgComment) {
+      image = imgComment;
+      const uri = image.path;
+      const filename = uuidv4();
+      const uploadUri =
+        Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+      const task = storage()
+        .ref('comment/' + post.oid + '/' + filename)
+        .putFile(uploadUri);
+      // set progress state
+      task.on('state_changed', snapshot => {
+        console.log('uploading avatar..');
+      });
+      try {
+        await task.then(async response => {
+          await storage()
+            .ref(response.metadata.fullPath)
+            .getDownloadURL()
+            .then(async url => {
+              img = url;
+            });
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    
+    await axios
+      .post(
+        api + 'Post/comment/add',
+        { content: comment, image_hash: img, post_id: post.oid },
+        config
+      )
+      .then(response => {
+        setImgComment('');
+        setComment('');
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: 'Bình luận đã được đăng',
+          visibilityTime: 2000,
+        });
+      })
+      .catch(error => alert(error));
+  };
+
   return (
     <View style={styles.largeContainer}>
       <ScrollView>
@@ -254,33 +371,17 @@ function Post(props) {
                     { backgroundColor: pressed ? touch_color : '#fff' },
                     styles.btnVote,
                   ]}
-                  onLongPress={() => setIsVote(true)}
-                  on={() => setIsVote(false)}
+                  onPress={() => onDownvote()}
                 >
-                  <Text style={styles.txtVoteNumber}>{post.upvote}</Text>
+                  <Text style={styles.txtVoteNumber}>{downvote}</Text>
                   <FontAwesome5
-                    name={'thumbs-up'}
+                    name={'thumbs-down'}
                     size={24}
-                    color={main_color}
+                    color={vote == -1 ? btn_selected : btn_not_selected}
                   />
                 </Pressable>
               </View>
-              {isVote ? (
-                <View style={styles.containerPopupVote}>
-                  <FontAwesome5
-                    style={styles.btnVoteInPopup}
-                    name={'thumbs-up'}
-                    size={24}
-                    color={main_color}
-                  />
-                  <FontAwesome5
-                    style={styles.btnVoteInPopup}
-                    name={'thumbs-down'}
-                    size={24}
-                    color={main_2nd_color}
-                  />
-                </View>
-              ) : null}
+
               <View style={styles.flex1}>
                 <Pressable
                   onPress={() => alert('comment')}
@@ -288,14 +389,30 @@ function Post(props) {
                     { backgroundColor: pressed ? touch_color : '#fff' },
                     styles.btnVote,
                   ]}
-                  onPress={() => alert('Vote')}
                 >
-                  <Text style={styles.txtVoteNumber}>10</Text>
+                  <Text style={styles.txtVoteNumber}>
+                    {post.comments_countd}
+                  </Text>
                   <FontAwesome5
                     name={'comment-alt'}
-                    size={24}
+                    size={22}
                     color={main_color}
                   />
+                </Pressable>
+              </View>
+              <View style={styles.flex1}>
+                <Pressable
+                  style={({ pressed }) => [
+                    { backgroundColor: pressed ? touch_color : '#fff' },
+                    styles.btnVote,
+                  ]}
+                  onPress={() => onUpvote()}
+                >
+                  <Text style={styles.txtVoteNumber}>{upvote}</Text>
+                  <FontAwesome5
+                    name={'thumbs-up'}
+                    size={24}
+                    color={vote == 1 ? btn_selected : btn_not_selected}                  />
                 </Pressable>
               </View>
             </View>
@@ -309,11 +426,40 @@ function Post(props) {
 
         <FlatList
           showsVerticalScrollIndicator={false}
-          data={list}
+          data={comments}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => index.toString()}
         />
       </ScrollView>
+
+      {imgComment != '' ? (
+        <View style={{ position: 'absolute', right: 0, bottom: 60 }}>
+          <Image
+            style={{
+              height: 100,
+              width: 80,
+              alignSelf: 'flex-end',
+              margin: 4,
+              marginRight: 16,
+            }}
+            source={{ uri: imgComment.path }}
+          />
+          <TouchableOpacity
+            onPress={() => {
+              setImgComment('');
+            }}
+            style={{
+              position: 'absolute',
+              alignSelf: 'flex-end',
+              borderRadius: 30,
+              right: 10,
+              backgroundColor: '#ccc',
+            }}
+          >
+            <FontAwesome5 name={'times-circle'} size={20} color={'#fff'} />
+          </TouchableOpacity>
+        </View>
+      ) : null}
       <View style={styles.containerInput}>
         {showOption ? (
           <View style={styles.row}>
@@ -327,7 +473,10 @@ function Post(props) {
                 color={main_color}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.btnInputOption}>
+            <TouchableOpacity
+              style={styles.btnInputOption}
+              onPress={() => pickImage()}
+            >
               <FontAwesome5 name={'images'} size={24} color={main_color} />
             </TouchableOpacity>
           </View>
@@ -343,12 +492,17 @@ function Post(props) {
           multiline={true}
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
+          onChangeText={text => setComment(text)}
           placeholder="Nhập j đi tml.."
         />
-        <TouchableOpacity style={styles.btnInputOption}>
+        <TouchableOpacity
+          style={styles.btnInputOption}
+          onPress={() => postComment()}
+        >
           <FontAwesome5 name={'paper-plane'} size={24} color={main_color} />
         </TouchableOpacity>
       </View>
+
       {isLoading ? (
         <View
           style={{

@@ -1,4 +1,4 @@
-import { useTheme, useNavigation } from '@react-navigation/native';
+import { useTheme } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
@@ -12,6 +12,7 @@ import {
   SafeAreaView,
   StyleSheet,
   ActivityIndicator,
+  TextInput
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { logout } from 'actions/UserActions';
@@ -27,8 +28,6 @@ import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
-import navigationConstants from 'constants/navigation';
-import moment from 'moment';
 const user = {
   name: 'Nguyễn Văn Nam',
   follower: 20,
@@ -68,13 +67,16 @@ const list = [
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
-function ProfileDetail({ userId }) {
+function ProfileEdit({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
-  const navigation = useNavigation();
+  const [firstname, setFirstname] = useState();
+  const [lastname, setLastname] = useState();
+  const [dob, setDOB] = useState();
+  const [phone, setPhone] = useState();
   useEffect(() => {
     const config = {
       headers: { Authorization: `Bearer ${curUser.jwtToken}` },
@@ -85,28 +87,14 @@ function ProfileDetail({ userId }) {
         .then(response => {
           setData(response.data.result);
           console.log(data);
+          setFirstname(data.first_name);
           setIsLoading(false);
         })
         .catch(error => alert(error));
     };
     fetchData();
   }, []);
-  const renderItem = ({ item }) => {
-    return <PostCard post={item} />;
-  };
 
-  function GroupAmount(props) {
-    return (
-      <View style={styles.flex1}>
-        <TouchableOpacity onPress={() => alert('aa')}>
-          <View style={styles.alignItemCenter}>
-            <Text style={styles.txtAmount}>{props.amount}</Text>
-            <Text style={styles.txtTitleAmount}>{props.title}</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  }
   function Field(props) {
     return (
       <View style={styles.field}>
@@ -130,44 +118,27 @@ function ProfileDetail({ userId }) {
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
-        <View>
-          <Image
-            style={styles.imgCover}
-            source={require('../../../assets/test.png')}
-          />
-        </View>
-        <View style={styles.containerProfile}>
-          <Image
-            style={styles.imgBigAvatar}
-            source={require('../../../assets/avatar.jpeg')}
-          />
-          <TouchableOpacity
-            onPress={() => navigation.navigate(navigationConstants.profileEdit)}
+        <Field icon={'id-card'} title={'ID'} value={data.user_id} />
+        <View style={styles.field}>
+          <View
             style={{
-              alignSelf: 'flex-end',
+              width: 30,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 12,
             }}
           >
-            <View>
-              <Icon name={'edit'} size={24} />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.containerAmount}>
-            <GroupAmount amount={data.post_count} title={'Bài đăng'} />
-            <GroupAmount amount={0} title={'Người theo dõi'} />
-            <GroupAmount amount={0} title={'Đang theo dõi'} />
+            <Icon name={'user'} size={20} color={main_color} />
+          </View>
+          <View>
+            <Text style={{ color: '#ccc', fontSize: 13 }}>Họ</Text>
+            <TextInput multiline={true} style={{alignSelf: 'stretch',borderColor: main_2nd_color, borderWidth: 1, paddingVertical: -2, fontSize: 18}} value={firstname} onChangeText={text => setFirstname(text)}/>
           </View>
         </View>
-      </View>
-
-      <View style={styles.container}>
-        <Field icon={'id-card'} title={'ID'} value={data.user_id} />
-        <Field icon={'user'} title={'Họ'} value={data.first_name} />
-        <Field icon={'signature'} title={'Tên'} value={data.last_name} />
         <Field
           icon={'birthday-cake'}
           title={'Ngày sinh'}
-          value={moment(data.date_of_birth).format('DD-MM-YYYY')}
+          value={data.date_of_birth}
         />
         <Field icon={'mail-bulk'} title={'Email'} value={data.email} />
         <Field
@@ -198,7 +169,7 @@ function ProfileDetail({ userId }) {
   );
 }
 
-export default ProfileDetail;
+export default ProfileEdit;
 const styles = StyleSheet.create({
   flex1: {
     flex: 1,

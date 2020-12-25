@@ -1,11 +1,16 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme, DrawerActions } from '@react-navigation/native';
-import { createStackNavigator, CardStyleInterpolators  } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  CardStyleInterpolators,
+} from '@react-navigation/stack';
 import React from 'react';
 import TabBarIcon from 'components/common/TabBarIcon';
 import Home from 'components/screen/Home';
 import Profile from 'components/screen/Profile';
 import ProfileDetail from 'components/screen/ProfileDetail';
+import ProfileEdit from 'components/screen/ProfileEdit';
+
 import Create from 'components/screen/Create';
 
 import NewsFeed from 'components/screen/NewsFeed';
@@ -25,15 +30,15 @@ import {
   Image,
   TouchableOpacity,
   TouchableHighlight,
-  
 } from 'react-native';
 import Post from 'components/screen/Post';
 import Conversation from 'components/screen/Conversation';
 import Comment from 'components/screen/Comment';
 import { createDrawerNavigator, DrawerContent } from '@react-navigation/drawer';
 import DrawerNavigator from './DrawerNavigator';
-const Stack = createStackNavigator();
+import Follower from 'components/screen/Follower';
 
+const Stack = createStackNavigator();
 
 const {
   chat,
@@ -43,15 +48,17 @@ const {
   comment,
   drawerNav,
   profileDetail,
-  create
+  profileEdit,
+  follower,
+  create,
 } = navigationConstants;
 
 function AppNavigator() {
   return (
-    <Stack.Navigator 
-    screenOptions={{
-      cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS
-    }}
+    <Stack.Navigator
+      screenOptions={{
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+      }}
     >
       <Stack.Screen
         name={drawerNav}
@@ -61,55 +68,74 @@ function AppNavigator() {
         }}
       />
       <Stack.Screen
-      name={profile}
-      component={Profile}
-      
-      options={{
-        
-        title: profile,
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: main_color,
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          alignSelf: 'center',
-        },
-     
-        headerRight: () => (
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => alert('search is clicked')}>
-              <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-            </TouchableOpacity>
-          </View>
-        ),
-      }}
-    />
-    <Stack.Screen
-    name={profileDetail}
-    component={ProfileDetail}
-    
-    options={{
-      
-      title: profileDetail,
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: main_color,
-      },
-      headerTintColor: '#fff',
-      headerTitleStyle: {
-        alignSelf: 'center',
-      },
-   
-      headerRight: () => (
-        <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => alert('search is clicked')}>
-            <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-          </TouchableOpacity>
-        </View>
-      ),
-    }}
-  />
+        name={profile}
+        component={Profile}
+        options={{
+          title: profile,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={profileDetail}
+        component={ProfileDetail}
+        options={{
+          title: profileDetail,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={profileEdit}
+        component={ProfileEdit}
+        options={{
+          title: profileEdit,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
       <Stack.Screen
         name={post}
         component={Post}
@@ -177,6 +203,28 @@ function AppNavigator() {
         }}
       />
       <Stack.Screen
+        name={follower}
+        component={Follower}
+        options={{
+          title: follower,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
         name={create}
         component={Create}
         options={{
@@ -185,7 +233,6 @@ function AppNavigator() {
             backgroundColor: main_color,
           },
           headerTintColor: '#fff',
-          
         }}
       />
     </Stack.Navigator>

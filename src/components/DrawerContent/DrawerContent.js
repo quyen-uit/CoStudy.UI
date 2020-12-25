@@ -1,12 +1,13 @@
 import { Drawer } from 'react-native-paper';
 import { useTheme, useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, Image, View, FlatList , LogBox} from 'react-native';
-import { useSelector } from 'react-redux';
-import styles from 'components/DrawerContent/styles';
+ import styles from 'components/DrawerContent/styles';
 import TextStyles from 'helpers/TextStyles';
+import axios from 'axios';
+import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
-import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import { useSelector } from 'react-redux';import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { main_color, main_2nd_color } from '../../constants/colorCommon';
 import navigationConstants from '../../constants/navigation';
@@ -35,7 +36,10 @@ function DrawerContent(props) {
   const logoutUser = () => {
     dispatch(logout());
   };
+   
+  const curUser = useSelector(getUser);
 
+   
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
@@ -43,18 +47,18 @@ function DrawerContent(props) {
           <View style={styles.userInfoSection}>
             <View style={styles.header}>
               <Image
-                source={require('../../assets/avatar.jpeg')}
+                source={{uri: curUser.avatar.image_hash}}
                 style={styles.imgAvatar}
               />
               <View style={styles.childHeader}>
-                <Text style={styles.title}>John Doe</Text>
+                <Text style={styles.title}>{curUser.first_name} {curUser.last_name}</Text>
                 <View style={styles.row}>
                   <View style={styles.section}>
-                    <Text style={ styles.number}>80</Text>
+                    <Text style={ styles.number}>{curUser.following.length}</Text>
                     <Text style={styles.caption}>Đang theo dõi</Text>
                   </View>
                   <View style={styles.section}>
-                    <Text style={styles.number}>100</Text>
+                    <Text style={styles.number}>{curUser.followers.length}</Text>
                     <Text style={styles.caption}>Theo dõi</Text>
                   </View>
                 </View>

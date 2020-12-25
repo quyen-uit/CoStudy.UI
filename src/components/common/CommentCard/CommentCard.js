@@ -17,6 +17,8 @@ import styles from 'components/common/CommentCard/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
 import { color } from 'react-native-reanimated';
+import moment from 'moment';
+
 import {
   main_2nd_color,
   main_color,
@@ -121,7 +123,7 @@ function CommentCard(props) {
   const comment = props.comment;
   const isInPost = props.isInPost;
   const [modalVisible, setModalVisible] = useState(false);
-
+  
   const GoToComment = () => {
     if (isInPost) {
       navigation.navigate(navigationConstants.comment);
@@ -133,7 +135,7 @@ function CommentCard(props) {
         <TouchableOpacity onPress={() => alert('avatar is clicked')}>
           <Image
             style={styles.imgAvatar}
-            source={require('../../../assets/avatar.jpeg')}
+            source={{uri: comment.author_avatar}}
           />
         </TouchableOpacity>
         <View style={styles.shrink1}>
@@ -144,13 +146,29 @@ function CommentCard(props) {
             onLongPress={()=>setModalVisible(true)} 
           >
             <View>
-              <Text style={styles.txtAuthor}>{comment.author}</Text>
+              <Text style={styles.txtAuthor}>{comment.author_name}</Text>
               <Text style={styles.txtContent}>{comment.content}</Text>
               <View style={styles.footer}>
                 <View style={styles.containerCreatedTime}>
                   <FontAwesome name={'circle'} size={8} color={active_color} />
                   <Text style={styles.txtCreateDate}>
-                    {comment.createdDate}
+                  {moment(new Date()).diff(
+                    moment(comment.created_date),
+                    'minutes'
+                  ) < 60
+                    ? moment(new Date()).diff(
+                        moment(comment.created_date),
+                        'minutes'
+                      ) + ' phút trước'
+                    : moment(new Date()).diff(
+                        moment(comment.created_date),
+                        'hours'
+                      ) < 24
+                    ? moment(new Date()).diff(
+                        moment(comment.created_date),
+                        'hours'
+                      ) + ' giờ trước'
+                    : moment(comment.created_date).format('hh:mm MM-DD-YYYY')}
                   </Text>
                 </View>
                 <View style={styles.row}>
@@ -178,7 +196,8 @@ function CommentCard(props) {
               </View>
             </View>
           </TouchableHighlight>
-          {isInPost ? <ChildComment /> : null}
+          {comment.image !='' ? <Image  source={{uri: comment.image}} style={{width: 150, height: 200, alignSelf: 'flex-start', margin: 4}}/>: null}
+          
         </View>
       </View>
       <CommentOptionModal
@@ -199,3 +218,5 @@ function CommentCard(props) {
 }
 
 export default CommentCard;
+
+// {isInPost ? <ChildComment /> : null}

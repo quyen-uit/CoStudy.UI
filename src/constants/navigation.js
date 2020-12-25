@@ -16,7 +16,10 @@ const navigationConstants = {
   help: 'Hỗ trợ',
   setting: 'Cài đặt',
   field: 'Lĩnh vực',
-  profileDetail: 'Chi tiết thông tin'
+  profileDetail: 'Chi tiết thông tin',
+  follower: 'Người theo dõi',
+  profileEdit: 'Chỉnh sửa thông tin'
+
 };
 
 export default navigationConstants;

@@ -16,6 +16,7 @@ import {
   Dimensions,
   ActivityIndicator,
   StyleSheet,
+  ToastAndroid,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Create/styles';
@@ -30,7 +31,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import axios from 'axios';
 import { api } from 'constants/route';
 import Toast from 'react-native-toast-message';
-import 'react-native-get-random-values'
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 
@@ -85,31 +86,33 @@ function Create() {
   }, []);
 
   useEffect(() => {
-    let isOut = false;
+    let isRender = true;
     const fetchData = async () => {
       await axios
         .get(api + 'User/current', config)
         .then(response => {
-          if (isOut) return;
-          setData(response.data.result);
-          setIsLoading(false);
+          if (isRender) {
+            setData(response.data.result);
+            setIsLoading(false);
+          }
         })
         .catch(error => alert(error));
       await axios
         .get(api + 'User/field/all', config)
         .then(response => {
-          if (isOut) return;
-          response.data.result.forEach(element => {
-            element.isPick = false;
-          });
-          setIsLoading(false);
-          setFieldPickers(response.data.result);
+          if (isRender) {
+            response.data.result.forEach(element => {
+              element.isPick = false;
+            });
+            setIsLoading(false);
+            setFieldPickers(response.data.result);
+          }
         })
         .catch(error => alert(error));
     };
     fetchData();
     return () => {
-      isOut = true;
+      isRender = false;
     };
   }, []);
 
@@ -132,6 +135,7 @@ function Create() {
 
   const upload = async () => {
     let temp = [];
+    ToastAndroid.show('Bài viết đang đăng...', ToastAndroid.SHORT);
     fieldPickers.forEach(item => {
       if (item.isPick == true) temp.push(item.oid);
     });
@@ -143,58 +147,70 @@ function Create() {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập nội dung');
       return;
     }
-    setIsLoading(true);
-    // add list image
-    let list = [];
-    
-    let promises = listImg.map(async image => {
-      const uri = image.path;
-      const filename = uuidv4();
-      const uploadUri =
-        Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-      const task = storage()
-        .ref('post/' + curUser.id + '/' + filename)
-        .putFile(uploadUri);
-      // set progress state
-      task.on('state_changed', snapshot => {});
-      try {
-        await task.then(async response => {
-          await storage()
-            .ref(response.metadata.fullPath)
-            .getDownloadURL()
-            .then(url => {
-              list = [
-                ...list,
-                { discription: image.discription, image_hash: url },
-              ];
-            });
-        });
-      } catch (e) {
-        console.error(e);
-      }
+    navigation.navigate(navigationConstants.tabNav, {
+      screen: navigationConstants.newsfeed,
+      params: {
+        title: title,
+        content: content,
+        listImg: listImg,
+        fields: temp,
+      },
     });
-    Promise.all(promises).then( async ()=>{await axios
-      .post(
-        api + 'Post/add',
-        {
-          title: title,
-          string_contents: [{ content_type: 0, content: content }],
-          image_contents: list,
-          fields: temp,
-        },
-        config
-      )
-      .then(response => {
-        setIsLoading(false);
-        Toast.show({
-          type: 'success',
-          position: 'top',
-          text1: 'Đăng bài thành công.',
-          visibilityTime: 2000,
-        });
-      })
-      .catch(error => alert(error));});
-    
+    // return;
+    // setIsLoading(true);
+    // // add list image
+    // let list = [];
+
+    // let promises = listImg.map(async image => {
+    //   const uri = image.path;
+    //   const filename = uuidv4();
+    //   const uploadUri =
+    //     Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+    //   const task = storage()
+    //     .ref('post/' + curUser.id + '/' + filename)
+    //     .putFile(uploadUri);
+    //   // set progress state
+    //   task.on('state_changed', snapshot => {});
+    //   try {
+    //     await task.then(async response => {
+    //       await storage()
+    //         .ref(response.metadata.fullPath)
+    //         .getDownloadURL()
+    //         .then(url => {
+    //           list = [
+    //             ...list,
+    //             { discription: image.discription, image_hash: url },
+    //           ];
+    //         });
+    //     });
+    //   } catch (e) {
+    //     console.error(e);
+    //   }
+    // });
+    // Promise.all(promises).then(async () => {
+    //   await axios
+    //     .post(
+    //       api + 'Post/add',
+    //       {
+    //         title: title,
+    //         string_contents: [{ content_type: 0, content: content }],
+    //         image_contents: list,
+    //         fields: temp,
+    //       },
+    //       config
+    //     )
+    //     .then(response => {
+    //       setIsLoading(false);
+    //       Toast.show({
+    //         type: 'success',
+    //         position: 'top',
+    //         text1: 'Đăng bài thành công.',
+    //         visibilityTime: 2000,
+    //       });
+    //     })
+    //     .catch(error => alert(error));
+    // });
+    // navigation.navigate(navigationConstants.newsfeed);
   };
   const addField = val => {
     setListImg([...fieldPickers, val]);

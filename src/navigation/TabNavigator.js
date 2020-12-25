@@ -1,14 +1,21 @@
 import { useTheme, DrawerActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Home from 'components/screen/Home';
 import Chat from 'components/screen/Chat';
 import Notify from 'components/screen/Notify';
 import ListPost from 'components/screen/ListPost';
 import Create from 'components/screen/Create';
 import NewsFeed from 'components/screen/NewsFeed';
-import { useNavigation, StackActions,CommonActions } from '@react-navigation/native';
-
+import {
+  useNavigation,
+  StackActions,
+  CommonActions,
+} from '@react-navigation/native';
+import axios from 'axios';
+import { api } from 'constants/route';
+import { getUser } from 'selectors/UserSelectors';
+import { useSelector } from 'react-redux';
 import navigationConstants from 'constants/navigation';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { main_color, touch_color } from 'constants/colorCommon';
@@ -25,7 +32,15 @@ import {
 } from 'react-native';
 import { Badge } from 'react-native-elements';
 
-const { home, create, list, notify, newsfeed, chat,tabNav } = navigationConstants;
+const {
+  home,
+  create,
+  list,
+  notify,
+  newsfeed,
+  chat,
+  tabNav,
+} = navigationConstants;
 
 const BottomTab = createMaterialTopTabNavigator();
 const Stack = createStackNavigator();
@@ -39,6 +54,8 @@ function HomeNavigator() {
 }
 
 function NewsFeedNavigator({ navigation }) {
+  const curUser = useSelector(getUser);
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -60,7 +77,7 @@ function NewsFeedNavigator({ navigation }) {
               >
                 <Image
                   style={styles.imgAvatar}
-                  source={require('../assets/avatar.jpeg')}
+                  source={{ uri: curUser.avatar.image_hash }}
                 />
               </TouchableOpacity>
             </View>
@@ -112,6 +129,8 @@ function ChatNavigator() {
   );
 }
 function NotifyNavigator() {
+  const curUser = useSelector(getUser);
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -131,7 +150,7 @@ function NotifyNavigator() {
               <TouchableOpacity onPress={() => alert('avatar is clicked')}>
                 <Image
                   style={styles.imgAvatar}
-                  source={require('../assets/avatar.jpeg')}
+                  source={{ uri: curUser.avatar.image_hash }}
                 />
               </TouchableOpacity>
             </View>
@@ -153,6 +172,8 @@ function NotifyNavigator() {
   );
 }
 function ListPostNavigator({ navigation }) {
+  const curUser = useSelector(getUser);
+
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -172,7 +193,7 @@ function ListPostNavigator({ navigation }) {
               <TouchableOpacity onPress={() => alert('click')}>
                 <Image
                   style={styles.imgAvatar}
-                  source={require('../assets/avatar.jpeg')}
+                  source={{uri: curUser.avatar.image_hash}}
                 />
               </TouchableOpacity>
             </View>
@@ -209,7 +230,7 @@ function TabNavigator() {
     >
       <BottomTab.Screen
         name={newsfeed}
-        component={NewsFeedNavigator}
+        component={NewsFeed}
         options={{
           tabBarLabel: newsfeed,
           tabBarIcon: ({ color }) => (

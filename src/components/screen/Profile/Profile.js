@@ -36,14 +36,12 @@ import storage from '@react-native-firebase/storage';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function GroupAmount(props) {
-  return (
+   return (
     <View style={styles.flex1}>
-      <TouchableOpacity onPress={() => alert('aa')}>
-        <View style={styles.alignItemCenter}>
-          <Text style={styles.txtAmount}>{props.amount}</Text>
-          <Text style={styles.txtTitleAmount}>{props.title}</Text>
-        </View>
-      </TouchableOpacity>
+      <View style={styles.alignItemCenter}>
+        <Text style={styles.txtAmount}>{props.amount}</Text>
+        <Text style={styles.txtTitleAmount}>{props.title}</Text>
+      </View>
     </View>
   );
 }
@@ -105,7 +103,7 @@ function Profile({ userId }) {
           if (isOut) return;
           setData(response.data.result);
           setAvatar(response.data.result.avatar.image_hash);
-           axios
+          axios
             .get(api + 'Post/get/user/' + response.data.result.user_id, config)
             .then(res => {
               if (isOut) return;
@@ -132,7 +130,7 @@ function Profile({ userId }) {
       height: 300,
       mediaType: 'photo',
       cropping: true,
-      includeBase64: true,
+
       compressImageQuality: 1,
     }).then(async image => {
       if (image) {
@@ -145,13 +143,10 @@ function Profile({ userId }) {
           .putFile(uploadUri);
         // set progress state
         task.on('state_changed', snapshot => {
-          console.log(
-           'uploading avatar..'
-          );
+          console.log('uploading avatar..');
         });
         try {
           await task.then(async response => {
-            
             await storage()
               .ref(response.metadata.fullPath)
               .getDownloadURL()
@@ -164,14 +159,12 @@ function Profile({ userId }) {
                     config
                   )
                   .then(response => {
-                  
                     Toast.show({
                       type: 'success',
                       position: 'top',
                       text1: 'Ảnh đại diện đã được thay đổi.',
                       visibilityTime: 2000,
                     });
-                    
                   })
                   .catch(error => alert(error));
               });
@@ -261,6 +254,7 @@ function Profile({ userId }) {
               amount={typeof data.posts === 'undefined' ? 0 : data.post_count}
               title={'Bài đăng'}
             />
+            <TouchableOpacity onPress={()=>navigation.navigate(navigationConstants.follower)}>
             <GroupAmount
               amount={
                 typeof data.followers === 'undefined'
@@ -269,6 +263,7 @@ function Profile({ userId }) {
               }
               title={'Người theo dõi'}
             />
+            </TouchableOpacity>
             <GroupAmount
               amount={
                 typeof data.followings === 'undefined'

@@ -13,6 +13,7 @@
     "react-devtools": "react-devtools"
   },
   "dependencies": {
+    "@aspnet/signalr": "^1.1.4",
     "@microsoft/signalr": "^5.0.1",
     "@react-native-async-storage/async-storage": "^1.13.2",
     "@react-native-community/datetimepicker": "^3.0.6",

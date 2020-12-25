@@ -28,6 +28,8 @@ import {
   main_2nd_color,
   main_color,
   touch_color,
+  btn_not_selected,
+  btn_selected,
 } from '../../../constants/colorCommon';
 import moment from 'moment';
 
@@ -36,15 +38,20 @@ import { func } from 'prop-types';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { api } from 'constants/route';
+import { RotationGestureHandler } from 'react-native-gesture-handler';
 function PostCard(props) {
   const post = props.post;
+  const userId = props.userId;
   const [isVote, setIsVote] = useState(false);
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [author, setAuthor] = useState();
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
+  const [vote, setVote] = useState(post.vote);
   const curUser = useSelector(getUser);
+  const [isUp, setIsUp] = useState(false);
+  const [isDown, setIsDown] = useState(false);
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
@@ -53,23 +60,49 @@ function PostCard(props) {
     fetchData();
   }, []);
   const GoToPost = () => {
+
     navigation.navigate(navigationConstants.post, {
       post: post,
       author: author,
+      vote: vote,
+      upvote: upvote,
+      downvote: downvote
     });
   };
-   
+
   const onUpvote = async () => {
-    setUpvote(upvote + 1);
+    if (vote == 1) {
+      ToastAndroid.show('Bạn đã upvote cho bài viết này.',1000)
+      return;
+    } else if (vote == 0) {
+      setVote(1);
+      setUpvote(upvote + 1);
+    } else 
+    {
+      setVote(1);
+      setUpvote(upvote + 1);
+      setDownvote(downvote - 1);
+    }
     await axios
-    .post(api + 'Post/post/upvote/' + post.oid , {id: post.oid}, config)
-    .then((response) => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+      .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid }, config)
+      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
   };
-  const onDownvote = async () =>{
-    setDownvote(upvote - 1);
+  const onDownvote = async () => {
+    if (vote == -1) {
+      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000)
+      return;
+    } else if (vote == 0) {
+      setVote(-1);
+      setDownvote(downvote + 1);
+    } else 
+    {
+      setVote(-1);
+      setDownvote(downvote + 1);
+      setUpvote(upvote - 1);
+    }
     await axios
-    .post(api + 'Post/post/downvote/' + post.oid , {id: post.oid}, config)
-    .then((response) => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
+      .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid }, config)
+      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
   };
   const GoToProfile = () => {
     navigation.navigate(navigationConstants.profile);
@@ -190,20 +223,24 @@ function PostCard(props) {
             onPress={() => onDownvote()}
           >
             <Text style={styles.txtVoteNumber}>{downvote}</Text>
-            <FontAwesome5 name={'thumbs-down'} size={24} color={main_color} />
+            <FontAwesome5
+              name={'thumbs-down'}
+              size={24}
+              color={vote == -1 ? btn_selected : btn_not_selected}
+            />
           </Pressable>
         </View>
 
         <View style={styles.flex1}>
           <Pressable
-            onPress={() => alert('comment')}
+            onPress={() => GoToPost()}
             style={({ pressed }) => [
               { backgroundColor: pressed ? touch_color : '#fff' },
               styles.btnVote,
             ]}
           >
-            <Text style={styles.txtVoteNumber}>{post.comments_count}</Text>
-            <FontAwesome5 name={'comment-alt'} size={22} color={main_color} />
+            <Text style={styles.txtVoteNumber}>{post.comments_countd}</Text>
+            <FontAwesome5 name={'comment-alt'} size={22} color={main_2nd_color} />
           </Pressable>
         </View>
         <View style={styles.flex1}>
@@ -215,7 +252,11 @@ function PostCard(props) {
             onPress={() => onUpvote()}
           >
             <Text style={styles.txtVoteNumber}>{upvote}</Text>
-            <FontAwesome5 name={'thumbs-up'} size={24} color={main_color} />
+            <FontAwesome5
+              name={'thumbs-up'}
+              size={24}
+              color={vote == 1 ? btn_selected : btn_not_selected}
+            />
           </Pressable>
         </View>
       </View>

@@ -9,6 +9,7 @@ export const actionTypes = {
   LOGIN_REQUEST: 'LOGIN_REQUEST',
   LOGIN_ERROR: 'LOGIN_ERROR',
   LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+  UPDATE_USER: 'UPDATE_USER',
 };
 
 const loginRequest = () => ({
@@ -25,7 +26,10 @@ const loginSuccess = user => ({
   type: actionTypes.LOGIN_SUCCESS,
   payload: { user },
 });
-
+const updateUser = user => ({
+  type: actionTypes.UPDATE_USER,
+  payload: { user },
+});
 const clearStore = () => ({
   type: actionTypes.CLEAR_STORE,
   payload: null,
@@ -34,10 +38,18 @@ const clearStore = () => ({
 export const login = (email, password) => async dispatch => {
   dispatch(loginRequest());
   try {
-    axios
+    await axios
       .post(api + `Accounts/login`, { email: email, password: password })
-      .then(res => {
-        dispatch(loginSuccess(res.data.result));
+      .then(async res => {
+        await axios
+          .get(api + 'User/current', {
+            headers: { Authorization: `Bearer ${res.data.result.jwtToken}` },
+          })
+          .then(response => {
+            response.data.result.jwtToken = res.data.result.jwtToken;
+            dispatch(loginSuccess(response.data.result));
+          })
+          .catch(error => alert(error));
       })
       .catch(error => {
         Alert.alert('Thông báo', 'Email hoặc mật khẩu không đúng.');
@@ -53,5 +65,21 @@ export const logout = () => async dispatch => {
     await UserController.logout();
   } finally {
     dispatch(clearStore());
+  }
+};
+
+export const update = jwt => async dispatch => {
+  try {
+    await axios
+      .get(api + 'User/current', {
+        headers: { Authorization: `Bearer ${jwt}` },
+      })
+      .then(response => {
+        response.data.result.jwtToken = jwt;
+        dispatch(updateUser(response.data.result));
+      })
+      .catch(error => alert(error));
+  } catch (error) {
+    dispatch(loginError(error.message));
   }
 };
