@@ -18,7 +18,8 @@ const navigationConstants = {
   field: 'Lĩnh vực',
   profileDetail: 'Chi tiết thông tin',
   follower: 'Người theo dõi',
-  profileEdit: 'Chỉnh sửa thông tin'
+  profileEdit: 'Chỉnh sửa thông tin',
+  search: 'Tìm kiếm'
 
 };
 

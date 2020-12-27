@@ -39,8 +39,7 @@ function DrawerContent(props) {
    
   const curUser = useSelector(getUser);
 
-   
-  return (
+   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
         <View style={styles.drawerContent}>
@@ -54,11 +53,11 @@ function DrawerContent(props) {
                 <Text style={styles.title}>{curUser.first_name} {curUser.last_name}</Text>
                 <View style={styles.row}>
                   <View style={styles.section}>
-                    <Text style={ styles.number}>{curUser.following.length}</Text>
+                    <Text style={ styles.number}>{curUser.followings}</Text>
                     <Text style={styles.caption}>Đang theo dõi</Text>
                   </View>
                   <View style={styles.section}>
-                    <Text style={styles.number}>{curUser.followers.length}</Text>
+                    <Text style={styles.number}>{curUser.followers}</Text>
                     <Text style={styles.caption}>Theo dõi</Text>
                   </View>
                 </View>

@@ -37,7 +37,7 @@ import Comment from 'components/screen/Comment';
 import { createDrawerNavigator, DrawerContent } from '@react-navigation/drawer';
 import DrawerNavigator from './DrawerNavigator';
 import Follower from 'components/screen/Follower';
-
+import Search from 'components/screen/Search';
 const Stack = createStackNavigator();
 
 const {
@@ -47,6 +47,7 @@ const {
   conversation,
   comment,
   drawerNav,
+  search,
   profileDetail,
   profileEdit,
   follower,
@@ -96,6 +97,29 @@ function AppNavigator() {
         options={{
           title: profileDetail,
           headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={search}
+        component={Search}
+        options={{
+          title: search,
+          headerShown: false,
           headerStyle: {
             backgroundColor: main_color,
           },

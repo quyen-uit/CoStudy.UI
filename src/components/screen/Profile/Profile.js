@@ -28,7 +28,7 @@ import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
-import { useTheme, useNavigation } from '@react-navigation/native';
+import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
 import navigationConstants from 'constants/navigation';
 import Toast from 'react-native-toast-message';
 import storage from '@react-native-firebase/storage';
@@ -36,7 +36,7 @@ import storage from '@react-native-firebase/storage';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function GroupAmount(props) {
-   return (
+  return (
     <View style={styles.flex1}>
       <View style={styles.alignItemCenter}>
         <Text style={styles.txtAmount}>{props.amount}</Text>
@@ -85,17 +85,43 @@ function Profile({ userId }) {
   const [data, setData] = useState([]);
   const [posts, setPosts] = useState([]);
   const navigation = useNavigation();
+  const route = useRoute();
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
   const [avatar, setAvatar] = useState('');
   const [bg, setBg] = useState();
-
+  //loading
+  const [refreshing, setRefreshing] = useState(false);
+  const [isEnd, setIsEnd] = useState(false);
+  const [skip, setSkip] = useState(0);
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
-
+  useEffect(() => {
+    if (route.params?.update) {
+      console.log(route.params.data);
+      setIsLoading(true);
+      ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
+      if (route.params.update) {
+        const postAPI = async () => {
+          await axios
+            .put(api + 'User/update', route.params.data, {
+              headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+            })
+            .then(res => {
+              console.log(res.data.result);
+              setData(res.data.result);
+              setIsLoading(false);
+            })
+            .catch(error => alert(error));
+        };
+        postAPI();
+      }
+    } else console.log('update cc');
+  }, [route.params?.update]);
   useEffect(() => {
     let isOut = false;
+
     const fetchData = async () => {
       await axios
         .get(api + 'User/current', config)
@@ -104,13 +130,22 @@ function Profile({ userId }) {
           setData(response.data.result);
           setAvatar(response.data.result.avatar.image_hash);
           axios
-            .get(api + 'Post/get/user/' + response.data.result.user_id, config)
+            .get(
+              api +
+                'Post/get/user/' +
+                response.data.result.oid +
+                '/skip/' +
+                skip +
+                '/count/5',
+              config
+            )
             .then(res => {
               if (isOut) return;
 
-              setPosts(res.data.result.posts);
-
+              setPosts([...posts, ...res.data.result]);
+              setSkip(skip + 5);
               setIsLoading(false);
+              setIsEnd(false);
             })
             .catch(error => alert(error));
         })
@@ -120,7 +155,7 @@ function Profile({ userId }) {
     return () => {
       isOut = true;
     };
-  }, []);
+  }, [skip]);
   const renderItem = ({ item }) => {
     return <PostCard post={item} />;
   };
@@ -254,24 +289,12 @@ function Profile({ userId }) {
               amount={typeof data.posts === 'undefined' ? 0 : data.post_count}
               title={'Bài đăng'}
             />
-            <TouchableOpacity onPress={()=>navigation.navigate(navigationConstants.follower)}>
-            <GroupAmount
-              amount={
-                typeof data.followers === 'undefined'
-                  ? 0
-                  : Object.keys(data.followers).length
-              }
-              title={'Người theo dõi'}
-            />
+            <TouchableOpacity
+              onPress={() => navigation.navigate(navigationConstants.follower)}
+            >
+              <GroupAmount amount={data.followers} title={'Người theo dõi'} />
             </TouchableOpacity>
-            <GroupAmount
-              amount={
-                typeof data.followings === 'undefined'
-                  ? 0
-                  : Object.keys(data.followings).length
-              }
-              title={'Đang theo dõi'}
-            />
+            <GroupAmount amount={data.followings} title={'Đang theo dõi'} />
           </View>
           <GroupInfor name={user.school} icon={'school'} />
           <GroupInfor name={user.specialized} icon={'user-cog'} />
@@ -327,10 +350,28 @@ function Profile({ userId }) {
       <View style={styles.container}>
         <SafeAreaView>
           <FlatList
+            style={{ flexGrow: 0 }}
+            onEndReached={async () => {
+              setIsEnd(true);
+              if (refreshing) {
+                setIsEnd(false);
+                return;
+              }
+            }}
+            onEndReachedThreshold={0.7}
             showsVerticalScrollIndicator={false}
             data={posts}
             renderItem={item => renderItem(item)}
             keyExtractor={(item, index) => index.toString()}
+            ListFooterComponent={() =>
+              isEnd ? (
+                <View style={{ marginVertical: 12 }}>
+                  <ActivityIndicator size={'large'} color={main_color} />
+                </View>
+              ) : (
+                <View style={{ margin: 4 }}></View>
+              )
+            }
           />
         </SafeAreaView>
       </View>

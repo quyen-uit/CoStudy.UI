@@ -1,4 +1,4 @@
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
@@ -12,7 +12,7 @@ import {
   SafeAreaView,
   StyleSheet,
   ActivityIndicator,
-  TextInput
+  TextInput,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { logout } from 'actions/UserActions';
@@ -28,6 +28,10 @@ import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
+import moment from 'moment';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import navigationConstants from 'constants/navigation';
+
 const user = {
   name: 'Nguyễn Văn Nam',
   follower: 20,
@@ -68,33 +72,35 @@ const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
 function ProfileEdit({ userId }) {
+  const route = useRoute();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const dispatch = useDispatch();
-  const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
-  const [firstname, setFirstname] = useState();
-  const [lastname, setLastname] = useState();
-  const [dob, setDOB] = useState();
-  const [phone, setPhone] = useState();
-  useEffect(() => {
-    const config = {
-      headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-    };
-    const fetchData = async () => {
-      await axios
-        .get(api + 'User/current', config)
-        .then(response => {
-          setData(response.data.result);
-          console.log(data);
-          setFirstname(data.first_name);
-          setIsLoading(false);
-        })
-        .catch(error => alert(error));
-    };
-    fetchData();
-  }, []);
-
+  const [firstname, setFirstname] = useState(route.params.data.first_name);
+  const [lastname, setLastname] = useState(route.params.data.last_name);
+  const [city, setCity] = useState(route.params.data.address.city);
+  const [district, setDistrict] = useState(route.params.data.address.district);
+  const [dob, setDOB] = useState(route.params.data.date_of_birth);
+  const [phone, setPhone] = useState(route.params.data.phone_number);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const onChange = (event, selectedDate) => {
+    setDOB(selectedDate || dob);
+    setShowDatePicker(false);
+  };
+  const update = async () => {
+    navigation.navigate(navigationConstants.profile, {
+      update: true,
+      data: {
+        first_name: firstname,
+        last_name: lastname,
+        date_of_birth: dob,
+        address: { district: district, city: city },
+        phone_number: phone,
+      },
+    });
+  };
   function Field(props) {
     return (
       <View style={styles.field}>
@@ -116,55 +122,241 @@ function ProfileEdit({ userId }) {
     );
   }
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      style={{ flex: 1 }}
+      contentContainerStyle={{ flexGrow: 1 }}
+    >
       <View style={styles.container}>
-        <Field icon={'id-card'} title={'ID'} value={data.user_id} />
-        <View style={styles.field}>
+        <View style={{ marginTop: 8 }}></View>
+        <Field icon={'id-card'} title={'ID'} value={route.params.data.oid} />
+        <View style={styles.editField}>
           <View
             style={{
-              width: 30,
-              justifyContent: 'center',
-              alignItems: 'center',
               marginRight: 12,
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
-            <Icon name={'user'} size={20} color={main_color} />
+            <Icon name={'user'} size={16} color={main_color} />
+            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+              Họ
+            </Text>
           </View>
-          <View>
-            <Text style={{ color: '#ccc', fontSize: 13 }}>Họ</Text>
-            <TextInput multiline={true} style={{alignSelf: 'stretch',borderColor: main_2nd_color, borderWidth: 1, paddingVertical: -2, fontSize: 18}} value={firstname} onChangeText={text => setFirstname(text)}/>
-          </View>
-        </View>
-        <Field
-          icon={'birthday-cake'}
-          title={'Ngày sinh'}
-          value={data.date_of_birth}
-        />
-        <Field icon={'mail-bulk'} title={'Email'} value={data.email} />
-        <Field
-          icon={'mobile-alt'}
-          title={'Số điện thoại'}
-          value={data.phone_number}
-        />
-      </View>
-      {isLoading ? (
-        <View
-          style={{
-            position: 'absolute',
-            justifyContent: 'center',
-            backgroundColor: '#cccccc',
-            opacity: 0.5,
-            width: deviceWidth,
-            height: deviceHeight - 20,
-          }}
-        >
-          <ActivityIndicator
-            size="large"
-            color={main_color}
-            style={{ marginBottom: 100 }}
+
+          <TextInput
+            multiline={true}
+            maxLength={50}
+            style={{
+              alignSelf: 'stretch',
+              paddingVertical: 4,
+              fontSize: 18,
+              backgroundColor: '#ccc',
+              borderRadius: 8,
+              marginVertical: 4,
+              marginLeft: 20,
+              paddingHorizontal: 8,
+            }}
+            value={firstname}
+            onChangeText={text => setFirstname(text)}
           />
         </View>
-      ) : null}
+        <View style={styles.editField}>
+          <View
+            style={{
+              marginRight: 12,
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={'signature'} size={16} color={main_color} />
+            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 8 }}>
+              Tên
+            </Text>
+          </View>
+
+          <TextInput
+            multiline={true}
+            maxLength={50}
+            style={{
+              alignSelf: 'stretch',
+              paddingVertical: 4,
+              fontSize: 18,
+              backgroundColor: '#ccc',
+              borderRadius: 8,
+              marginVertical: 4,
+              marginLeft: 20,
+              paddingHorizontal: 8,
+            }}
+            value={lastname}
+            onChangeText={text => setLastname(text)}
+          />
+        </View>
+
+        <View style={styles.editField}>
+          <View
+            style={{
+              marginRight: 12,
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={'birthday-cake'} size={16} color={main_color} />
+            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+              Ngày sinh
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={{
+              alignSelf: 'stretch',
+              paddingVertical: 4,
+
+              backgroundColor: '#ccc',
+              borderRadius: 8,
+              marginVertical: 4,
+              marginLeft: 20,
+              paddingHorizontal: 8,
+            }}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={{ fontSize: 18 }}>
+              {moment(dob).format('DD-MM-YYYY')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <Field
+          icon={'mail-bulk'}
+          title={'Email'}
+          value={route.params.data.email}
+        />
+        <View style={styles.editField}>
+          <View
+            style={{
+              marginRight: 12,
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={'user'} size={16} color={main_color} />
+            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+              Số điện thoại (10 số)
+            </Text>
+          </View>
+
+          <TextInput
+            multiline={true}
+            maxLength={10}
+            keyboardType="number-pad"
+            style={{
+              alignSelf: 'stretch',
+              paddingVertical: 4,
+              fontSize: 18,
+              backgroundColor: '#ccc',
+              borderRadius: 8,
+              marginVertical: 4,
+              marginLeft: 20,
+              paddingHorizontal: 8,
+            }}
+            value={phone}
+            onChangeText={text => {
+              let numreg = /^[0-9]+$/;
+              if (numreg.test(text)) {
+                setPhone(text);
+              }
+            }}
+          />
+        </View>
+        <View style={styles.editField}>
+          <View
+            style={{
+              marginRight: 12,
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={'user'} size={16} color={main_color} />
+            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+              Quận/Huyện
+            </Text>
+          </View>
+
+          <TextInput
+            multiline={true}
+            maxLength={50}
+            style={{
+              alignSelf: 'stretch',
+              paddingVertical: 4,
+              fontSize: 18,
+              backgroundColor: '#ccc',
+              borderRadius: 8,
+              marginVertical: 4,
+              marginLeft: 20,
+              paddingHorizontal: 8,
+            }}
+            value={district}
+            onChangeText={text => setDistrict(text)}
+          />
+        </View>
+        <View style={styles.editField}>
+          <View
+            style={{
+              marginRight: 12,
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={'user'} size={16} color={main_color} />
+            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+              Thành phố
+            </Text>
+          </View>
+
+          <TextInput
+            multiline={true}
+            maxLength={50}
+            style={{
+              alignSelf: 'stretch',
+              paddingVertical: 4,
+              fontSize: 18,
+              backgroundColor: '#ccc',
+              borderRadius: 8,
+              marginVertical: 4,
+              marginLeft: 20,
+              paddingHorizontal: 8,
+            }}
+            value={city}
+            onChangeText={text => setCity(text)}
+          />
+        </View>
+        <TouchableOpacity onPress={() => update()}>
+          <View
+            style={{
+              justifyContent: 'center',
+              backgroundColor: main_2nd_color,
+              marginHorizontal: 14,
+              alignItems: 'center',
+              paddingVertical: 8,
+              marginVertical: 8,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}>
+              Chỉnh sửa
+            </Text>
+          </View>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={new Date(2000, 0, 1)}
+            mode={'date'}
+            display="default"
+            onChange={onChange}
+          />
+        )}
+      </View>
     </ScrollView>
   );
 }
@@ -241,6 +433,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  editField: {
+    marginHorizontal: 10,
+    marginVertical: 4,
+    backgroundColor: '#fff',
+    padding: 4,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignItems: 'flex-start',
   },
 });
 

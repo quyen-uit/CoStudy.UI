@@ -84,8 +84,7 @@ function ProfileDetail({ userId }) {
         .get(api + 'User/current', config)
         .then(response => {
           setData(response.data.result);
-          console.log(data);
-          setIsLoading(false);
+           setIsLoading(false);
         })
         .catch(error => alert(error));
     };
@@ -142,7 +141,7 @@ function ProfileDetail({ userId }) {
             source={require('../../../assets/avatar.jpeg')}
           />
           <TouchableOpacity
-            onPress={() => navigation.navigate(navigationConstants.profileEdit)}
+            onPress={() => navigation.navigate(navigationConstants.profileEdit, {data: data})}
             style={{
               alignSelf: 'flex-end',
             }}
@@ -161,7 +160,7 @@ function ProfileDetail({ userId }) {
       </View>
 
       <View style={styles.container}>
-        <Field icon={'id-card'} title={'ID'} value={data.user_id} />
+        <Field icon={'id-card'} title={'ID'} value={data.oid} />
         <Field icon={'user'} title={'Họ'} value={data.first_name} />
         <Field icon={'signature'} title={'Tên'} value={data.last_name} />
         <Field
@@ -174,6 +173,16 @@ function ProfileDetail({ userId }) {
           icon={'mobile-alt'}
           title={'Số điện thoại'}
           value={data.phone_number}
+        />
+        <Field
+          icon={'location-arrow'}
+          title={'Quận/Huyện'}
+          value={data.address ? data.address.district : null}
+        />
+        <Field
+          icon={'city'}
+          title={'Thành phố'}
+          value={data.address ? data.address.city : null}
         />
       </View>
       {isLoading ? (

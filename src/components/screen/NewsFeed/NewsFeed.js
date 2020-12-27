@@ -268,7 +268,7 @@ function NewsFeed() {
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => alert('search is clicked')}>
+          <TouchableOpacity onPress={() => navigation.navigate(navigationConstants.search)}>
             <Icon name={'search'} size={24} color={'#fff'} />
           </TouchableOpacity>
         </View>
