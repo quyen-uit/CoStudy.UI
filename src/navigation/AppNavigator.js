@@ -37,6 +37,8 @@ import Comment from 'components/screen/Comment';
 import { createDrawerNavigator, DrawerContent } from '@react-navigation/drawer';
 import DrawerNavigator from './DrawerNavigator';
 import Follower from 'components/screen/Follower';
+import Following from 'components/screen/Following';
+
 import Search from 'components/screen/Search';
 const Stack = createStackNavigator();
 
@@ -45,6 +47,7 @@ const {
   post,
   profile,
   conversation,
+  following,
   comment,
   drawerNav,
   search,
@@ -248,6 +251,28 @@ function AppNavigator() {
           ),
         }}
       />
+      <Stack.Screen
+      name={following}
+      component={Following}
+      options={{
+        title: following,
+        headerStyle: {
+          backgroundColor: main_color,
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          alignSelf: 'center',
+        },
+
+        headerRight: () => (
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => alert('search is clicked')}>
+              <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+            </TouchableOpacity>
+          </View>
+        ),
+      }}
+    />
       <Stack.Screen
         name={create}
         component={Create}

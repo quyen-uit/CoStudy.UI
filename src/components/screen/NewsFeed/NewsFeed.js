@@ -64,6 +64,13 @@ function NewsFeed() {
             .get(api + `Post/timeline/skip/0/count/5`, config)
             .then(res => {
               res.data.result.forEach(item => {
+                resUser.data.result.post_saved.forEach(i => {
+                   if (i == item.oid) {
+                    item.saved = true;
+                    
+                  }
+                  else item.saved = false;
+                });
                 item.vote = 0;
                 response.data.result.post_upvote.forEach(i => {
                   if (i == item.oid) {
@@ -94,29 +101,35 @@ function NewsFeed() {
     const fetchData1 = async () => {
       await axios
         .get(api + 'User/current', config)
-        .then(async response => {
-          await axios
+        .then(async resUser => {
+           await axios
             .get(api + `Post/timeline/skip/0/count/5`, config)
-            .then(async res => {
-              res.data.result.forEach(item => {
+            .then(async resPost => {
+              resPost.data.result.forEach(item => {
+                resUser.data.result.post_saved.forEach(i => {
+                  if (i == item.oid) {
+                    item.saved = true;
+                    
+                  }
+                  else item.saved = false;
+                });
                 item.vote = 0;
-                response.data.result.post_upvote.forEach(i => {
+                resUser.data.result.post_upvote.forEach(i => {
                   if (i == item.oid) {
                     item.vote = 1;
                   }
                 });
-                response.data.result.post_downvote.forEach(i => {
+                resUser.data.result.post_downvote.forEach(i => {
                   if (i == item.oid) {
                     item.vote = -1;
                   }
                 });
               });
               if (isRender) {
-                setPosts(res.data.result);
+                setPosts(resPost.data.result);
                 setIsLoading(false);
 
                 setSkip(5);
-                console.log('1');
                 if (route.params?.title) {
                   let list = [];
 
@@ -208,6 +221,14 @@ function NewsFeed() {
           .get(api + `Post/timeline/skip/${skip}/count/5`, config)
           .then(res => {
             res.data.result.forEach(item => {
+              resUser.data.result.post_saved.forEach(i => {
+                console.log(i)
+                if (i == item.oid) {
+                  item.saved = true;
+                  
+                }
+                else item.saved = false;
+              });
               item.vote = 0;
               response.data.result.post_upvote.forEach(i => {
                 if (i == item.oid) {
@@ -268,7 +289,9 @@ function NewsFeed() {
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => navigation.navigate(navigationConstants.search)}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(navigationConstants.search)}
+          >
             <Icon name={'search'} size={24} color={'#fff'} />
           </TouchableOpacity>
         </View>
@@ -279,12 +302,14 @@ function NewsFeed() {
           data={posts}
           style={{ marginBottom: 110 }}
           onEndReached={async () => {
-            setIsEnd(true);
-            if (refreshing) {
-              setIsEnd(false);
-              return;
+            if (posts.length > 2) {
+              setIsEnd(true);
+              if (refreshing) {
+                setIsEnd(false);
+                return;
+              }
+              await fetchData();
             }
-            await fetchData();
           }}
           onEndReachedThreshold={0.7}
           renderItem={item => renderItem(item)}

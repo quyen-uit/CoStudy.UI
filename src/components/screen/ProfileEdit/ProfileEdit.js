@@ -87,7 +87,8 @@ function ProfileEdit({ userId }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const onChange = (event, selectedDate) => {
     setDOB(selectedDate || dob);
-    setShowDatePicker(false);
+ 
+    setShowDatePicker(Platform.OS === 'ios');
   };
   const update = async () => {
     navigation.navigate(navigationConstants.profile, {

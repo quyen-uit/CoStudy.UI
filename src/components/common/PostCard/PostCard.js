@@ -148,7 +148,7 @@ function PostCard(props) {
                           moment(post.created_date),
                           'hours'
                         ) + ' giờ trước'
-                      : moment(post.created_date).format('hh:mm MM-DD-YYYY')}
+                      : moment(post.created_date).format('hh:mm DD-MM-YYYY')}
                   </Text>
                 </View>
               </View>
@@ -272,6 +272,7 @@ function PostCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
+        saved={post.saved}
       />
     </Card>
   );

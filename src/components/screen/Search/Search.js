@@ -8,7 +8,9 @@ import {
   Image,
   TouchableHighlight,
   RefreshControl,
+  Alert,
   ToastAndroid,
+  BackHandler,
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
@@ -66,6 +68,18 @@ function Search() {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
 
+  const backAction = () => {
+    setModalVisible(false);
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () =>
+      BackHandler.removeEventListener('hardwareBackPress', backAction);
+  }, []);
+
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
@@ -98,7 +112,7 @@ function Search() {
     fieldPickers.forEach(item => {
       if (item.isPick) tmp.push(item);
     });
- 
+
     let isRender = true;
     const fetchData1 = async () => {
       await axios
@@ -124,12 +138,11 @@ function Search() {
                   }
                 });
               });
-               
-                setPosts(res.data.result);
-                
-                setIsLoading(false);
-                setSkip(3);
-              
+
+              setPosts(res.data.result);
+
+              setIsLoading(false);
+              setSkip(3);
             })
             .catch(error => alert(error));
         })
@@ -144,13 +157,13 @@ function Search() {
 
   const fetchMore = async () => {
     if (isEnd == true) return;
-     await axios
+    await axios
       .get(api + 'User/current', config)
       .then(async response => {
         await axios
           .post(
             api + `Post/post/filter`,
-            { skip: skip, count: 3, keyword: search },
+            { skip: skip, count: 3, keyword: keyword },
             config
           )
           .then(async res => {
@@ -167,12 +180,11 @@ function Search() {
                 }
               });
             });
-             
-              
-              setPosts(posts.concat(res.data.result));
-              setIsLoading(false);
-               setSkip(skip + 3);
-              setIsEnd(false);
+
+            setPosts(posts.concat(res.data.result));
+            setIsLoading(false);
+            setSkip(skip + 3);
+            setIsEnd(false);
           })
           .catch(error => alert(error));
       })
@@ -196,6 +208,24 @@ function Search() {
   };
   return (
     <View>
+      {isLoading ? (
+        <View
+          style={{
+            position: 'absolute',
+            justifyContent: 'center',
+            backgroundColor: '#cccccc',
+            opacity: 0.5,
+            width: deviceWidth,
+            height: deviceHeight - 20,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={main_color}
+            style={{ marginBottom: 100 }}
+          />
+        </View>
+      ) : null}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -239,8 +269,10 @@ function Search() {
           data={posts}
           style={{ flexGrow: 0, marginBottom: 200 }}
           onEndReached={async () => {
-            if (posts.length > 2) setIsEnd(true);
-            await fetchMore();
+            if (posts.length > 2) {
+              setIsEnd(true);
+              await fetchMore();
+            }
           }}
           onEndReachedThreshold={0.7}
           renderItem={item => renderItem(item)}
@@ -255,24 +287,6 @@ function Search() {
             )
           }
         />
-        {isLoading ? (
-          <View
-            style={{
-              position: 'absolute',
-              justifyContent: 'center',
-              backgroundColor: '#cccccc',
-              opacity: 0.5,
-              width: deviceWidth,
-              height: deviceHeight - 20,
-            }}
-          >
-            <ActivityIndicator
-              size="large"
-              color={main_color}
-              style={{ marginBottom: 100 }}
-            />
-          </View>
-        ) : null}
       </SafeAreaView>
 
       <BottomModal

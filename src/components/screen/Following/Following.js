@@ -14,7 +14,7 @@ import {
   Image,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import styles from 'components/screen/Follower/styles';
+import styles from 'components/screen/Following/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
 import { getUser } from 'selectors/UserSelectors';
@@ -41,9 +41,9 @@ const list = [
   },
 ];
 function UserCard({ item }) {
+  const [following, setFollowing] = useState(true);
   const [loading, setLoading] = useState(false);
   const curUser = useSelector(getUser);
-  const [following, setFollowing] = useState(item.following);
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
@@ -52,8 +52,8 @@ function UserCard({ item }) {
     if (following) {
       await axios
         .post(
-          api + 'User/follower/remove?followingId=' + item.from_id,
-          { followingId: item.from_id },
+          api + 'User/following/remove?followingId=' + item.toId,
+          { followingId: item.toId },
           config
         )
         .then(res => {
@@ -63,7 +63,7 @@ function UserCard({ item }) {
         .catch(error => alert(error));
     } else {
       await axios
-        .post(api + 'User/following', { followers: [item.from_id] }, config)
+        .post(api + 'User/following', { followers: [item.toId] }, config)
         .then(res => {
           setLoading(false);
           setFollowing(true);
@@ -132,7 +132,7 @@ function UserCard({ item }) {
     </Card>
   );
 }
-function Follower() {
+function Following() {
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [listMes, setListMes] = useState([]);
@@ -149,29 +149,15 @@ function Follower() {
     const fetch = async () => {
       await axios
         .get(
-          api + 'User/follower?UserId=' + curUser.oid + '&Skip=0&Count=99',
+          api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99',
 
           config
         )
-        .then(async res => {
-          await axios
-            .get(
-              api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99',
-
-              config
-            )
-            .then(following => {
-              if (!isOut) {
-                res.data.result.forEach(er => {
-                  er.following = false;
-                  following.data.result.forEach(ing => {
-                    if (er.from_id == ing.toId) er.following = true;
-                  });
-                });
-                setIsLoading(false);
-                setList(res.data.result);
-              }
-            });
+        .then(res => {
+          if (!isOut) {
+            setList(res.data.result);
+            setIsLoading(false);
+          }
         })
         .catch(error => alert(error));
     };
@@ -212,4 +198,4 @@ function Follower() {
     </View>
   );
 }
-export default Follower;
+export default Following;

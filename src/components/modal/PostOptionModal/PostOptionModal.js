@@ -16,9 +16,8 @@ import styles from './styles';
 //   latestChat: 'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
 //   latestTime: '10 phut truoc',
 // }
-function PostOptionModal({ ...rest }) {
-
-  return (
+const PostOptionModal = ({ ...rest } ) => {
+   return (
     <BottomModal
       {...rest}
       swipeDirection={['down']} // can be string or an array
@@ -57,8 +56,8 @@ function PostOptionModal({ ...rest }) {
         </TouchableHighlight>
         <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
           <View style={styles.optionContainer}>
-            <Icon name={'eye'} color={main_color} size={24} />
-            <Text style={styles.txtOption}>Thêm vào danh sách quan tâm</Text>
+            <Icon name={'eye'} color={rest.saved ? main_color : '#ccc'} size={24} />
+            <Text style={styles.txtOption}>{rest.saved ? 'Xóa khỏi danh sách quan tâm' : 'Thêm vào danh sách quan tâm'}</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight

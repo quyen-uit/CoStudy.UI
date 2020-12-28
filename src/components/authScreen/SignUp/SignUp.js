@@ -1,6 +1,13 @@
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { Text, Image, View, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  Text,
+  Image,
+  View,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
 import Button from 'components/common/Button';
@@ -16,13 +23,16 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import RNPickerSelect from 'react-native-picker-select';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { hint_color, main_2nd_color, main_color } from 'constants/colorCommon';
-
+import moment from 'moment';
+import navigationConstants from 'constants/navigation';
 function SignUp() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
+  const [first, setFirst] = useState('');
+  const [last, setLast] = useState('');
+  const [district, setDistrict] = useState('');
+  const [city, setCity] = useState('');
+  const navigation = useNavigation();
   const [date, setDate] = useState(new Date(1598051730000));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
@@ -32,26 +42,15 @@ function SignUp() {
     setDate(currentDate);
   };
 
-  const showMode = currentMode => {
-    setShow(true);
-    setMode(currentMode);
+  const onNext = () => {
+    if (first == '' || last == '') {
+      Alert.alert('Thông báo', 'Vui lòng đầy đủ họ và tên.');
+      return;
+    }else 
+    {
+      navigation.navigate(navigationConstants.signup2, {first: first, last: last, dob: date, city: city, district: district})
+    }
   };
-
-  const showDatepicker = () => {
-    showMode('date');
-  };
-
-  const showTimepicker = () => {
-    showMode('time');
-  };
-  const isLoading = useSelector(state =>
-    isLoadingSelector([actionTypes.LOGIN], state)
-  );
-
-  const errors = useSelector(
-    state => errorsSelector([actionTypes.LOGIN], state),
-    shallowEqual
-  );
 
   const handleSubmit = () => {
     dispatch(login(email, password));
@@ -68,33 +67,51 @@ function SignUp() {
           <TextField
             accessibilityHint={strings.firstName}
             accessibilityLabel={strings.firstName.toLowerCase()}
-            onChangeText={setEmail}
+            onChangeText={setFirst}
             placeholder={strings.firstName}
-            value={email}
+            value={first}
             icon={'user-check'}
           />
           <TextField
             accessibilityHint={strings.lastName}
             accessibilityLabel={strings.lastName}
-            onChangeText={setPassword}
+            onChangeText={setLast}
             placeholder={strings.lastName}
-            value={password}
+            value={last}
             icon={'user-edit'}
           />
-          <TextField
-            accessibilityHint={strings.dob}
-            accessibilityLabel={strings.dob}
-            onChangeText={setEmail}
-            placeholder={strings.dob}
-            value={password}
-            icon={'calendar-alt'}
-          />
+          <TouchableOpacity
+            style={{
+              alignSelf: 'stretch',
+              marginHorizontal: 56,
+              backgroundColor: '#fff',
+              borderRadius: 32,
+              justifyContent: 'center',
+              marginVertical: 12,
+            }}
+            onPress={() => setShow(true)}
+          >
+            <Text
+              style={{
+                paddingRight: 16,
+                paddingLeft: 48,
+                fontSize: 16,
+                color: '#000',
+                marginVertical: 14,
+              }}
+            >
+              {moment(date).format('DD-MM-YYYY')}
+            </Text>
+            <View style={{ paddingLeft: 12, position: 'absolute' }}>
+              <Icon name={'birthday-cake'} size={22} color={main_2nd_color} />
+            </View>
+          </TouchableOpacity>
           <View style={styles.picker}>
             <RNPickerSelect
-              onValueChange={value => console.log(value)}
+              onValueChange={value => setDistrict(value)}
               placeholder={{
-                label: strings.gender,
-                value: null,
+                label: 'Quận/Huyện',
+                value: '',
               }}
               style={{
                 placeholder: { color: hint_color },
@@ -103,9 +120,9 @@ function SignUp() {
                 },
               }}
               items={[
-                { label: strings.male, value: strings.male },
-                { label: strings.female, value: strings.female },
-                { label: strings.other, value: strings.other },
+                { label: 'Thủ đức', value: 'Thủ đức' },
+                { label: 'Gò vấp', value: 'Gò vấp' },
+                { label: 'Quận 12', value: 'Quận 12' },
               ]}
             />
             <View style={styles.icon}>
@@ -120,18 +137,24 @@ function SignUp() {
                 inputAndroid: {
                   color: '#000',
                 },
+              }} 
+              placeholder={{
+                label: 'Thành phố',
+                value: '',
               }}
               items={[
-                { label: 'Football', value: 'football' },
-                { label: 'Baseball', value: 'baseball' },
-                { label: 'Hockey', value: 'hockey' },
+                { label: 'Hồ Chí Minh', value: 'Hồ Chí Minh' },
+                
               ]}
             />
             <View style={styles.icon}>
               <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
             </View>
           </View>
-          <TouchableOpacity style={styles.btnSignUp}>
+          <TouchableOpacity
+            style={styles.btnSignUp}
+            onPress={() => onNext()}
+          >
             <Text style={styles.txtSignUp}>{strings.next}</Text>
           </TouchableOpacity>
         </View>
@@ -141,8 +164,7 @@ function SignUp() {
           <DateTimePicker
             testID="dateTimePicker"
             value={date}
-            mode={mode}
-            is24Hour={true}
+            mode={'date'}
             display="default"
             onChange={onChange}
           />

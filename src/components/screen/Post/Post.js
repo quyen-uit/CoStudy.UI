@@ -106,7 +106,9 @@ function Post(props) {
   const [upvote, setUpvote] = useState(route.params.upvote);
   const [downvote, setDownvote] = useState(route.params.downvote);
   const [vote, setVote] = useState(route.params.vote);
-
+  const [saved, setSaved] = useState(route.params.post.saved);
+  const [isSaving, setIsSaving] = useState(false);
+  console.log(route.params.post.saved);
   const [imgComment, setImgComment] = useState('');
   const [comment, setComment] = useState('');
 
@@ -128,9 +130,9 @@ function Post(props) {
     let isOut = false;
     const fetchData = async () => {
       await axios
-        .get(api + 'Post/comments/' + post.oid, config)
+        .get(api + 'Comment/get/' + post.oid + '/skip/0/count/5', config)
         .then(response => {
-          setComments(response.data.result);
+          if (!isOut) setComments(response.data.result);
         })
         .catch(error => alert(error));
     };
@@ -139,15 +141,35 @@ function Post(props) {
       isOut = true;
     };
   }, []);
+  const onSaved = async () => {
+    setIsSaving(true);
+    console.log('2');
+    if (saved) {
+      await axios
+        .post(api + 'Post/post/save/' + post.oid, { id: post.oid }, config)
+        .then(response => {
+          setIsSaving(false);
+          setSaved(false);
+          ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+        });
+    } else {
+      await axios
+        .post(api + 'Post/post/save/' + post.oid, { id: post.oid }, config)
+        .then(response => {
+          ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
+          setIsSaving(false);
+          setSaved(true);
+        });
+    }
+  };
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.')
+      ToastAndroid.show('Bạn đã upvote cho bài viết này.');
       return;
     } else if (vote == 0) {
       setVote(1);
       setUpvote(upvote + 1);
-    } else 
-    {
+    } else {
       setVote(1);
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
@@ -158,13 +180,12 @@ function Post(props) {
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.')
+      ToastAndroid.show('Bạn đã downvote cho bài viết này.');
       return;
     } else if (vote == 0) {
       setVote(-1);
       setDownvote(downvote + 1);
-    } else 
-    {
+    } else {
       setVote(-1);
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
@@ -174,8 +195,6 @@ function Post(props) {
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
   };
   const pickImage = () => {
- 
-
     ImagePicker.openPicker({
       width: 800,
       height: 1000,
@@ -191,7 +210,7 @@ function Post(props) {
   };
   const postComment = async () => {
     let img = '';
-     if (comment == '') {
+    if (comment == '') {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
@@ -222,7 +241,7 @@ function Post(props) {
         console.error(e);
       }
     }
-    
+
     await axios
       .post(
         api + 'Post/comment/add',
@@ -284,7 +303,7 @@ function Post(props) {
                             moment(post.created_date),
                             'hours'
                           ) + ' giờ trước'
-                        : moment(post.created_date).format('hh:mm MM-DD-YYYY')}
+                        : moment(post.created_date).format('hh:mm DD-MM-YYYY')}
                     </Text>
                   </View>
                 </View>
@@ -295,13 +314,15 @@ function Post(props) {
                   activeOpacity={1}
                   underlayColor={touch_color}
                   style={styles.btnBookmark}
-                  onPress={() => alert('avatar is clicked')}
+                  onPress={() => {
+                    if (isSaving == false) onSaved();
+                  }}
                 >
                   <View style={styles.btnOption}>
                     <FontAwesome
                       name={'bookmark'}
                       size={32}
-                      color={main_color}
+                      color={saved ? main_color : '#ccc'}
                     />
                   </View>
                 </TouchableHighlight>
@@ -412,7 +433,8 @@ function Post(props) {
                   <FontAwesome5
                     name={'thumbs-up'}
                     size={24}
-                    color={vote == 1 ? btn_selected : btn_not_selected}                  />
+                    color={vote == 1 ? btn_selected : btn_not_selected}
+                  />
                 </Pressable>
               </View>
             </View>

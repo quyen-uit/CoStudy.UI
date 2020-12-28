@@ -13,7 +13,6 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
 import { logout } from 'actions/UserActions';
 import Button from 'components/common/Button';
 import styles from 'components/screen/Profile/styles';
@@ -26,18 +25,19 @@ import PostCard from '../../common/PostCard';
 import axios from 'axios';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
 import navigationConstants from 'constants/navigation';
 import Toast from 'react-native-toast-message';
 import storage from '@react-native-firebase/storage';
+import { actionTypes, update } from 'actions/UserActions';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function GroupAmount(props) {
   return (
-    <View style={styles.flex1}>
+    <View>
       <View style={styles.alignItemCenter}>
         <Text style={styles.txtAmount}>{props.amount}</Text>
         <Text style={styles.txtTitleAmount}>{props.title}</Text>
@@ -112,6 +112,7 @@ function Profile({ userId }) {
               console.log(res.data.result);
               setData(res.data.result);
               setIsLoading(false);
+              dispatch(update(curUser.jwtToken));
             })
             .catch(error => alert(error));
         };
@@ -200,6 +201,7 @@ function Profile({ userId }) {
                       text1: 'Ảnh đại diện đã được thay đổi.',
                       visibilityTime: 2000,
                     });
+                    dispatch(update(curUser.jwtToken));
                   })
                   .catch(error => alert(error));
               });
@@ -243,138 +245,150 @@ function Profile({ userId }) {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
-      <View style={styles.container}>
-        <View>
-          <Image
-            style={styles.imgCover}
-            source={require('../../../assets/test.png')}
-          />
-        </View>
-        <View style={styles.containerProfile}>
-          <Image
-            style={styles.imgBigAvatar}
-            source={
-              avatar == ''
-                ? require('../../../assets/test.png')
-                : { uri: avatar }
-            }
-          />
-          <TouchableOpacity
-            onPress={() => pickImage()}
-            style={{
-              alignSelf: 'center',
-              top: 24,
-              left: deviceWidth / 2 + 12,
-              position: 'absolute',
-            }}
-          >
-            <View
-              style={{
-                backgroundColor: main_2nd_color,
-                padding: 8,
-                borderRadius: 30,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Icon name={'edit'} size={20} color={'#fff'} />
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.txtName}>
-            {data ? data.first_name : null} {data ? data.last_name : null}
-          </Text>
-          <View style={styles.containerAmount}>
-            <GroupAmount
-              amount={typeof data.posts === 'undefined' ? 0 : data.post_count}
-              title={'Bài đăng'}
+    <View style={{ flex: 1 }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
+          <View>
+            <Image
+              style={styles.imgCover}
+              source={require('../../../assets/test.png')}
+            />
+          </View>
+          <View style={styles.containerProfile}>
+            <Image
+              style={styles.imgBigAvatar}
+              source={
+                avatar == ''
+                  ? require('../../../assets/test.png')
+                  : { uri: avatar }
+              }
             />
             <TouchableOpacity
-              onPress={() => navigation.navigate(navigationConstants.follower)}
+              onPress={() => pickImage()}
+              style={{
+                alignSelf: 'center',
+                top: 24,
+                left: deviceWidth / 2 + 12,
+                position: 'absolute',
+              }}
             >
-              <GroupAmount amount={data.followers} title={'Người theo dõi'} />
+              <View
+                style={{
+                  backgroundColor: main_2nd_color,
+                  padding: 8,
+                  borderRadius: 30,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Icon name={'edit'} size={20} color={'#fff'} />
+              </View>
             </TouchableOpacity>
-            <GroupAmount amount={data.followings} title={'Đang theo dõi'} />
-          </View>
-          <GroupInfor name={user.school} icon={'school'} />
-          <GroupInfor name={user.specialized} icon={'user-cog'} />
-          <GroupInfor name={user.graduation} icon={'graduation-cap'} />
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate(navigationConstants.profileDetail)
-            }
-          >
-            <GroupInfor name={'Xem chi tiết thông tin'} icon={'ellipsis-h'} />
-          </TouchableOpacity>
-          <View style={styles.containerButton}>
-            <TouchableHighlight
-              style={styles.btnFollow}
-              underlayColor={touch_color}
-            >
-              <Text style={styles.txtFollow}>Theo dõi</Text>
-            </TouchableHighlight>
-            <TouchableHighlight
-              style={styles.btnFollow}
-              underlayColor={touch_color}
-              onPress={() => alert('â')}
-            >
-              <Text style={styles.txtFollow}>Nhắn tin</Text>
-            </TouchableHighlight>
-          </View>
-        </View>
-        <View style={styles.containerNew}>
-          <View style={styles.grNew}>
-            <View style={styles.flex1}>
-              <Image
-                style={styles.imgAvatar}
-                source={require('../../../assets/avatar.jpeg')}
-              />
+            <Text style={styles.txtName}>
+              {data ? data.first_name : null} {data ? data.last_name : null}
+            </Text>
+            <View style={styles.containerAmount}>
+              <View style={styles.flex1}>
+                <GroupAmount
+                  amount={
+                    typeof data.posts === 'undefined' ? 0 : data.post_count
+                  }
+                  title={'Bài đăng'}
+                />
+              </View>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate(navigationConstants.follower)
+                }
+                style={styles.flex1}
+              >
+                <GroupAmount amount={data.followers} title={'Người theo dõi'} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate(navigationConstants.following)
+                }
+                style={styles.flex1}
+              >
+                <GroupAmount amount={data.followings} title={'Đang theo dõi'} />
+              </TouchableOpacity>
             </View>
-            <TouchableHighlight
-              onPress={() => alert('new')}
-              underlayColor={touch_color}
-              style={styles.btnBoxNew}
+            <GroupInfor name={user.school} icon={'school'} />
+            <GroupInfor name={user.specialized} icon={'user-cog'} />
+            <GroupInfor name={user.graduation} icon={'graduation-cap'} />
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate(navigationConstants.profileDetail)
+              }
             >
-              <Text style={styles.txtNew}>
-                Bạn có câu hỏi gì mới, {user.name}?
-              </Text>
-            </TouchableHighlight>
+              <GroupInfor name={'Xem chi tiết thông tin'} icon={'ellipsis-h'} />
+            </TouchableOpacity>
+            <View style={styles.containerButton}>
+              <TouchableHighlight
+                style={styles.btnFollow}
+                underlayColor={touch_color}
+              >
+                <Text style={styles.txtFollow}>Theo dõi</Text>
+              </TouchableHighlight>
+              <TouchableHighlight
+                style={styles.btnFollow}
+                underlayColor={touch_color}
+                onPress={() => alert('â')}
+              >
+                <Text style={styles.txtFollow}>Nhắn tin</Text>
+              </TouchableHighlight>
+            </View>
           </View>
-          <View style={styles.grOption}>
-            <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
-            <GroupOption icon={'square-root-alt'} option={'Công thức'} />
-            <GroupOption icon={'images'} option={'Hình ảnh'} />
+          <View style={styles.containerNew}>
+            <View style={styles.grNew}>
+              <View style={styles.flex1}>
+                <Image
+                  style={styles.imgAvatar}
+                  source={require('../../../assets/avatar.jpeg')}
+                />
+              </View>
+              <TouchableHighlight
+                onPress={() => alert('new')}
+                underlayColor={touch_color}
+                style={styles.btnBoxNew}
+              >
+                <Text style={styles.txtNew}>
+                  Bạn có câu hỏi gì mới, {user.name}?
+                </Text>
+              </TouchableHighlight>
+            </View>
+            <View style={styles.grOption}>
+              <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
+              <GroupOption icon={'square-root-alt'} option={'Công thức'} />
+              <GroupOption icon={'images'} option={'Hình ảnh'} />
+            </View>
           </View>
         </View>
-      </View>
-      <View style={styles.container}>
-        <SafeAreaView>
-          <FlatList
-            style={{ flexGrow: 0 }}
-            onEndReached={async () => {
-              setIsEnd(true);
-              if (refreshing) {
-                setIsEnd(false);
-                return;
+        <View style={styles.container}>
+          <SafeAreaView>
+            <FlatList
+              style={{ flexGrow: 0 }}
+              onEndReached={async () => {
+                if (posts.length > 4) setIsEnd(true);
+              }}
+              onEndReachedThreshold={0.7}
+              showsVerticalScrollIndicator={false}
+              data={posts}
+              renderItem={item => renderItem(item)}
+              keyExtractor={(item, index) => index.toString()}
+              ListFooterComponent={() =>
+                isEnd ? (
+                  <View style={{ marginVertical: 12 }}>
+                    <ActivityIndicator size={'large'} color={main_color} />
+                  </View>
+                ) : (
+                  <View style={{ margin: 4 }}></View>
+                )
               }
-            }}
-            onEndReachedThreshold={0.7}
-            showsVerticalScrollIndicator={false}
-            data={posts}
-            renderItem={item => renderItem(item)}
-            keyExtractor={(item, index) => index.toString()}
-            ListFooterComponent={() =>
-              isEnd ? (
-                <View style={{ marginVertical: 12 }}>
-                  <ActivityIndicator size={'large'} color={main_color} />
-                </View>
-              ) : (
-                <View style={{ margin: 4 }}></View>
-              )
-            }
-          />
-        </SafeAreaView>
-      </View>
+            />
+          </SafeAreaView>
+        </View>
+      </ScrollView>
       {isLoading ? (
         <View
           style={{
@@ -393,7 +407,7 @@ function Profile({ userId }) {
           />
         </View>
       ) : null}
-    </ScrollView>
+    </View>
   );
 }
 

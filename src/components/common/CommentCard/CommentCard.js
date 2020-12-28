@@ -168,7 +168,7 @@ function CommentCard(props) {
                         moment(comment.created_date),
                         'hours'
                       ) + ' giờ trước'
-                    : moment(comment.created_date).format('hh:mm MM-DD-YYYY')}
+                    : moment(comment.created_date).format('hh:mm DD-MM-YYYY')}
                   </Text>
                 </View>
                 <View style={styles.row}>
@@ -196,7 +196,7 @@ function CommentCard(props) {
               </View>
             </View>
           </TouchableHighlight>
-          {comment.image !='' ? <Image  source={{uri: comment.image}} style={{width: 150, height: 200, alignSelf: 'flex-start', margin: 4}}/>: null}
+          {comment.image !='' ? <Image  source={{uri: comment.image}} style={{marginLeft: 24,width: 150, height: 200, alignSelf: 'flex-start', margin: 4}}/>: null}
           
         </View>
       </View>

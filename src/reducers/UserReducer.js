@@ -8,6 +8,8 @@ const userReducer = (state = {}, { payload, type }) => {
       return {};
     case actionTypes.CLEAR_STORE:
       return {};
+    case actionTypes.UPDATE_USER:
+       return {...payload.user};
     default:
       return state;
   }

@@ -26,7 +26,7 @@ const loginSuccess = user => ({
   type: actionTypes.LOGIN_SUCCESS,
   payload: { user },
 });
-const updateUser = user => ({
+export const updateUser =( user) => ({
   type: actionTypes.UPDATE_USER,
   payload: { user },
 });
