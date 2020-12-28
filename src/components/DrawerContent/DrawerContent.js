@@ -32,12 +32,12 @@ function ItemDrawer({ icon, route }) {
 }
 function DrawerContent(props) {
   const dispatch = useDispatch();
-
+  const curUser = useSelector(getUser)
   const logoutUser = () => {
-    dispatch(logout());
+    dispatch(logout(curUser.jwtToken));
   };
    
-  const curUser = useSelector(getUser);
+  ;
 
    return (
     <View style={{ flex: 1 }}>

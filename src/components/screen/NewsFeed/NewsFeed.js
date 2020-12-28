@@ -13,7 +13,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector , useDispatch} from 'react-redux';
 import styles from 'components/screen/NewsFeed/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
@@ -24,17 +24,22 @@ import { main_color, touch_color } from 'constants/colorCommon';
 import PostCard from '../../common/PostCard';
 import Button from 'components/common/Button';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import axios from 'axios';
 import { api } from 'constants/route';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
+import { getAPI } from '../../../apis/instance';
+import { actionTypes, update } from 'actions/UserActions';
+
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
+
 function NewsFeed() {
   const { colors } = useTheme();
+  const dispatch = useDispatch();
+
   const user = useSelector(getUser);
   const navigation = useNavigation();
   const route = useRoute();
@@ -49,27 +54,25 @@ function NewsFeed() {
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
-  const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-  };
-
+  React.useEffect(() => {
+    console.log('dispatch update user')
+    dispatch(update(user.jwtToken));
+  },[]);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setIsEnd(false);
     const fetchData1 = async () => {
-      await axios
-        .get(api + 'User/current', config)
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/current')
         .then(async response => {
-          await axios
-            .get(api + `Post/timeline/skip/0/count/5`, config)
+          await getAPI(curUser.jwtToken)
+            .get(api + `Post/timeline/skip/0/count/5`)
             .then(res => {
               res.data.result.forEach(item => {
-                resUser.data.result.post_saved.forEach(i => {
-                   if (i == item.oid) {
+                response.data.result.post_saved.forEach(i => {
+                  if (i == item.oid) {
                     item.saved = true;
-                    
-                  }
-                  else item.saved = false;
+                  } else item.saved = false;
                 });
                 item.vote = 0;
                 response.data.result.post_upvote.forEach(i => {
@@ -99,19 +102,17 @@ function NewsFeed() {
   useEffect(() => {
     let isRender = true;
     const fetchData1 = async () => {
-      await axios
-        .get(api + 'User/current', config)
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/current')
         .then(async resUser => {
-           await axios
-            .get(api + `Post/timeline/skip/0/count/5`, config)
+          await getAPI(curUser.jwtToken)
+            .get(api + `Post/timeline/skip/0/count/5`)
             .then(async resPost => {
               resPost.data.result.forEach(item => {
                 resUser.data.result.post_saved.forEach(i => {
                   if (i == item.oid) {
                     item.saved = true;
-                    
-                  }
-                  else item.saved = false;
+                  } else item.saved = false;
                 });
                 item.vote = 0;
                 resUser.data.result.post_upvote.forEach(i => {
@@ -163,19 +164,15 @@ function NewsFeed() {
                     }
                   });
                   Promise.all(promises).then(async () => {
-                    await axios
-                      .post(
-                        api + 'Post/add',
-                        {
-                          title: route.params.title,
-                          string_contents: [
-                            { content_type: 0, content: route.params.content },
-                          ],
-                          image_contents: list,
-                          fields: route.params.fields,
-                        },
-                        config
-                      )
+                    await getAPI(curUser.jwtToken)
+                      .post(api + 'Post/add', {
+                        title: route.params.title,
+                        string_contents: [
+                          { content_type: 0, content: route.params.content },
+                        ],
+                        image_contents: list,
+                        fields: route.params.fields,
+                      })
                       .then(response1 => {
                         Toast.show({
                           type: 'success',
@@ -214,37 +211,37 @@ function NewsFeed() {
   }, [route.params?.title]);
 
   const fetchData = async () => {
-    await axios
-      .get(api + 'User/current', config)
-      .then(async response => {
-        await axios
-          .get(api + `Post/timeline/skip/${skip}/count/5`, config)
+    await getAPI(curUser.jwtToken)
+      .get(api + 'User/current')
+      .then(async resUser => {
+        await getAPI(curUser.jwtToken)
+          .get(api + `Post/timeline/skip/${skip}/count/5`)
           .then(res => {
             res.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
-                console.log(i)
-                if (i == item.oid) {
+                 if (i == item.oid) {
                   item.saved = true;
-                  
-                }
-                else item.saved = false;
+                } else item.saved = false;
               });
               item.vote = 0;
-              response.data.result.post_upvote.forEach(i => {
+              resUser.data.result.post_upvote.forEach(i => {
                 if (i == item.oid) {
                   item.vote = 1;
                 }
               });
-              response.data.result.post_downvote.forEach(i => {
+              resUser.data.result.post_downvote.forEach(i => {
                 if (i == item.oid) {
                   item.vote = -1;
                 }
               });
             });
             if (isEnd == false) return;
-            setPosts(posts.concat(res.data.result));
+            if (res.data.result.length > 0) {
+              setPosts(posts.concat(res.data.result));
+
+              setSkip(skip + 5);
+            }
             setIsEnd(false);
-            setSkip(skip + 5);
           })
           .catch(error => alert(error));
       })

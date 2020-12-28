@@ -22,7 +22,7 @@ import { color } from 'react-native-reanimated';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
-import axios from 'axios';
+import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
@@ -79,16 +79,23 @@ function ProfileDetail({ userId }) {
     const config = {
       headers: { Authorization: `Bearer ${curUser.jwtToken}` },
     };
+    let isOut = false;
     const fetchData = async () => {
-      await axios
+      await getAPI(curUser.jwtToken)
         .get(api + 'User/current', config)
         .then(response => {
-          setData(response.data.result);
-           setIsLoading(false);
+          if(!isOut)
+          {
+            setData(response.data.result);
+          setIsLoading(false);
+          }
         })
         .catch(error => alert(error));
     };
     fetchData();
+    return () => {
+      isOut = true;
+    };
   }, []);
   const renderItem = ({ item }) => {
     return <PostCard post={item} />;
@@ -141,20 +148,26 @@ function ProfileDetail({ userId }) {
             source={require('../../../assets/avatar.jpeg')}
           />
           <TouchableOpacity
-            onPress={() => navigation.navigate(navigationConstants.profileEdit, {data: data})}
+            onPress={() =>
+              navigation.navigate(navigationConstants.profileEdit, {
+                data: data,
+              })
+            }
             style={{
               alignSelf: 'flex-end',
+              marginRight: 12,
+              marginTop: 12
             }}
           >
             <View>
-              <Icon name={'edit'} size={24} />
+              <Icon name={'edit'} size={30} />
             </View>
           </TouchableOpacity>
 
           <View style={styles.containerAmount}>
             <GroupAmount amount={data.post_count} title={'Bài đăng'} />
-            <GroupAmount amount={0} title={'Người theo dõi'} />
-            <GroupAmount amount={0} title={'Đang theo dõi'} />
+            <GroupAmount amount={data.followers} title={'Người theo dõi'} />
+            <GroupAmount amount={data.followings} title={'Đang theo dõi'} />
           </View>
         </View>
       </View>

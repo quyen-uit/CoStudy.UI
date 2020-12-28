@@ -240,7 +240,7 @@ function ProfileEdit({ userId }) {
               justifyContent: 'center',
             }}
           >
-            <Icon name={'user'} size={16} color={main_color} />
+            <Icon name={'phone'} size={16} color={main_color} />
             <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
               Số điện thoại (10 số)
             </Text>
@@ -277,7 +277,7 @@ function ProfileEdit({ userId }) {
               justifyContent: 'center',
             }}
           >
-            <Icon name={'user'} size={16} color={main_color} />
+            <Icon name={'compass'} size={16} color={main_color} />
             <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
               Quận/Huyện
             </Text>
@@ -308,7 +308,7 @@ function ProfileEdit({ userId }) {
               justifyContent: 'center',
             }}
           >
-            <Icon name={'user'} size={16} color={main_color} />
+            <Icon name={'city'} size={16} color={main_color} />
             <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
               Thành phố
             </Text>

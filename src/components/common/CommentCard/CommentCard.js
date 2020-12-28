@@ -1,4 +1,4 @@
-import { useTheme, useNavigation } from '@react-navigation/native';
+import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
   Image,
@@ -123,10 +123,10 @@ function CommentCard(props) {
   const comment = props.comment;
   const isInPost = props.isInPost;
   const [modalVisible, setModalVisible] = useState(false);
-  
-  const GoToComment = () => {
+
+   const GoToComment = () => {
     if (isInPost) {
-      navigation.navigate(navigationConstants.comment);
+      navigation.navigate(navigationConstants.comment, {comment: comment});
     }
   };
   return (
@@ -173,7 +173,7 @@ function CommentCard(props) {
                 </View>
                 <View style={styles.row}>
                   <View style={styles.rowFlexStart}>
-                    <Text style={styles.txtVoteNumber}>10</Text>
+                    <Text style={styles.txtVoteNumber}>{comment.upvote_count}</Text>
                     <TouchableOpacity>
                       <FontAwesome5
                         name={'thumbs-up'}
@@ -183,7 +183,7 @@ function CommentCard(props) {
                     </TouchableOpacity>
                   </View>
                   <View style={styles.rowFlexStart}>
-                    <Text style={styles.txtVoteNumber}>11</Text>
+                    <Text style={styles.txtVoteNumber}>{comment.replies_count}</Text>
                     <TouchableOpacity>
                       <FontAwesome5
                         name={'comment'}

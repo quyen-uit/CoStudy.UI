@@ -18,7 +18,7 @@ import {
 import { useSelector } from 'react-redux';
 import styles from './styles';
 import strings from 'localization';
-import axios from 'axios';
+import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { main_color, main_2nd_color, touch_color } from 'constants/colorCommon';
@@ -64,9 +64,6 @@ function Search() {
   const [isEnd, setIsEnd] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [skip, setSkip] = useState(0);
-  const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-  };
 
   const backAction = () => {
     setModalVisible(false);
@@ -83,8 +80,8 @@ function Search() {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await axios
-        .get(api + 'User/field/all', config)
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/field/all')
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {
@@ -115,17 +112,22 @@ function Search() {
 
     let isRender = true;
     const fetchData1 = async () => {
-      await axios
-        .get(api + 'User/current', config)
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/current')
         .then(async response => {
-          await axios
-            .post(
-              api + `Post/post/filter`,
-              { skip: 0, count: 3, keyword: keyword },
-              config
-            )
+          await getAPI(curUser.jwtToken)
+            .post(api + `Post/post/filter`, {
+              skip: 0,
+              count: 3,
+              keyword: keyword,
+            })
             .then(async res => {
               res.data.result.forEach(item => {
+                response.data.result.post_saved.forEach(i => {
+                  if (i == item.oid) {
+                    item.saved = true;
+                  } else item.saved = false;
+                });
                 item.vote = 0;
                 response.data.result.post_upvote.forEach(i => {
                   if (i == item.oid) {
@@ -157,15 +159,15 @@ function Search() {
 
   const fetchMore = async () => {
     if (isEnd == true) return;
-    await axios
-      .get(api + 'User/current', config)
+    await getAPI(curUser.jwtToken)
+      .get(api + 'User/current')
       .then(async response => {
-        await axios
-          .post(
-            api + `Post/post/filter`,
-            { skip: skip, count: 3, keyword: keyword },
-            config
-          )
+        await getAPI(curUser.jwtToken)
+          .post(api + `Post/post/filter`, {
+            skip: skip,
+            count: 3,
+            keyword: keyword,
+          })
           .then(async res => {
             res.data.result.forEach(item => {
               item.vote = 0;
@@ -430,7 +432,7 @@ function Search() {
                 </TouchableOpacity>
               </View>
               <View>
-                <TouchableOpacity>
+                <TouchableOpacity  onPress={() => setModalOrder(3)}>
                   <View style={styles.md_field}>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -559,9 +561,11 @@ function Search() {
                       <Text style={styles.md_txtfield}>Bài đăng mới nhất</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterTime == 1 ? 'đang chọn' : ' éo chọn'}
-                      </Text>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterTime == 1 ? main_color : '#ccc'}
+                      />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -583,9 +587,11 @@ function Search() {
                       <Text style={styles.md_txtfield}>Bài đăng cũ nhất</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterTime == 0 ? 'đang chọn' : ' éo chọn'}
-                      </Text>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterTime == 0 ? main_color : '#ccc'}
+                      />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -634,12 +640,14 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Bài đăng mới nhất</Text>
+                      <Text style={styles.md_txtfield}>Số upvote giảm dần</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterVote == 1 ? 'đang chọn' : ' éo chọn'}
-                      </Text>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterVote == 1 ? main_color : '#ccc'}
+                      />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -658,12 +666,14 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Bài đăng cũ nhất</Text>
+                      <Text style={styles.md_txtfield}>Số upvote tăng dần</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterVote == 0 ? 'đang chọn' : ' éo chọn'}
-                      </Text>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterVote == 0 ? main_color : '#ccc'}
+                      />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -712,12 +722,14 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Bài đăng mới nhất</Text>
+                      <Text style={styles.md_txtfield}>Số comment giảm dần</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterComment == 1 ? 'đang chọn' : ' éo chọn'}
-                      </Text>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterComment == 1 ? main_color : '#ccc'}
+                      />
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -736,12 +748,14 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Bài đăng cũ nhất</Text>
+                      <Text style={styles.md_txtfield}>Số comment tăng dần</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterComment == 0 ? 'đang chọn' : ' éo chọn'}
-                      </Text>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterComment == 0 ? main_color : '#ccc'}
+                      />
                     </View>
                   </View>
                 </TouchableOpacity>

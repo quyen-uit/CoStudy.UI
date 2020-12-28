@@ -36,7 +36,7 @@ function Verification() {
 
   const handleSubmit = () => {
     axios
-      .post(api + 'Account/verify-email', token)
+      .post(api + 'Accounts/verify-email', token)
       .then(res => {
         //check response
         dispatch(login(route.params.email, route.params.password));

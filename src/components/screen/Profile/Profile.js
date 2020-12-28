@@ -22,7 +22,7 @@ import { color } from 'react-native-reanimated';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
-import axios from 'axios';
+import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector, useDispatch } from 'react-redux';
@@ -94,22 +94,42 @@ function Profile({ userId }) {
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
-  const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+
+  //check me or not
+  const [isMe, setIsMe] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const onFollow = async () => {
+    setLoading(true);
+    if (isFollowing) {
+      await getAPI(curUser.jwtToken)
+        .post(api + 'User/following/remove?followingId=' + data.oid, {
+          followingId: data.oid,
+        })
+        .then(res => {
+          setLoading(false);
+          setIsFollowing(false);
+        })
+        .catch(error => alert(error));
+    } else {
+      await getAPI(curUser.jwtToken)
+        .post(api + 'User/following', { followers: [data.oid] })
+        .then(res => {
+          setLoading(false);
+          setIsFollowing(true);
+        })
+        .catch(error => alert(error));
+    }
   };
   useEffect(() => {
     if (route.params?.update) {
-      console.log(route.params.data);
       setIsLoading(true);
       ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
       if (route.params.update) {
         const postAPI = async () => {
-          await axios
-            .put(api + 'User/update', route.params.data, {
-              headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-            })
+          await getAPI(curUser.jwtToken)
+            .put(api + 'User/update', route.params.data)
             .then(res => {
-              console.log(res.data.result);
               setData(res.data.result);
               setIsLoading(false);
               dispatch(update(curUser.jwtToken));
@@ -121,42 +141,128 @@ function Profile({ userId }) {
     } else console.log('update cc');
   }, [route.params?.update]);
   useEffect(() => {
-    let isOut = false;
+    let isRender = true;
+    let url = 'User/current';
+    if (route.params?.id)
+      if (route.params.id != '') {
+        setIsMe(false);
+        url = 'User/get/' + route.params.id;
+      }
+    const fetchData1 = async () => {
+      await getAPI(curUser.jwtToken)
+        .get(api + url)
+        .then(async resUser => {
+          setData(resUser.data.result);
+          setAvatar(resUser.data.result.avatar.image_hash);
+          if (route.params?.id) {
+            await getAPI(curUser.jwtToken)
+              .get(
+                api +
+                  'User/following?UserId=' +
+                  curUser.oid +
+                  '&Skip=0&Count=99'
+              )
+              .then(res => {
+                res.data.result.forEach(i => {
+                  if (resUser.data.result.oid == i.toId)
+                    if (isRender) {
+                      setIsFollowing(true);
+                    }
+                });
 
-    const fetchData = async () => {
-      await axios
-        .get(api + 'User/current', config)
-        .then(response => {
-          if (isOut) return;
-          setData(response.data.result);
-          setAvatar(response.data.result.avatar.image_hash);
-          axios
+                setLoading(false);
+              })
+              .catch(error => alert(error));
+          }
+          await getAPI(curUser.jwtToken)
             .get(
               api +
                 'Post/get/user/' +
-                response.data.result.oid +
+                resUser.data.result.oid +
                 '/skip/' +
-                skip +
-                '/count/5',
-              config
+                0 +
+                '/count/5'
             )
-            .then(res => {
-              if (isOut) return;
+            .then(async resPost => {
+              resPost.data.result.forEach(item => {
+                resUser.data.result.post_saved.forEach(i => {
+                  if (i == item.oid) {
+                    item.saved = true;
+                  } else item.saved = false;
+                });
+                item.vote = 0;
+                resUser.data.result.post_upvote.forEach(i => {
+                  if (i == item.oid) {
+                    item.vote = 1;
+                  }
+                });
+                resUser.data.result.post_downvote.forEach(i => {
+                  if (i == item.oid) {
+                    item.vote = -1;
+                  }
+                });
+              });
+              if (isRender) {
+                setPosts(resPost.data.result);
+                setIsLoading(false);
 
-              setPosts([...posts, ...res.data.result]);
-              setSkip(skip + 5);
-              setIsLoading(false);
-              setIsEnd(false);
+                setSkip(5);
+              }
             })
             .catch(error => alert(error));
         })
         .catch(error => alert(error));
     };
-    fetchData();
+
+    fetchData1();
     return () => {
-      isOut = true;
+      isRender = false;
     };
-  }, [skip]);
+  }, [route.params?.id]);
+
+  const fetchMore = async () => {
+    await getAPI(curUser.jwtToken)
+      .get(api + 'User/current')
+      .then(async resUser => {
+        await getAPI(curUser.jwtToken)
+          .get(
+            api +
+              'Post/get/user/' +
+              resUser.data.result.oid +
+              '/skip/' +
+              skip +
+              '/count/5'
+          )
+          .then(async resPost => {
+            resPost.data.result.forEach(item => {
+              resUser.data.result.post_saved.forEach(i => {
+                if (i == item.oid) {
+                  item.saved = true;
+                } else item.saved = false;
+              });
+              item.vote = 0;
+              resUser.data.result.post_upvote.forEach(i => {
+                if (i == item.oid) {
+                  item.vote = 1;
+                }
+              });
+              resUser.data.result.post_downvote.forEach(i => {
+                if (i == item.oid) {
+                  item.vote = -1;
+                }
+              });
+            });
+            if (resPost.data.result.length > 0) {
+              setSkip(skip + 5);
+              setPosts(posts.concat(resPost.data.result));
+            }
+            setIsEnd(false);
+          })
+          .catch(error => alert(error));
+      })
+      .catch(error => alert(error));
+  };
+
   const renderItem = ({ item }) => {
     return <PostCard post={item} />;
   };
@@ -188,12 +294,11 @@ function Profile({ userId }) {
               .getDownloadURL()
               .then(async url => {
                 setAvatar(url);
-                await axios
-                  .post(
-                    api + 'User/avatar/update',
-                    { discription: '', avatar_hash: url },
-                    config
-                  )
+                await getAPI(curUser.jwtToken)
+                  .post(api + 'User/avatar/update', {
+                    discription: '',
+                    avatar_hash: url,
+                  })
                   .then(response => {
                     Toast.show({
                       type: 'success',
@@ -246,149 +351,196 @@ function Profile({ userId }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.container}>
-          <View>
-            <Image
-              style={styles.imgCover}
-              source={require('../../../assets/test.png')}
-            />
-          </View>
-          <View style={styles.containerProfile}>
-            <Image
-              style={styles.imgBigAvatar}
-              source={
-                avatar == ''
-                  ? require('../../../assets/test.png')
-                  : { uri: avatar }
+      <View style={styles.container}>
+        <SafeAreaView>
+          <FlatList
+            style={{ flexGrow: 0 }}
+            onEndReached={async () => {
+              if (posts.length > 4 && !isEnd) {
+                setIsEnd(true);
+                await fetchMore();
               }
-            />
-            <TouchableOpacity
-              onPress={() => pickImage()}
-              style={{
-                alignSelf: 'center',
-                top: 24,
-                left: deviceWidth / 2 + 12,
-                position: 'absolute',
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: main_2nd_color,
-                  padding: 8,
-                  borderRadius: 30,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Icon name={'edit'} size={20} color={'#fff'} />
-              </View>
-            </TouchableOpacity>
-            <Text style={styles.txtName}>
-              {data ? data.first_name : null} {data ? data.last_name : null}
-            </Text>
-            <View style={styles.containerAmount}>
-              <View style={styles.flex1}>
-                <GroupAmount
-                  amount={
-                    typeof data.posts === 'undefined' ? 0 : data.post_count
-                  }
-                  title={'Bài đăng'}
-                />
-              </View>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate(navigationConstants.follower)
-                }
-                style={styles.flex1}
-              >
-                <GroupAmount amount={data.followers} title={'Người theo dõi'} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate(navigationConstants.following)
-                }
-                style={styles.flex1}
-              >
-                <GroupAmount amount={data.followings} title={'Đang theo dõi'} />
-              </TouchableOpacity>
-            </View>
-            <GroupInfor name={user.school} icon={'school'} />
-            <GroupInfor name={user.specialized} icon={'user-cog'} />
-            <GroupInfor name={user.graduation} icon={'graduation-cap'} />
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate(navigationConstants.profileDetail)
-              }
-            >
-              <GroupInfor name={'Xem chi tiết thông tin'} icon={'ellipsis-h'} />
-            </TouchableOpacity>
-            <View style={styles.containerButton}>
-              <TouchableHighlight
-                style={styles.btnFollow}
-                underlayColor={touch_color}
-              >
-                <Text style={styles.txtFollow}>Theo dõi</Text>
-              </TouchableHighlight>
-              <TouchableHighlight
-                style={styles.btnFollow}
-                underlayColor={touch_color}
-                onPress={() => alert('â')}
-              >
-                <Text style={styles.txtFollow}>Nhắn tin</Text>
-              </TouchableHighlight>
-            </View>
-          </View>
-          <View style={styles.containerNew}>
-            <View style={styles.grNew}>
-              <View style={styles.flex1}>
-                <Image
-                  style={styles.imgAvatar}
-                  source={require('../../../assets/avatar.jpeg')}
-                />
-              </View>
-              <TouchableHighlight
-                onPress={() => alert('new')}
-                underlayColor={touch_color}
-                style={styles.btnBoxNew}
-              >
-                <Text style={styles.txtNew}>
-                  Bạn có câu hỏi gì mới, {user.name}?
-                </Text>
-              </TouchableHighlight>
-            </View>
-            <View style={styles.grOption}>
-              <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
-              <GroupOption icon={'square-root-alt'} option={'Công thức'} />
-              <GroupOption icon={'images'} option={'Hình ảnh'} />
-            </View>
-          </View>
-        </View>
-        <View style={styles.container}>
-          <SafeAreaView>
-            <FlatList
-              style={{ flexGrow: 0 }}
-              onEndReached={async () => {
-                if (posts.length > 4) setIsEnd(true);
-              }}
-              onEndReachedThreshold={0.7}
-              showsVerticalScrollIndicator={false}
-              data={posts}
-              renderItem={item => renderItem(item)}
-              keyExtractor={(item, index) => index.toString()}
-              ListFooterComponent={() =>
-                isEnd ? (
-                  <View style={{ marginVertical: 12 }}>
-                    <ActivityIndicator size={'large'} color={main_color} />
+            }}
+            onEndReachedThreshold={0.5}
+            showsVerticalScrollIndicator={false}
+            data={posts}
+            renderItem={item => renderItem(item)}
+            keyExtractor={(item, index) => index.toString()}
+            ListHeaderComponent={() => (
+              <View style={styles.container}>
+                <View>
+                  <Image
+                    style={styles.imgCover}
+                    source={require('../../../assets/test.png')}
+                  />
+                </View>
+                <View style={styles.containerProfile}>
+                  <Image
+                    style={styles.imgBigAvatar}
+                    source={
+                      avatar == ''
+                        ? require('../../../assets/test.png')
+                        : { uri: avatar }
+                    }
+                  />
+                  <TouchableOpacity
+                    onPress={() => pickImage()}
+                    style={{
+                      alignSelf: 'center',
+                      top: 24,
+                      left: deviceWidth / 2 + 12,
+                      position: 'absolute',
+                    }}
+                  >
+                    <View
+                      style={{
+                        backgroundColor: main_2nd_color,
+                        padding: 8,
+                        borderRadius: 30,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Icon name={'edit'} size={20} color={'#fff'} />
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={styles.txtName}>
+                    {data ? data.first_name : null}{' '}
+                    {data ? data.last_name : null}
+                  </Text>
+                  <View style={styles.containerAmount}>
+                    <View style={styles.flex1}>
+                      <GroupAmount
+                        amount={
+                          typeof data.posts === 'undefined'
+                            ? 0
+                            : data.post_count
+                        }
+                        title={'Bài đăng'}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.push(navigationConstants.follower, {
+                          id: data.oid,
+                        })
+                      }
+                      style={styles.flex1}
+                    >
+                      <GroupAmount
+                        amount={data.followers}
+                        title={'Người theo dõi'}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() =>
+                        navigation.push(navigationConstants.following, {
+                          id: data.oid,
+                        })
+                      }
+                      style={styles.flex1}
+                    >
+                      <GroupAmount
+                        amount={data.followings}
+                        title={'Đang theo dõi'}
+                      />
+                    </TouchableOpacity>
                   </View>
-                ) : (
-                  <View style={{ margin: 4 }}></View>
-                )
-              }
-            />
-          </SafeAreaView>
-        </View>
-      </ScrollView>
+                  <GroupInfor name={user.school} icon={'school'} />
+                  <GroupInfor name={user.specialized} icon={'user-cog'} />
+                  <GroupInfor name={user.graduation} icon={'graduation-cap'} />
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate(navigationConstants.profileDetail)
+                    }
+                  >
+                    <GroupInfor
+                      name={'Xem chi tiết thông tin'}
+                      icon={'ellipsis-h'}
+                    />
+                  </TouchableOpacity>
+                  {isMe ? null : (
+                    <View style={styles.containerButton}>
+                      {loading ? (
+                        <View style={styles.btnFollow}>
+                          <ActivityIndicator
+                            size={'small'}
+                            color={'#fff'}
+                            style={{ alignSelf: 'center' }}
+                          />
+                        </View>
+                      ) : (
+                        <TouchableHighlight
+                          style={
+                            isFollowing ? styles.btnUnFollow : styles.btnFollow
+                          }
+                          underlayColor={touch_color}
+                          onPress={() => {
+                            onFollow();
+                          }}
+                        >
+                          <Text
+                            style={
+                              isFollowing
+                                ? styles.txtUnFollow
+                                : styles.txtFollow
+                            }
+                          >
+                            {isFollowing ? 'Hủy theo dõi' : 'Theo dõi'}
+                          </Text>
+                        </TouchableHighlight>
+                      )}
+                      <TouchableHighlight
+                        style={styles.btnFollow}
+                        underlayColor={touch_color}
+                        onPress={() => alert('â')}
+                      >
+                        <Text style={styles.txtFollow}>Nhắn tin</Text>
+                      </TouchableHighlight>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.containerNew}>
+                  <View style={styles.grNew}>
+                    <View style={styles.flex1}>
+                      <Image
+                        style={styles.imgAvatar}
+                        source={require('../../../assets/avatar.jpeg')}
+                      />
+                    </View>
+                    <TouchableHighlight
+                      onPress={() => alert('new')}
+                      underlayColor={touch_color}
+                      style={styles.btnBoxNew}
+                    >
+                      <Text style={styles.txtNew}>
+                        Bạn có câu hỏi gì mới, {user.name}?
+                      </Text>
+                    </TouchableHighlight>
+                  </View>
+                  <View style={styles.grOption}>
+                    <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
+                    <GroupOption
+                      icon={'square-root-alt'}
+                      option={'Công thức'}
+                    />
+                    <GroupOption icon={'images'} option={'Hình ảnh'} />
+                  </View>
+                </View>
+              </View>
+            )}
+            ListFooterComponent={() =>
+              isEnd ? (
+                <View style={{ marginVertical: 12 }}>
+                  <ActivityIndicator size={'large'} color={main_color} />
+                </View>
+              ) : (
+                <View style={{ margin: 4 }}></View>
+              )
+            }
+          />
+        </SafeAreaView>
+      </View>
       {isLoading ? (
         <View
           style={{

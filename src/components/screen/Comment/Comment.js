@@ -1,5 +1,5 @@
-import { useTheme } from '@react-navigation/native';
-import React, { useState } from 'react';
+import { useTheme, useRoute } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Text,
@@ -8,6 +8,8 @@ import {
   ScrollView,
   TouchableHighlight,
   TouchableOpacity,
+  Dimensions,
+  ActivityIndicator,
   Pressable,
   SafeAreaView,
   TextInput,
@@ -28,6 +30,16 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import CommentCard from 'components/common/CommentCard';
+import { getAPI } from '../../../apis/instance';
+import moment from 'moment';
+import ImagePicker from 'react-native-image-crop-picker';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import storage from '@react-native-firebase/storage';
+import Toast from 'react-native-toast-message';
+import { getUser } from 'selectors/UserSelectors';
+import { useSelector } from 'react-redux';
+import { api } from '../../../constants/route';
 
 const tmpComment = {
   id: '1',
@@ -80,134 +92,241 @@ const mainComment = {
   amountVote: 10,
   amountComment: 20,
 };
-
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 function Comment(props) {
+  const route = useRoute();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [isVote, setIsVote] = useState(false);
   const [showOption, setShowOption] = useState(true);
+  const [data, setData] = useState(route.params.comment);
+  const [isLoading, setIsLoading] = useState(false);
+  const curUser = useSelector(getUser);
+  const [replies, setReplies] = useState([]);
 
+  //comment
+  const [comment, setComment] = useState('');
+
+  const [sending, setSending] = useState(false);
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} />;
   };
+  useEffect(() => {
+    setIsLoading(true);
+    let isOut = false;
+    const fetchData = async () => {
+      await getAPI(curUser.jwtToken)
+        .get(api + 'Comment/get/replies/' + data.oid + '?skip=0&count=5', {
+          skip: 0,
+          count: 5,
+        })
+        .then(response => {
+          if (!isOut) {
+            response.data.result.forEach(i => {
+              i.author_name = 'Lê Quốc Thắng';
+              i.image = 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
+            });
+            setIsLoading(false);
+            setReplies(response.data.result);
+          }
+        })
+        .catch(error => alert(error));
+    };
+    fetchData();
+    return () => {
+      isOut = true;
+    };
+  }, []);
+
+  const fetchMore = async () => {
+    return;
+    await getAPI(curUser.jwtToken)
+      .get(api + 'Comment/get/' + post.oid + '/skip/' + skip + '/count/5')
+      .then(response => {
+        if (response.data.result.length > 0) {
+          setSkip(skip + 5);
+          setComments(comments.concat(response.data.result));
+        }
+        setIsEnd(false);
+      })
+      .catch(error => alert(error));
+  };
+  const postComment = async () => {
+    setSending(true);
+
+    if (comment == '') {
+      Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+      return;
+    }
+    ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
+    await getAPI(curUser.jwtToken)
+      .post(api + 'Comment/reply', {
+        content: comment,
+        parent_id: data.oid,
+      })
+      .then(response => {
+        setComment('');
+         response.data.result.author_name = 'Lê Quốc Thắng';
+        response.data.result.image = '';
+        setReplies(replies.concat(response.data.result));
+        setSending(false);
+        data.replies_count = data.replies_count + 1;
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: 'Bình luận đã được đăng',
+          visibilityTime: 2000,
+        });
+      })
+      .catch(error => {
+        setSending(false);
+        alert(error);
+      });
+  };
+
   return (
     <View style={styles.largeContainer}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <Card containerStyle={styles.container}>
-          <View>
-            <View style={styles.header}>
-              <View style={styles.headerAvatar}>
-                <TouchableOpacity onPress={() => alert('avatar is clicked')}>
-                  <Image
-                    style={styles.imgAvatar}
-                    source={require('../../../assets/avatar.jpeg')}
-                  />
-                </TouchableOpacity>
+      <SafeAreaView>
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          style={{ marginBottom: 50 }}
+          data={replies}
+          onEndReached={async () => {
+            if (replies.length > 4) {
+              setIsEnd(true);
+              await fetchMore();
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          renderItem={item => renderItem(item)}
+          keyExtractor={(item, index) => index.toString()}
+          ListHeaderComponent={() => (
+            <Card containerStyle={styles.container}>
+              <View>
+                <View style={styles.header}>
+                  <View style={styles.headerAvatar}>
+                    <TouchableOpacity
+                      onPress={() => alert('avatar is clicked')}
+                    >
+                      <Image
+                        style={styles.imgAvatar}
+                        source={{ uri: data.author_avatar }}
+                      />
+                    </TouchableOpacity>
+                    <View>
+                      <TouchableOpacity>
+                        <Text style={styles.txtAuthor}>{data.author_name}</Text>
+                      </TouchableOpacity>
+                      <View style={styles.rowFlexStart}>
+                        <FontAwesome
+                          name={'circle'}
+                          size={8}
+                          color={active_color}
+                        />
+                        <Text style={styles.txtCreateDate}>
+                          {moment(new Date()).diff(
+                            moment(data.modified_date),
+                            'minutes'
+                          ) < 60
+                            ? moment(new Date()).diff(
+                                moment(data.modified_date),
+                                'minutes'
+                              ) + ' phút trước'
+                            : moment(new Date()).diff(
+                                moment(data.modified_date),
+                                'hours'
+                              ) < 24
+                            ? moment(new Date()).diff(
+                                moment(data.modified_date),
+                                'hours'
+                              ) + ' giờ trước'
+                            : moment(data.modified_date).format(
+                                'hh:mm DD-MM-YYYY'
+                              )}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
                 <View>
-                  <TouchableOpacity>
-                    <Text style={styles.txtAuthor}>{mainComment.author}</Text>
-                  </TouchableOpacity>
                   <View style={styles.rowFlexStart}>
-                    <FontAwesome
-                      name={'circle'}
-                      size={8}
-                      color={active_color}
-                    />
-                    <Text style={styles.txtCreateDate}>
-                      {mainComment.createdDate}
-                    </Text>
+                    <Text style={styles.txtContent}>{data.content}</Text>
+                  </View>
+                </View>
+                <Image style={styles.imgContent} source={{ uri: data.image }} />
+
+                <View style={styles.footer}>
+                  <View style={styles.flex1}>
+                    <Pressable
+                      style={({ pressed }) => [
+                        { backgroundColor: pressed ? touch_color : '#fff' },
+                        styles.btnVote,
+                      ]}
+                    >
+                      <Text style={styles.txtVoteNumber}>
+                        {data.upvote_count}
+                      </Text>
+                      <FontAwesome5
+                        name={'thumbs-up'}
+                        size={24}
+                        color={main_color}
+                      />
+                    </Pressable>
+                  </View>
+
+                  <View style={styles.flex1}>
+                    <Pressable
+                      onPress={() => alert('comment')}
+                      style={({ pressed }) => [
+                        { backgroundColor: pressed ? touch_color : '#fff' },
+                        styles.btnVote,
+                      ]}
+                      onPress={() => alert('Vote')}
+                    >
+                      <Text style={styles.txtVoteNumber}>
+                        {data.replies_count}
+                      </Text>
+                      <FontAwesome5
+                        name={'comment-alt'}
+                        size={24}
+                        color={main_2nd_color}
+                      />
+                    </Pressable>
                   </View>
                 </View>
               </View>
-            </View>
-            <View>
-              <View style={styles.rowFlexStart}>
-                <Text style={styles.txtContent}>{mainComment.content}</Text>
-              </View>
-            </View>
-            <Image
-              style={styles.imgContent}
-              source={require('../../../assets/test.png')}
-            />
-
-            <View style={styles.containerTag}>
-              <TouchableOpacity onPress={() => alert('tag screen')}>
-                <View style={styles.btnTag}>
-                  <Text style={styles.txtTag}>Design pattern</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => alert('tag screen')}>
-                <View style={styles.btnTag}>
-                  <Text style={styles.txtTag}>Cơ sở dữ liệu</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.footer}>
-              <View style={styles.flex1}>
-                <Pressable
-                  style={({ pressed }) => [
-                    { backgroundColor: pressed ? touch_color : '#fff' },
-                    styles.btnVote,
-                  ]}
-                  onLongPress={() => setIsVote(true)}
-                  on={() => setIsVote(false)}
-                >
-                  <Text style={styles.txtVoteNumber}>10</Text>
-                  <FontAwesome5
-                    name={'thumbs-up'}
-                    size={24}
-                    color={main_color}
-                  />
-                </Pressable>
-              </View>
-              {isVote ? (
-                <View style={styles.containerPopupVote}>
-                  <FontAwesome5
-                    style={styles.btnVoteInPopup}
-                    name={'thumbs-up'}
-                    size={24}
-                    color={main_color}
-                  />
-                  <FontAwesome5
-                    style={styles.btnVoteInPopup}
-                    name={'thumbs-down'}
-                    size={24}
-                    color={main_2nd_color}
-                  />
-                </View>
-              ) : null}
-              <View style={styles.flex1}>
-                <Pressable
-                  onPress={() => alert('comment')}
-                  style={({ pressed }) => [
-                    { backgroundColor: pressed ? touch_color : '#fff' },
-                    styles.btnVote,
-                  ]}
-                  onPress={() => alert('Vote')}
-                >
-                  <Text style={styles.txtVoteNumber}>10</Text>
-                  <FontAwesome5
-                    name={'comment-alt'}
-                    size={24}
-                    color={main_color}
-                  />
-                </Pressable>
-              </View>
-            </View>
-          </View>
-        </Card>
-        <TouchableOpacity>
-          <Text style={styles.btnPrevComment}>Xem các bình luận trước ...</Text>
-        </TouchableOpacity>
-
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          data={list}
-          renderItem={renderItem}
-          keyExtractor={item => item.id}
+            </Card>
+          )}
+          // ListFooterComponent={() =>
+          //   isEnd ? (
+          //     <View style={{ marginVertical: 12 }}>
+          //       <ActivityIndicator size={'large'} color={main_color} />
+          //     </View>
+          //   ) : (
+          //     <View style={{ margin: 4 }}></View>
+          //   )
+          // }
         />
-      </ScrollView>
+        {isLoading ? (
+          <View
+            style={{
+              position: 'absolute',
+              justifyContent: 'center',
+              backgroundColor: '#cccccc',
+              opacity: 0.5,
+              width: deviceWidth,
+              height: deviceHeight - 20,
+            }}
+          >
+            <ActivityIndicator
+              size="large"
+              color={main_color}
+              style={{ marginBottom: 100 }}
+            />
+          </View>
+        ) : null}
+      </SafeAreaView>
       <View style={styles.containerInput}>
         {showOption ? (
           <View style={styles.row}>
@@ -237,11 +356,21 @@ function Comment(props) {
           multiline={true}
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
+          onChangeText={text => setComment(text)}
           placeholder="Nhập j đi tml.."
         />
-        <TouchableOpacity style={styles.btnInputOption}>
-          <FontAwesome5 name={'paper-plane'} size={24} color={main_color} />
-        </TouchableOpacity>
+        {sending ? (
+          <View style={styles.btnInputOption}>
+            <FontAwesome5 name={'paper-plane'} size={24} color={'#ccc'} />
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.btnInputOption}
+            onPress={() => postComment()}
+          >
+            <FontAwesome5 name={'paper-plane'} size={24} color={main_color} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

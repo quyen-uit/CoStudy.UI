@@ -26,7 +26,7 @@ const loginSuccess = user => ({
   type: actionTypes.LOGIN_SUCCESS,
   payload: { user },
 });
-export const updateUser =( user) => ({
+export const updateUser = user => ({
   type: actionTypes.UPDATE_USER,
   payload: { user },
 });
@@ -60,9 +60,12 @@ export const login = (email, password) => async dispatch => {
   }
 };
 
-export const logout = () => async dispatch => {
+export const logout = token => async dispatch => {
   try {
-    await UserController.logout();
+    await axios
+      .post(api + 'Accounts/revoke-token', { token: token })
+      .then(res => console.log(res))
+      .catch(err => alert(err));
   } finally {
     dispatch(clearStore());
   }

@@ -1,6 +1,6 @@
 import { useTheme } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Card } from 'react-native-elements';
 import {
   Text,
@@ -21,7 +21,7 @@ import { getUser } from 'selectors/UserSelectors';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
-import axios from 'axios';
+import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import moment from 'moment';
 const deviceWidth = Dimensions.get('window').width;
@@ -44,26 +44,38 @@ function UserCard({ item }) {
   const [following, setFollowing] = useState(true);
   const [loading, setLoading] = useState(false);
   const curUser = useSelector(getUser);
-  const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-  };
+  const navigation = useNavigation();
+  useEffect(() => {
+    let isRender = true;
+    const fetch = async () =>
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99')
+        .then(res => {
+          res.data.result.forEach(i => {
+            if (item.toId == i.toId) if (isRender) setFollowing(true);
+          });
+        })
+        .catch(error => alert(error));
+    fetch();
+    return ()=>{
+      isRender = false;
+    }
+  }, []);
   const onFollow = async () => {
     setLoading(true);
     if (following) {
-      await axios
-        .post(
-          api + 'User/following/remove?followingId=' + item.toId,
-          { followingId: item.toId },
-          config
-        )
+      await getAPI(curUser.jwtToken)
+        .post(api + 'User/following/remove?followingId=' + item.toId, {
+          followingId: item.toId,
+        })
         .then(res => {
           setLoading(false);
           setFollowing(false);
         })
         .catch(error => alert(error));
     } else {
-      await axios
-        .post(api + 'User/following', { followers: [item.toId] }, config)
+      await getAPI(curUser.jwtToken)
+        .post(api + 'User/following', { followers: [item.toId] })
         .then(res => {
           setLoading(false);
           setFollowing(true);
@@ -74,9 +86,12 @@ function UserCard({ item }) {
   return (
     <Card containerStyle={styles.cardContainer}>
       <TouchableHighlight
-        onLongPress={() => setModalVisible(true)}
+        
         underlayColor={touch_color}
         style={styles.card}
+        onPress={() =>
+          navigation.push(navigationConstants.profile, { id: item.toId })
+        }
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
@@ -139,20 +154,12 @@ function Following() {
   const [list, setList] = useState([]);
   const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(true);
-
-  const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-  };
-
+  const route = useRoute();
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
-      await axios
-        .get(
-          api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99',
-
-          config
-        )
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/following?UserId=' + route.params.id + '&Skip=0&Count=99')
         .then(res => {
           if (!isOut) {
             setList(res.data.result);

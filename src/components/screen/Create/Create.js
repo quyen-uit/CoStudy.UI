@@ -28,7 +28,7 @@ import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import ImagePicker from 'react-native-image-crop-picker';
-import axios from 'axios';
+import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import Toast from 'react-native-toast-message';
 import 'react-native-get-random-values';
@@ -88,8 +88,8 @@ function Create() {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await axios
-        .get(api + 'User/current', config)
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/current')
         .then(response => {
           if (isRender) {
             setData(response.data.result);
@@ -97,8 +97,8 @@ function Create() {
           }
         })
         .catch(error => alert(error));
-      await axios
-        .get(api + 'User/field/all', config)
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/field/all')
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {
@@ -135,10 +135,6 @@ function Create() {
 
   const upload = async () => {
     let temp = [];
-    ToastAndroid.show('Bài viết đang đăng...', ToastAndroid.SHORT);
-    fieldPickers.forEach(item => {
-      if (item.isPick == true) temp.push(item.oid);
-    });
 
     if (title == '') {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập tiêu đề');
@@ -147,6 +143,10 @@ function Create() {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập nội dung');
       return;
     }
+    ToastAndroid.show('Bài viết đang đăng...', ToastAndroid.SHORT);
+    fieldPickers.forEach(item => {
+      if (item.isPick == true) temp.push(item.oid);
+    });
     navigation.navigate(navigationConstants.tabNav, {
       screen: navigationConstants.newsfeed,
       params: {
@@ -188,7 +188,7 @@ function Create() {
     //   }
     // });
     // Promise.all(promises).then(async () => {
-    //   await axios
+    //   await getAPI(curUser.jwtToken)
     //     .post(
     //       api + 'Post/add',
     //       {
@@ -197,7 +197,7 @@ function Create() {
     //         image_contents: list,
     //         fields: temp,
     //       },
-    //       config
+    //
     //     )
     //     .then(response => {
     //       setIsLoading(false);

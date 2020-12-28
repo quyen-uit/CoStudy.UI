@@ -242,7 +242,7 @@ function TabNavigator() {
       />
       <BottomTab.Screen
         name={list}
-        component={ListPostNavigator}
+        component={ListPost}
         options={{
           tabBarLabel: list,
           tabBarIcon: ({ color }) => (

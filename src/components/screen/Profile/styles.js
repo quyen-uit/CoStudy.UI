@@ -91,6 +91,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flex: 1,
   },
+  btnUnFollow: {
+    backgroundColor: '#ccc',
+    paddingVertical: 8,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    flex: 1,
+  },
   btnBoxNew: {
     flex: 8,
     borderRadius: 24,
@@ -137,6 +144,12 @@ const styles = StyleSheet.create({
   txtFollow: {
     fontSize: 16,
     color: '#fff',
+    fontWeight: 'bold',
+    alignSelf: 'center',
+  },
+  txtUnFollow: {
+    fontSize: 16,
+    color: main_color,
     fontWeight: 'bold',
     alignSelf: 'center',
   },

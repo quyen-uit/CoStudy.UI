@@ -39,6 +39,9 @@ const styles = StyleSheet.create({
     borderTopColor: main_color,
     borderTopWidth: 1,
     backgroundColor: '#fff',
+    position: 'absolute',
+    bottom: 0,
+    left: 0
   },
   largeContainer: {
     flex: 1,
