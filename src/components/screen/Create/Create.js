@@ -55,6 +55,8 @@ function Create() {
   const [fieldPickers, setFieldPickers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [chosing, setChosing] = useState(false);
+
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
@@ -132,7 +134,19 @@ function Create() {
       }
     });
   };
-
+  const cameraImage = () => {
+    ImagePicker.openCamera({
+      width: 800,
+      height: 1000,
+      mediaType: 'photo',
+      cropping: true,
+      compressImageQuality: 1,
+    }).then(image => {
+      if (image) {
+        setListImg([...listImg, image]);
+      }
+    });
+  };
   const upload = async () => {
     let temp = [];
 
@@ -377,7 +391,7 @@ function Create() {
           <TouchableHighlight
             underlayColor={touch_color}
             style={styles.btnInputOption}
-            onPress={() => pickImage()}
+            onPress={() => setChosing(true)}
           >
             <View style={styles.flex}>
               <Icon name={'images'} size={24} color={main_color} />
@@ -486,6 +500,103 @@ function Create() {
           </View>
         </ModalContent>
       </BottomModal>
+      {chosing ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            backgroundColor: '#ccc',
+            height: deviceHeight,
+            width: deviceWidth,
+            opacity: 0.9,
+          }}
+        >
+          <TouchableOpacity
+            style={{ height: deviceHeight, width: deviceWidth }}
+            onPress={() => setChosing(false)}
+          >
+            <View
+              style={{
+                marginTop: 100,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{ fontSize: 30, fontWeight: 'bold', color: main_color }}
+              >
+                Bạn muốn chọn ảnh từ
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  pickImage();
+                  setChosing(false);
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: main_2nd_color,
+                    padding: 12,
+                    borderRadius: 20,
+                    paddingHorizontal: 32,
+                    marginVertical: 40,
+                  }}
+                >
+                  <Image
+                    source={require('../../../assets/gallary.png')}
+                    style={{ width: 48, height: 48 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 20,
+                      color: '#fff',
+                    }}
+                  >
+                    Thư viện
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  cameraImage();
+                  setChosing(false);
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: main_2nd_color,
+                    padding: 12,
+                    borderRadius: 20,
+                    paddingHorizontal: 32,
+                  }}
+                >
+                  <Image
+                    source={require('../../../assets/camera.png')}
+                    style={{ width: 48, height: 48 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 20,
+                      color: '#fff',
+                    }}
+                  >
+                    Máy ảnh
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </View>
   );
 }

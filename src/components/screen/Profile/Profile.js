@@ -90,11 +90,12 @@ function Profile({ userId }) {
   const curUser = useSelector(getUser);
   const [avatar, setAvatar] = useState('');
   const [bg, setBg] = useState();
+  const [chosing, setChosing] = useState(false);
   //loading
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
-
+  console.log(curUser)
   //check me or not
   const [isMe, setIsMe] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -144,7 +145,7 @@ function Profile({ userId }) {
     let isRender = true;
     let url = 'User/current';
     if (route.params?.id)
-      if (route.params.id != '') {
+      if (route.params.id != curUser.oid) {
         setIsMe(false);
         url = 'User/get/' + route.params.id;
       }
@@ -287,6 +288,60 @@ function Profile({ userId }) {
         task.on('state_changed', snapshot => {
           console.log('uploading avatar..');
         });
+        ToastAndroid.show('Đang tải ảnh lên...', ToastAndroid.SHORT);
+        try {
+          await task.then(async response => {
+            await storage()
+              .ref(response.metadata.fullPath)
+              .getDownloadURL()
+              .then(async url => {
+                setAvatar(url);
+                await getAPI(curUser.jwtToken)
+                  .post(api + 'User/avatar/update', {
+                    discription: '',
+                    avatar_hash: url,
+                  })
+                  .then(response => {
+                    Toast.show({
+                      type: 'success',
+                      position: 'top',
+                      text1: 'Ảnh đại diện đã được thay đổi.',
+                      visibilityTime: 2000,
+                    });
+                    dispatch(update(curUser.jwtToken));
+                  })
+                  .catch(error => alert(error));
+              });
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+  };
+  const cameraImage = () => {
+    ImagePicker.openCamera({
+      width: 300,
+      height: 300,
+      mediaType: 'photo',
+      cropping: true,
+
+      compressImageQuality: 1,
+    }).then(async image => {
+      if (image) {
+        const uri = image.path;
+        const filename = 'avatar_' + curUser.id;
+        const uploadUri =
+          Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        const task = storage()
+          .ref('avatar/' + filename)
+          .putFile(uploadUri);
+        // set progress state
+        task.on('state_changed', snapshot => {
+          console.log('uploading avatar..');
+        });
+        ToastAndroid.show('Đang tải ảnh lên...', ToastAndroid.SHORT);
+
         try {
           await task.then(async response => {
             await storage()
@@ -383,27 +438,29 @@ function Profile({ userId }) {
                         : { uri: avatar }
                     }
                   />
-                  <TouchableOpacity
-                    onPress={() => pickImage()}
-                    style={{
-                      alignSelf: 'center',
-                      top: 24,
-                      left: deviceWidth / 2 + 12,
-                      position: 'absolute',
-                    }}
-                  >
-                    <View
+                  {isMe ? (
+                    <TouchableOpacity
+                      onPress={() => setChosing(true)}
                       style={{
-                        backgroundColor: main_2nd_color,
-                        padding: 8,
-                        borderRadius: 30,
-                        justifyContent: 'center',
-                        alignItems: 'center',
+                        alignSelf: 'center',
+                        top: 24,
+                        left: deviceWidth / 2 + 12,
+                        position: 'absolute',
                       }}
                     >
-                      <Icon name={'edit'} size={20} color={'#fff'} />
-                    </View>
-                  </TouchableOpacity>
+                      <View
+                        style={{
+                          backgroundColor: main_2nd_color,
+                          padding: 8,
+                          borderRadius: 30,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Icon name={'edit'} size={20} color={'#fff'} />
+                      </View>
+                    </TouchableOpacity>
+                  ) : null}
                   <Text style={styles.txtName}>
                     {data ? data.first_name : null}{' '}
                     {data ? data.last_name : null}
@@ -451,7 +508,9 @@ function Profile({ userId }) {
                   <GroupInfor name={user.graduation} icon={'graduation-cap'} />
                   <TouchableOpacity
                     onPress={() =>
-                      navigation.navigate(navigationConstants.profileDetail)
+                      navigation.navigate(navigationConstants.profileDetail, {
+                        id: data.oid,
+                      })
                     }
                   >
                     <GroupInfor
@@ -514,7 +573,8 @@ function Profile({ userId }) {
                       style={styles.btnBoxNew}
                     >
                       <Text style={styles.txtNew}>
-                        Bạn có câu hỏi gì mới, {user.name}?
+                        Bạn có câu hỏi gì mới, {data ? data.first_name : null}{' '}
+                        {data ? data.last_name : null}?
                       </Text>
                     </TouchableHighlight>
                   </View>
@@ -527,6 +587,18 @@ function Profile({ userId }) {
                     <GroupOption icon={'images'} option={'Hình ảnh'} />
                   </View>
                 </View>
+                {posts.length == 0 ? (
+                  <Text
+                    style={{
+                      alignSelf: 'center',
+                      fontSize: 16,
+                      color: '#616161',
+                      marginTop: 16,
+                    }}
+                  >
+                    Bạn chưa có bài đăng nào. Đặt câu hỏi ngay!
+                  </Text>
+                ) : null}
               </View>
             )}
             ListFooterComponent={() =>
@@ -557,6 +629,103 @@ function Profile({ userId }) {
             color={main_color}
             style={{ marginBottom: 100 }}
           />
+        </View>
+      ) : null}
+      {chosing ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            backgroundColor: '#ccc',
+            height: deviceHeight,
+            width: deviceWidth,
+            opacity: 0.9,
+          }}
+        >
+          <TouchableOpacity
+            style={{ height: deviceHeight, width: deviceWidth }}
+            onPress={() => setChosing(false)}
+          >
+            <View
+              style={{
+                marginTop: 100,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{ fontSize: 30, fontWeight: 'bold', color: main_color }}
+              >
+                Bạn muốn chọn ảnh từ
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  pickImage();
+                  setChosing(false);
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: main_2nd_color,
+                    padding: 12,
+                    borderRadius: 20,
+                    paddingHorizontal: 32,
+                    marginVertical: 40,
+                  }}
+                >
+                  <Image
+                    source={require('../../../assets/gallary.png')}
+                    style={{ width: 48, height: 48 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 20,
+                      color: '#fff',
+                    }}
+                  >
+                    Thư viện
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  cameraImage();
+                  setChosing(false);
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: main_2nd_color,
+                    padding: 12,
+                    borderRadius: 20,
+                    paddingHorizontal: 32,
+                  }}
+                >
+                  <Image
+                    source={require('../../../assets/camera.png')}
+                    style={{ width: 48, height: 48 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 20,
+                      color: '#fff',
+                    }}
+                  >
+                    Máy ảnh
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </View>
       ) : null}
     </View>

@@ -13,7 +13,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useSelector , useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/NewsFeed/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
@@ -31,7 +31,6 @@ import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 import { getAPI } from '../../../apis/instance';
 import { actionTypes, update } from 'actions/UserActions';
-
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -55,9 +54,9 @@ function NewsFeed() {
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
   React.useEffect(() => {
-    console.log('dispatch update user')
+    console.log('dispatch update user');
     dispatch(update(user.jwtToken));
-  },[]);
+  }, []);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setIsEnd(false);
@@ -182,17 +181,9 @@ function NewsFeed() {
                         });
                         let tmp = response1.data.result.post;
                         tmp.vote = 0;
-                        response.data.result.post_upvote.forEach(i => {
-                          if (i == tmp.oid) {
-                            item.vote = 1;
-                          }
-                        });
-                        response.data.result.post_downvote.forEach(i => {
-                          if (i == tmp.oid) {
-                            item.vote = -1;
-                          }
-                        });
-                        if (isRender) setPosts([tmp, ...res.data.result]);
+                        tmp.saved = false;
+
+                        if (isRender) setPosts([tmp, ...resPost.data.result]);
                       })
                       .catch(error => alert(error));
                   });
@@ -219,7 +210,7 @@ function NewsFeed() {
           .then(res => {
             res.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
-                 if (i == item.oid) {
+                if (i == item.oid) {
                   item.saved = true;
                 } else item.saved = false;
               });

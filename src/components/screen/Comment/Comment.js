@@ -1,4 +1,4 @@
-import { useTheme, useRoute } from '@react-navigation/native';
+import { useTheme, useRoute , useNavigation} from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import {
   Image,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  ToastAndroid,
   Pressable,
   SafeAreaView,
   TextInput,
@@ -40,6 +41,7 @@ import Toast from 'react-native-toast-message';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import { api } from '../../../constants/route';
+import navigationConstants from 'constants/navigation';
 
 const tmpComment = {
   id: '1',
@@ -109,6 +111,10 @@ function Comment(props) {
   const [comment, setComment] = useState('');
 
   const [sending, setSending] = useState(false);
+  const navigation = useNavigation();
+  const GoToProfile = () => {
+    navigation.push(navigationConstants.profile, {id: data.author_id});
+  };
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} />;
   };
@@ -125,7 +131,8 @@ function Comment(props) {
           if (!isOut) {
             response.data.result.forEach(i => {
               i.author_name = 'Lê Quốc Thắng';
-              i.image = 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
+              i.author_avatar = 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
+              i.image = '';
             });
             setIsLoading(false);
             setReplies(response.data.result);
@@ -169,6 +176,7 @@ function Comment(props) {
         setComment('');
          response.data.result.author_name = 'Lê Quốc Thắng';
         response.data.result.image = '';
+        response.data.author_avatar = 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
         setReplies(replies.concat(response.data.result));
         setSending(false);
         data.replies_count = data.replies_count + 1;
@@ -207,7 +215,7 @@ function Comment(props) {
                 <View style={styles.header}>
                   <View style={styles.headerAvatar}>
                     <TouchableOpacity
-                      onPress={() => alert('avatar is clicked')}
+                      onPress={() => GoToProfile()}
                     >
                       <Image
                         style={styles.imgAvatar}

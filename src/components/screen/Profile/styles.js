@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   container: {
-    flex: 1,
+   
 
     backgroundColor: touch_color,
   },

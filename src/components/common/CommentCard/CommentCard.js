@@ -128,11 +128,15 @@ function CommentCard(props) {
     if (isInPost) {
       navigation.navigate(navigationConstants.comment, {comment: comment});
     }
+  };  
+  console.log(comment)
+  const GoToProfile = () => {
+    navigation.push(navigationConstants.profile, {id: comment.author_id});
   };
   return (
     <View>
       <View style={styles.containerComment}>
-        <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+        <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
             style={styles.imgAvatar}
             source={{uri: comment.author_avatar}}

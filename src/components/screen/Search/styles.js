@@ -106,6 +106,50 @@ const styles = StyleSheet.create({
     marginRight: 8,
     color: main_2nd_color,
   },
+  //card user
+  cardContainer: {
+     padding: -8,
+     margin: 8,
+    borderRadius: 8,
+    borderWidth: 0, // Remove Border
+    elevation: 0,
+    backgroundColor: '#fff',
+  },
+  card: {
+    borderRadius: 8, padding: 12
+  },
+  imgAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderColor: '#c4c4c4',
+    marginRight: 8,
+  },
+  headerCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+   },
+   headerAvatar: {
+     flexDirection: 'row',
+    justifyContent: 'flex-start',
+    flexShrink: 1,
+    
+
+  },
+  txtAuthor: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  txtCreateDate: {
+    color: '#c4c4c4',
+    fontSize: 12,
+    marginRight: 4,
+  },
+  txtContent: {
+    fontSize: 14,
+    marginTop: 2,
+     
+  },
 });
 
 export default styles;

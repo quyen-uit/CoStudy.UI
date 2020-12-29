@@ -52,7 +52,7 @@ function PostCard(props) {
   const curUser = useSelector(getUser);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
-  const config = {
+   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
   useEffect(() => {
@@ -105,7 +105,7 @@ function PostCard(props) {
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
   };
   const GoToProfile = () => {
-    navigation.navigate(navigationConstants.profile);
+    navigation.push(navigationConstants.profile, {id: post.author_id});
   };
   return (
     <Card containerStyle={styles.container}>

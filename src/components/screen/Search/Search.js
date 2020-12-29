@@ -1,4 +1,6 @@
 import { useTheme, useNavigation } from '@react-navigation/native';
+import { Card } from 'react-native-elements';
+import moment from 'moment';
 import React, { useState, useEffect } from 'react';
 import {
   Text,
@@ -35,11 +37,105 @@ import Modal, {
 } from 'react-native-modals';
 import navigationConstants from 'constants/navigation';
 
+function UserCard({ item }) {
+  const [loading, setLoading] = useState(false);
+  const curUser = useSelector(getUser);
+  const [following, setFollowing] = useState(item.following);
+  const navigation = useNavigation();
+
+  const onFollow = async () => {
+    setLoading(true);
+    if (following) {
+      await getAPI(curUser.jwtToken)
+        .post(api + 'User/follower/remove?followingId=' + item.oid, {
+          followingId: item.oid,
+        })
+        .then(res => {
+          setLoading(false);
+          setFollowing(false);
+        })
+        .catch(error => alert(error));
+    } else {
+      await getAPI(curUser.jwtToken)
+        .post(api + 'User/following', { followers: [item.oid] })
+        .then(res => {
+          setLoading(false);
+          setFollowing(true);
+        })
+        .catch(error => alert(error));
+    }
+  };
+  return (
+    <Card containerStyle={styles.cardContainer}>
+      <TouchableHighlight
+        onPress={() =>
+          navigation.push(navigationConstants.profile, { id: item.from_id })
+        }
+        underlayColor={touch_color}
+        style={styles.card}
+      >
+        <View style={styles.headerCard}>
+          <View style={styles.headerAvatar}>
+            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+              <Image
+                style={styles.imgAvatar}
+                source={
+                  item.avatar.image_hash != null
+                    ? { uri: item.avatar.image_hash }
+                    : require('../../../assets/avatar.jpeg')
+                }
+              />
+            </TouchableOpacity>
+            <View style={{ flexShrink: 1 }}>
+              <Text style={styles.txtAuthor}>
+                {item.first_name} {item.last_name}
+              </Text>
+              <Text style={styles.txtContent}>{item.address.city}</Text>
+            </View>
+          </View>
+          <View style={{ alignSelf: 'center', width: 96 }}>
+            {loading ? (
+              <ActivityIndicator
+                size="small"
+                color={main_color}
+                style={{ alignSelf: 'center' }}
+              />
+            ) : (
+              <TouchableOpacity
+                style={{
+                  backgroundColor: following ? main_color : '#ccc',
+                  padding: 4,
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                }}
+                onPress={() => {
+                  onFollow();
+                }}
+              >
+                <Text
+                  style={{
+                    color: following ? 'white' : main_color,
+                    alignSelf: 'center',
+                  }}
+                >
+                  {following ? 'Hủy theo dõi' : 'Theo dõi'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </TouchableHighlight>
+    </Card>
+  );
+}
+
 function Search() {
   const { colors } = useTheme();
   const curUser = useSelector(getUser);
   const navigation = useNavigation();
   const [isFirst, setIsFirst] = useState(true);
+
+  const [isPostSearch, setIsPostSearch] = useState(true);
   // query
   const [search, setSearch] = useState('');
 
@@ -51,6 +147,8 @@ function Search() {
   // data
   const [fieldPickers, setFieldPickers] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [users, setUsers] = useState([]);
+
   // show modal
   const [modalVisible, setModalVisible] = useState(false);
   // 0 main , 1 field, 2 time, 3 vote
@@ -104,58 +202,99 @@ function Search() {
       setIsFirst(false);
       return;
     }
-    setIsLoading(true);
-    const tmp = [];
-    fieldPickers.forEach(item => {
-      if (item.isPick) tmp.push(item);
-    });
-
     let isRender = true;
-    const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/current')
-        .then(async response => {
-          await getAPI(curUser.jwtToken)
-            .post(api + `Post/post/filter`, {
-              skip: 0,
-              count: 3,
-              keyword: keyword,
-            })
-            .then(async res => {
-              res.data.result.forEach(item => {
-                response.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
+    if (isPostSearch) {
+      setIsLoading(true);
+      const tmp = [];
+      fieldPickers.forEach(item => {
+        if (item.isPick) tmp.push(item);
+      });
+
+      const fetchData1 = async () => {
+        await getAPI(curUser.jwtToken)
+          .get(api + 'User/current')
+          .then(async response => {
+            await getAPI(curUser.jwtToken)
+              .post(api + `Post/post/filter`, {
+                skip: 0,
+                count: 3,
+                keyword: keyword,
+              })
+              .then(async res => {
+                res.data.result.forEach(item => {
+                  response.data.result.post_saved.forEach(i => {
+                    if (i == item.oid) {
+                      item.saved = true;
+                    } else item.saved = false;
+                  });
+                  item.vote = 0;
+                  response.data.result.post_upvote.forEach(i => {
+                    if (i == item.oid) {
+                      item.vote = 1;
+                    }
+                  });
+                  response.data.result.post_downvote.forEach(i => {
+                    if (i == item.oid) {
+                      item.vote = -1;
+                    }
+                  });
                 });
-                item.vote = 0;
-                response.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                response.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+
+                setPosts(res.data.result);
+
+                setIsLoading(false);
+                setSkip(3);
+              })
+              .catch(error => alert(error));
+          })
+          .catch(error => alert(error));
+      };
+
+      fetchData1();
+    } else {
+      setIsLoading(true);
+      const tmp = [];
+      fieldPickers.forEach(item => {
+        if (item.isPick) tmp.push(item);
+      });
+
+      const fetchData1 = async () => {
+        await getAPI(curUser.jwtToken)
+          .post(api + 'User/user/filter', {
+            keyword: keyword,
+            skip: 0,
+            count: 99,
+          })
+          .then(async res => {
+            await getAPI(curUser.jwtToken)
+              .get(
+                api +
+                  'User/following?UserId=' +
+                  curUser.oid +
+                  '&Skip=0&Count=99'
+              )
+              .then(following => {
+                if (isRender) {
+                  res.data.result.forEach(er => {
+                    er.following = false;
+                    following.data.result.forEach(ing => {
+                      if (er.from_id == ing.toId) er.following = true;
+                    });
+                  });
+                  setIsLoading(false);
+                  setUsers(res.data.result);
+                }
               });
+          })
+          .catch(error => alert(error));
+      };
 
-              setPosts(res.data.result);
-
-              setIsLoading(false);
-              setSkip(3);
-            })
-            .catch(error => alert(error));
-        })
-        .catch(error => alert(error));
-    };
-
-    fetchData1();
+      fetchData1();
+    }
     return () => {
       isRender = false;
     };
-  }, [filterVote, filterTime, keyword, amountField, filterComment]);
+  }, [keyword]);
 
   const fetchMore = async () => {
     if (isEnd == true) return;
@@ -208,6 +347,9 @@ function Search() {
   const renderItem = ({ item }) => {
     return <PostCard post={item} />;
   };
+  const renderUserCard = ({ item }) => {
+    return <UserCard item={item} />;
+  };
   return (
     <View>
       {isLoading ? (
@@ -250,10 +392,16 @@ function Search() {
         </View>
       </View>
       <View style={styles.filter}>
-        <TouchableOpacity style={styles.btnSelected}>
+        <TouchableOpacity
+          style={isPostSearch ? styles.btnSelected : styles.btnNotSelected}
+          onPress={() => setIsPostSearch(true)}
+        >
           <Text style={styles.txtBtnSelected}>Bài viết</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.btnNotSelected}>
+        <TouchableOpacity
+          style={!isPostSearch ? styles.btnSelected : styles.btnNotSelected}
+          onPress={() => setIsPostSearch(false)}
+        >
           <Text style={styles.txtBtnNotSelected}>Mọi người</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -266,29 +414,74 @@ function Search() {
         </TouchableOpacity>
       </View>
       <SafeAreaView>
-        <FlatList
-          showsVerticalScrollIndicator={false}
-          data={posts}
-          style={{ flexGrow: 0, marginBottom: 200 }}
-          onEndReached={async () => {
-            if (posts.length > 2) {
-              setIsEnd(true);
-              await fetchMore();
-            }
-          }}
-          onEndReachedThreshold={0.7}
-          renderItem={item => renderItem(item)}
-          keyExtractor={(item, index) => index.toString()}
-          ListFooterComponent={() =>
-            isEnd ? (
-              <View style={{ marginVertical: 12 }}>
-                <ActivityIndicator size={'large'} color={main_color} />
+        {isPostSearch ? (
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            data={posts}
+            style={{ flexGrow: 0, marginBottom: 200 }}
+            onEndReached={async () => {
+              if (posts.length > 2) {
+                setIsEnd(true);
+                await fetchMore();
+              }
+            }}
+            onEndReachedThreshold={0.7}
+            renderItem={item => renderItem(item)}
+            keyExtractor={(item, index) => index.toString()}
+            ListHeaderComponent={() => (
+              <View>
+                {!isFirst && posts.length == 0 ? (
+                  <Text
+                    style={{
+                      alignSelf: 'center',
+                      fontSize: 16,
+                      color: '#616161',
+                      marginTop: 100,
+                    }}
+                  >
+                    Không có kết quả.
+                  </Text>
+                ) : (
+                  <View></View>
+                )}
               </View>
-            ) : (
-              <View style={{ margin: 4 }}></View>
-            )
-          }
-        />
+            )}
+            ListFooterComponent={() =>
+              isEnd ? (
+                <View style={{ marginVertical: 12 }}>
+                  <ActivityIndicator size={'large'} color={main_color} />
+                </View>
+              ) : (
+                <View style={{ margin: 4 }}></View>
+              )
+            }
+          />
+        ) : (
+          <FlatList
+            showsVerticalScrollIndicator={false}
+            data={users}
+            renderItem={item => renderUserCard(item)}
+            keyExtractor={(item, index) => index.toString()}
+            ListHeaderComponent={() => (
+              <View>
+                { users.length == 0 ? (
+                  <Text
+                    style={{
+                      alignSelf: 'center',
+                      fontSize: 16,
+                      color: '#616161',
+                      marginTop: 100,
+                    }}
+                  >
+                    Không có kết quả.
+                  </Text>
+                ) : (
+                  <View></View>
+                )}
+              </View>
+            )}
+          />
+        )}
       </SafeAreaView>
 
       <BottomModal
@@ -432,7 +625,7 @@ function Search() {
                 </TouchableOpacity>
               </View>
               <View>
-                <TouchableOpacity  onPress={() => setModalOrder(3)}>
+                <TouchableOpacity onPress={() => setModalOrder(3)}>
                   <View style={styles.md_field}>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -722,7 +915,9 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Số comment giảm dần</Text>
+                      <Text style={styles.md_txtfield}>
+                        Số comment giảm dần
+                      </Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -748,7 +943,9 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Số comment tăng dần</Text>
+                      <Text style={styles.md_txtfield}>
+                        Số comment tăng dần
+                      </Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon

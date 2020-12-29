@@ -1,4 +1,4 @@
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import {
   Image,
@@ -21,6 +21,8 @@ import styles from 'components/screen/Post/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
 import { color } from 'react-native-reanimated';
+import navigationConstants from 'constants/navigation';
+
 import {
   main_2nd_color,
   main_color,
@@ -95,6 +97,7 @@ const deviceHeight = Dimensions.get('window').height;
 function Post(props) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
+  const navigation = useNavigation();
   const [isVote, setIsVote] = useState(false);
   const [showOption, setShowOption] = useState(true);
   const route = useRoute();
@@ -109,6 +112,8 @@ function Post(props) {
   const [saved, setSaved] = useState(route.params.post.saved);
   const [isSaving, setIsSaving] = useState(false);
   //comment
+  const [chosing, setChosing] = useState(false);
+
   const [imgComment, setImgComment] = useState('');
   const [comment, setComment] = useState('');
   const [isEnd, setIsEnd] = useState(false);
@@ -222,6 +227,20 @@ function Post(props) {
       }
     });
   };
+  const cameraImage = () => {
+    ImagePicker.openCamera({
+      width: 800,
+      height: 1000,
+      mediaType: 'photo',
+      cropping: true,
+
+      compressImageQuality: 1,
+    }).then(async image => {
+      if (image) {
+        setImgComment(image);
+      }
+    });
+  };
   const postComment = async () => {
     setSending(true);
     let img = '';
@@ -306,7 +325,7 @@ function Post(props) {
                 <View style={styles.header}>
                   <View style={styles.headerAvatar}>
                     <TouchableOpacity
-                      onPress={() => alert('avatar is clicked')}
+                      onPress={() => navigation.push(navigationConstants.profile, {id: post.author_id})}
                     >
                       <Image
                         style={styles.imgAvatar}
@@ -357,6 +376,11 @@ function Post(props) {
                       style={styles.btnBookmark}
                       onPress={() => {
                         if (isSaving == false) onSaved();
+                        else
+                          ToastAndroid.show(
+                            'Đang xử lý..',
+                            ToastAndroid.SHORT
+                          );
                       }}
                     >
                       <View style={styles.btnOption}>
@@ -557,7 +581,7 @@ function Post(props) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.btnInputOption}
-              onPress={() => pickImage()}
+              onPress={() => setChosing(true)}
             >
               <FontAwesome5 name={'images'} size={24} color={main_color} />
             </TouchableOpacity>
@@ -591,7 +615,103 @@ function Post(props) {
         )}
       </View>
 
-     
+      {chosing ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            backgroundColor: '#ccc',
+            height: deviceHeight,
+            width: deviceWidth,
+            opacity: 0.9,
+          }}
+        >
+          <TouchableOpacity
+            style={{ height: deviceHeight, width: deviceWidth }}
+            onPress={() => setChosing(false)}
+          >
+            <View
+              style={{
+                marginTop: 100,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{ fontSize: 30, fontWeight: 'bold', color: main_color }}
+              >
+                Bạn muốn chọn ảnh từ
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  pickImage();
+                  setChosing(false);
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: main_2nd_color,
+                    padding: 12,
+                    borderRadius: 20,
+                    paddingHorizontal: 32,
+                    marginVertical: 40,
+                  }}
+                >
+                  <Image
+                    source={require('../../../assets/gallary.png')}
+                    style={{ width: 48, height: 48 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 20,
+                      color: '#fff',
+                    }}
+                  >
+                    Thư viện
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  cameraImage();
+                  setChosing(false);
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: main_2nd_color,
+                    padding: 12,
+                    borderRadius: 20,
+                    paddingHorizontal: 32,
+                  }}
+                >
+                  <Image
+                    source={require('../../../assets/camera.png')}
+                    style={{ width: 48, height: 48 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 'bold',
+                      marginLeft: 20,
+                      color: '#fff',
+                    }}
+                  >
+                    Máy ảnh
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </View>
+      ) : null}
     </View>
   );
 }
