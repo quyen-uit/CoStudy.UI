@@ -278,7 +278,7 @@ function Profile({ userId }) {
     }).then(async image => {
       if (image) {
         const uri = image.path;
-        const filename = 'avatar_' + curUser.id;
+        const filename = 'avatar_' + curUser.oid;
         const uploadUri =
           Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
         const task = storage()
@@ -330,7 +330,7 @@ function Profile({ userId }) {
     }).then(async image => {
       if (image) {
         const uri = image.path;
-        const filename = 'avatar_' + curUser.id;
+        const filename = 'avatar_' + curUser.oid;
         const uploadUri =
           Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
         const task = storage()
