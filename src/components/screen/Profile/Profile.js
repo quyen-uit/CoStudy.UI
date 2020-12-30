@@ -95,7 +95,6 @@ function Profile({ userId }) {
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
-  console.log(curUser)
   //check me or not
   const [isMe, setIsMe] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -143,12 +142,14 @@ function Profile({ userId }) {
   }, [route.params?.update]);
   useEffect(() => {
     let isRender = true;
-    let url = 'User/current';
+    let url = 'User/get/' + curUser.oid;
     if (route.params?.id)
       if (route.params.id != curUser.oid) {
         setIsMe(false);
         url = 'User/get/' + route.params.id;
       }
+    if (isMe) dispatch(update(curUser.jwtToken));
+
     const fetchData1 = async () => {
       await getAPI(curUser.jwtToken)
         .get(api + url)
@@ -564,11 +565,17 @@ function Profile({ userId }) {
                     <View style={styles.flex1}>
                       <Image
                         style={styles.imgAvatar}
-                        source={require('../../../assets/avatar.jpeg')}
+                        source={
+                          avatar == ''
+                            ? require('../../../assets/test.png')
+                            : { uri: avatar }
+                        }
                       />
                     </View>
                     <TouchableHighlight
-                      onPress={() => alert('new')}
+                      onPress={() =>
+                        navigation.navigate(navigationConstants.create)
+                      }
                       underlayColor={touch_color}
                       style={styles.btnBoxNew}
                     >
@@ -594,6 +601,7 @@ function Profile({ userId }) {
                       fontSize: 16,
                       color: '#616161',
                       marginTop: 16,
+                      height: 140,
                     }}
                   >
                     Bạn chưa có bài đăng nào. Đặt câu hỏi ngay!

@@ -18,7 +18,7 @@ import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import navigationConstants from 'constants/navigation';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { main_color, touch_color } from 'constants/colorCommon';
+import { main_color, main_2nd_color, touch_color } from 'constants/colorCommon';
 import { color } from 'react-native-reanimated';
 import styles from 'navigation/styles';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -193,7 +193,7 @@ function ListPostNavigator({ navigation }) {
               <TouchableOpacity onPress={() => alert('click')}>
                 <Image
                   style={styles.imgAvatar}
-                  source={{uri: curUser.avatar.image_hash}}
+                  source={{ uri: curUser.avatar.image_hash }}
                 />
               </TouchableOpacity>
             </View>
@@ -264,11 +264,18 @@ function TabNavigator() {
             );
           },
         }}
+       
         options={navigation => ({
           unmountOnBlur: true,
-          tabBarLabel: home,
+          tabBarLabel: 'Đăng',
+
           tabBarIcon: ({ color }) => (
-            <Icon name="plus-square" color={color} size={26} />
+            <Icon
+              name="plus-square"
+              color={color}
+              size={26}
+              color={main_2nd_color}
+            />
           ),
         })}
       />

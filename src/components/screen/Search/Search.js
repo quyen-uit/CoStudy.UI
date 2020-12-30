@@ -69,7 +69,7 @@ function UserCard({ item }) {
     <Card containerStyle={styles.cardContainer}>
       <TouchableHighlight
         onPress={() =>
-          navigation.push(navigationConstants.profile, { id: item.from_id })
+          navigation.push(navigationConstants.profile, { id: item.oid })
         }
         underlayColor={touch_color}
         style={styles.card}
@@ -103,7 +103,7 @@ function UserCard({ item }) {
             ) : (
               <TouchableOpacity
                 style={{
-                  backgroundColor: following ? main_color : '#ccc',
+                  backgroundColor: following ? '#ccc':  main_color ,
                   padding: 4,
                   paddingHorizontal: 8,
                   borderRadius: 8,
@@ -114,7 +114,7 @@ function UserCard({ item }) {
               >
                 <Text
                   style={{
-                    color: following ? 'white' : main_color,
+                    color: following ?  main_color :'white' ,
                     alignSelf: 'center',
                   }}
                 >
@@ -278,7 +278,7 @@ function Search() {
                   res.data.result.forEach(er => {
                     er.following = false;
                     following.data.result.forEach(ing => {
-                      if (er.from_id == ing.toId) er.following = true;
+                      if (er.oid == ing.toId) er.following = true;
                     });
                   });
                   setIsLoading(false);

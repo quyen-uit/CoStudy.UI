@@ -1,4 +1,4 @@
-import { useTheme, useRoute , useNavigation} from '@react-navigation/native';
+import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import {
   Image,
@@ -113,7 +113,7 @@ function Comment(props) {
   const [sending, setSending] = useState(false);
   const navigation = useNavigation();
   const GoToProfile = () => {
-    navigation.push(navigationConstants.profile, {id: data.author_id});
+    navigation.push(navigationConstants.profile, { id: data.author_id });
   };
   const renderItem = ({ item }) => {
     return <CommentCard comment={item} />;
@@ -131,7 +131,8 @@ function Comment(props) {
           if (!isOut) {
             response.data.result.forEach(i => {
               i.author_name = 'Lê Quốc Thắng';
-              i.author_avatar = 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
+              i.author_avatar =
+                'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
               i.image = '';
             });
             setIsLoading(false);
@@ -174,9 +175,10 @@ function Comment(props) {
       })
       .then(response => {
         setComment('');
-         response.data.result.author_name = 'Lê Quốc Thắng';
+        response.data.result.author_name = 'Lê Quốc Thắng';
         response.data.result.image = '';
-        response.data.author_avatar = 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
+        response.data.author_avatar =
+          'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
         setReplies(replies.concat(response.data.result));
         setSending(false);
         data.replies_count = data.replies_count + 1;
@@ -192,8 +194,7 @@ function Comment(props) {
         alert(error);
       });
   };
-
-  return (
+   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
@@ -214,9 +215,7 @@ function Comment(props) {
               <View>
                 <View style={styles.header}>
                   <View style={styles.headerAvatar}>
-                    <TouchableOpacity
-                      onPress={() => GoToProfile()}
-                    >
+                    <TouchableOpacity onPress={() => GoToProfile()}>
                       <Image
                         style={styles.imgAvatar}
                         source={{ uri: data.author_avatar }}
@@ -262,8 +261,19 @@ function Comment(props) {
                     <Text style={styles.txtContent}>{data.content}</Text>
                   </View>
                 </View>
-                <Image style={styles.imgContent} source={{ uri: data.image }} />
+              
+                  {data.image  ? <Image
+                    style={{
+                      width: '100%',
+                      height: 400,
+                      alignSelf: 'center',
+                      marginVertical: 8,
+                    }}
+                    source={{ uri: data.image }}
+                  /> : null}
 
+                  
+ 
                 <View style={styles.footer}>
                   <View style={styles.flex1}>
                     <Pressable

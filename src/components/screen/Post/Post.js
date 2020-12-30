@@ -183,7 +183,7 @@ function Post(props) {
   };
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.');
+      ToastAndroid.show('Bạn đã upvote cho bài viết này.',1000);
       return;
     } else if (vote == 0) {
       setVote(1);
@@ -195,11 +195,11 @@ function Post(props) {
     }
     await getAPI(curUser.jwtToken)
       .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid })
-      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),1000);
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.');
+      ToastAndroid.show('Bạn đã downvote cho bài viết này.',1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
@@ -211,7 +211,7 @@ function Post(props) {
     }
     await getAPI(curUser.jwtToken)
       .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid })
-      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
+      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),1000);
   };
   const pickImage = () => {
     ImagePicker.openPicker({
@@ -532,12 +532,12 @@ function Post(props) {
             <ActivityIndicator
               size="large"
               color={main_color}
-              style={{ marginBottom: 100 }}
+              
             />
           </View>
         ) : null}
       </SafeAreaView>
-
+      
       {imgComment != '' ? (
         <View style={{ position: 'absolute', right: 0, bottom: 60 }}>
           <Image
