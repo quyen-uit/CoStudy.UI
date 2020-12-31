@@ -82,12 +82,13 @@ const user = {
 function Profile({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
-  const [data, setData] = useState([]);
   const [posts, setPosts] = useState([]);
   const navigation = useNavigation();
   const route = useRoute();
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
+  const [data, setData] = useState(curUser);
+
   const [avatar, setAvatar] = useState('');
   const [bg, setBg] = useState();
   const [chosing, setChosing] = useState(false);

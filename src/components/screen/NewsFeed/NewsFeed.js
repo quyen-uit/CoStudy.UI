@@ -139,7 +139,7 @@ function NewsFeed() {
                     const uploadUri =
                       Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
                     const task = storage()
-                      .ref('post/' + curUser.id + '/' + filename)
+                      .ref('post/' + curUser.oid + '/' + filename)
                       .putFile(uploadUri);
                     // set progress state
                     task.on('state_changed', snapshot => {});

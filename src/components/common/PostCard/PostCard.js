@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Text,
@@ -48,11 +48,18 @@ function PostCard(props) {
   const [author, setAuthor] = useState();
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
+  const [comment, setComment] = useState(post.comments_countd);
   const [vote, setVote] = useState(post.vote);
   const curUser = useSelector(getUser);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
+  const onUpvoteCallback = useCallback((value)=>setUpvote(value));
+  const onDownvoteCallback = useCallback((value) => setDownvote(value));
+  const onCommentCallback = useCallback((value)=> setComment(value));
+  const onVoteCallback = useCallback((value)=> setVote(value));
+
    const config = {
+     
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
   useEffect(() => {
@@ -66,7 +73,12 @@ function PostCard(props) {
       author: author,
       vote: vote,
       upvote: upvote,
-      downvote: downvote
+      commentCount: comment,
+      downvote: downvote,
+      onUpvote: onUpvoteCallback,
+      onDownvote: onDownvoteCallback,
+      onComment: onCommentCallback,
+      onVote: onVoteCallback
     });
   };
 
@@ -239,7 +251,7 @@ function PostCard(props) {
               styles.btnVote,
             ]}
           >
-            <Text style={styles.txtVoteNumber}>{post.comments_countd}</Text>
+            <Text style={styles.txtVoteNumber}>{comment}</Text>
             <FontAwesome5 name={'comment-alt'} size={22} color={main_2nd_color} />
           </Pressable>
         </View>

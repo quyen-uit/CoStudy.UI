@@ -92,6 +92,7 @@ const list = [
     id: '4',
   },
 ];
+
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Post(props) {
@@ -108,6 +109,7 @@ function Post(props) {
   const [comments, setComments] = useState([]);
   const [upvote, setUpvote] = useState(route.params.upvote);
   const [downvote, setDownvote] = useState(route.params.downvote);
+  const [commentCount, setCommentCount] = useState(route.params.commentCount);
   const [vote, setVote] = useState(route.params.vote);
   const [saved, setSaved] = useState(route.params.post.saved);
   const [isSaving, setIsSaving] = useState(false);
@@ -124,9 +126,14 @@ function Post(props) {
   };
 
   useEffect(() => {
-    const fetchData = async () => {};
-    fetchData();
-  }, []);
+    route.params.onUpvote(upvote);
+    route.params.onVote(vote);
+  }, [upvote]);
+  useEffect(() => {
+    route.params.onDownvote(downvote);
+    route.params.onVote(vote);
+  }, [downvote]);
+
   useEffect(() => {
     setIsLoading(true);
     let isOut = false;
@@ -162,7 +169,6 @@ function Post(props) {
   };
   const onSaved = async () => {
     setIsSaving(true);
-    console.log('2');
     if (saved) {
       await getAPI(curUser.jwtToken)
         .post(api + 'Post/post/save/' + post.oid, { id: post.oid })
@@ -183,7 +189,7 @@ function Post(props) {
   };
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.',1000);
+      ToastAndroid.show('Bạn đã upvote cho bài viết này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
@@ -195,11 +201,14 @@ function Post(props) {
     }
     await getAPI(curUser.jwtToken)
       .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid })
-      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),1000);
+      .then(
+        response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),
+        1000
+      );
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.',1000);
+      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
@@ -211,7 +220,10 @@ function Post(props) {
     }
     await getAPI(curUser.jwtToken)
       .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid })
-      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),1000);
+      .then(
+        response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),
+        1000
+      );
   };
   const pickImage = () => {
     ImagePicker.openPicker({
@@ -242,12 +254,13 @@ function Post(props) {
     });
   };
   const postComment = async () => {
-    setSending(true);
+  
     let img = '';
     if (comment == '') {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
+    setSending(true);
     ToastAndroid.show('Đang tải bình luận lên...', ToastAndroid.SHORT);
     if (imgComment) {
       image = imgComment;
@@ -288,7 +301,8 @@ function Post(props) {
         console.log(response.data.result);
         setComments(comments.concat(response.data.result.comment));
         setSending(false);
-        post.comments_countd = post.comments_countd + 1;
+        setCommentCount(commentCount+1)
+        route.params.onComment(commentCount+1);
         Toast.show({
           type: 'success',
           position: 'top',
@@ -325,7 +339,11 @@ function Post(props) {
                 <View style={styles.header}>
                   <View style={styles.headerAvatar}>
                     <TouchableOpacity
-                      onPress={() => navigation.push(navigationConstants.profile, {id: post.author_id})}
+                      onPress={() =>
+                        navigation.push(navigationConstants.profile, {
+                          id: post.author_id,
+                        })
+                      }
                     >
                       <Image
                         style={styles.imgAvatar}
@@ -377,10 +395,7 @@ function Post(props) {
                       onPress={() => {
                         if (isSaving == false) onSaved();
                         else
-                          ToastAndroid.show(
-                            'Đang xử lý..',
-                            ToastAndroid.SHORT
-                          );
+                          ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
                       }}
                     >
                       <View style={styles.btnOption}>
@@ -479,7 +494,7 @@ function Post(props) {
                       ]}
                     >
                       <Text style={styles.txtVoteNumber}>
-                        {post.comments_countd}
+                        {commentCount}
                       </Text>
                       <FontAwesome5
                         name={'comment-alt'}
@@ -529,15 +544,11 @@ function Post(props) {
               height: deviceHeight - 20,
             }}
           >
-            <ActivityIndicator
-              size="large"
-              color={main_color}
-              
-            />
+            <ActivityIndicator size="large" color={main_color} />
           </View>
         ) : null}
       </SafeAreaView>
-      
+
       {imgComment != '' ? (
         <View style={{ position: 'absolute', right: 0, bottom: 60 }}>
           <Image

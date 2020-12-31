@@ -10,10 +10,17 @@ import { persistor, store } from 'store';
 import { PersistGate } from 'redux-persist/integration/react';
 import { hide } from 'react-native-bootsplash';
 import Toast, { BaseToast } from 'react-native-toast-message';
+import messaging from '@react-native-firebase/messaging';
+import { Alert } from 'react-native';
 
 import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
 enableScreens();
+
+messaging().setBackgroundMessageHandler(async remoteMessage => {
+  console.log('Message handled in the background!', remoteMessage);
+});
+
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 LogBox.ignoreLogs([
   'Animated: `useNativeDriver` was not specified. This is a required option and must be explicitly set to `true` or `false`',
@@ -22,14 +29,30 @@ LogBox.ignoreLogs([
   'Animated.event now requires a second argument for options',
 ]);
 LogBox.ignoreLogs(['Require cycle:']);
-
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
 function App() {
   const scheme = useColorScheme();
 
   const hideSplashScreen = async () => {
     await hide({ fade: true });
   };
+  messaging()
+  .getToken()
+  .then(token => {
+    console.log(token);
+  });
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+      console.log(JSON.parse(JSON.stringify(remoteMessage)).data);
+      console.log(JSON.parse(JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)).message)
 
+     });
+
+    return unsubscribe;
+  }, []);
   useEffect(() => {
     persistor(hideSplashScreen);
   }, []);
