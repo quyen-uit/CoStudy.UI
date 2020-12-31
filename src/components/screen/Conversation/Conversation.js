@@ -32,7 +32,10 @@ import axios from 'axios';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import { api } from 'constants/route';
-
+import messaging from '@react-native-firebase/messaging';
+import { getAPI } from '../../../apis/instance';
+import moment from 'moment';
+import { ConsoleLogger } from '@microsoft/signalr/dist/esm/Utils';
 const tmpConversation = {
   id: '1',
   title: 'Đây là title 1',
@@ -103,7 +106,7 @@ const comment = {
   amountComment: 20,
 };
 
-function RightMessage({ content }) {
+function RightMessage({ content, time }) {
   const [showTime, setShowTime] = useState(false);
 
   return (
@@ -116,19 +119,36 @@ function RightMessage({ content }) {
         <View>
           <View style={styles.boxRightMessage}>
             <Text>{content}</Text>
+            {showTime ? (
+              <View style={styles.timeRight}>
+                <Text style={{fontSize: 10, color: '#ccc'}}>{moment(new Date()).diff(
+                  moment(time),
+                  'minutes'
+                ) < 60
+                  ? moment(new Date()).diff(
+                      moment(time),
+                      'minutes'
+                    ) + ' phút trước'
+                  : moment(new Date()).diff(
+                      moment(time),
+                      'hours'
+                    ) < 24
+                  ? moment(new Date()).diff(
+                      moment(time),
+                      'hours'
+                    ) + ' giờ trước'
+                  : moment(time).format('hh:mm DD-MM-YYYY')}</Text>
+              </View>
+            ) : null}
           </View>
 
-          {showTime ? (
-            <View style={styles.timeRight}>
-              <Text>11:00</Text>
-            </View>
-          ) : null}
+           
         </View>
       </View>
     </TouchableOpacity>
   );
 }
-function LeftMessage({ content }) {
+function LeftMessage({ content, time }) {
   const [showTime, setShowTime] = useState(false);
 
   return (
@@ -143,12 +163,29 @@ function LeftMessage({ content }) {
         <View style={styles.shink1}>
           <View style={styles.boxMessage}>
             <Text>{content}</Text>
+            {showTime ? (
+              <View style={styles.timeLeft}>
+                <Text style={{fontSize: 10, color: '#ccc'}}>{moment(new Date()).diff(
+                  moment(time),
+                  'minutes'
+                ) < 60
+                  ? moment(new Date()).diff(
+                      moment(time),
+                      'minutes'
+                    ) + ' phút trước'
+                  : moment(new Date()).diff(
+                      moment(time),
+                      'hours'
+                    ) < 24
+                  ? moment(new Date()).diff(
+                      moment(time),
+                      'hours'
+                    ) + ' giờ trước'
+                  : moment(time).format('hh:mm DD-MM-YYYY')}</Text>
+              </View>
+            ) : null}
           </View>
-          {showTime ? (
-            <View style={styles.timeLeft}>
-              <Text>11:00</Text>
-            </View>
-          ) : null}
+          
         </View>
       </View>
     </TouchableOpacity>
@@ -160,52 +197,80 @@ function Conversation(props) {
   const dispatch = useDispatch();
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
+  const [message, setMessage] = useState();
   const curUser = useSelector(getUser);
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
- 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     await axios
-  //       .get('https://e-mobile-shop.azurewebsites.net/api/Message/all')
-  //       .then(response => {
-  //         setListMes(response.data);
-  //       })
-  //       .catch(error => alert(error));
-  //   };
-  //   fetchData();
-  // }, []);
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      const res = JSON.parse(
+        JSON.parse(
+          JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+        ).message
+      );
+      console.log(res)
+      const tmp = {id: '', sender_id: res.SenderId, conversation_id: res.ConversationId,media_content: res.MediaContent, string_content: res.StringContent, status: res.Status, created_date: res.CreatedDate, modified_date: res.ModifiedDate, oid: res.OId};
+          setListMes([...listMes, tmp]);
+      // console.log(
+      //   JSON.parse(
+      //     JSON.parse(
+      //       JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+      //     ).message
+      //   )
+      // );
+    });
 
-  const addToGroup = async () => {
-    await axios.post(
-      'https://e-mobile-shop.azurewebsites.net/api/Message/group/add',
-      { groupName: 'fbb12f15-e823-45d8-931b-29ba01926ffa' }
-    );
-  };
-  const send = async () => {
-    await axios.post(
-      'https://e-mobile-shop.azurewebsites.net/api/Message/send',
-      { message: 'clmm', id: {}, timestamp: '', from: '', connectionId: '' }
-    );
+    return unsubscribe;
+  }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      await getAPI(curUser.jwtToken)
+        .get(
+          api +
+            'Message/message/get/conversation/5fed5ea4f054f238cf51c477/limit/100'
+        )
+        .then(response => {
+          setListMes(response.data.result.messages);
+          console.log(response.data.result.messages[0])
+        })
+        .catch(err => alert(err));
+    };
+    fetchData();
+  }, []);
+
+  const sendMessage = async () => {
+    setMessage('');
+    await getAPI(curUser.jwtToken)
+      .post(api + 'Message/message/add', {
+        conversation_id: '5fed5ea4f054f238cf51c477',
+        content: message,
+      })
+      .then(response => {
+        // setListMes([...listMes, response.data.result]);
+       
+      })
+      .catch(err => alert(err));
   };
   const renderItem = ({ item }) => {
-    if (item.userId == '1') return <RightMessage content={item.content} />;
-    else return <LeftMessage content={item.content} />;
+    if (item.sender_id == curUser.oid)
+      return (
+        <RightMessage content={item.string_content} time={item.created_date} />
+      );
+    else
+      return (
+        <LeftMessage content={item.string_content} time={item.created_date} />
+      );
   };
   return (
     <View style={styles.largeContainer}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.containerChat}
-      >
+      <ScrollView showsVerticalScrollIndicator={false}>
         <SafeAreaView>
           <FlatList
-            inverted={-1}
             showsVerticalScrollIndicator={false}
-            data={list}
+            data={listMes}
             renderItem={renderItem}
-            keyExtractor={item => item.id}
+            keyExtractor={(item, index) => index.toString()}
           />
         </SafeAreaView>
       </ScrollView>
@@ -239,14 +304,13 @@ function Conversation(props) {
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
           placeholder="Nhập j đi tml.."
+          value={message}
+          onChangeText={text => setMessage(text)}
         />
         <TouchableOpacity
           style={styles.btnInputOption}
           onPress={() => {
-            axios
-              .post('https://e-mobile-shop.azurewebsites.net/api/Message/send')
-              .then(console.log('send'))
-              .catch(error => alert(error));
+            sendMessage();
           }}
         >
           <FontAwesome5 name={'paper-plane'} size={24} color={main_color} />

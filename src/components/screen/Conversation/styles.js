@@ -9,12 +9,11 @@ const styles = StyleSheet.create({
   timeLeft: {
     justifyContent: 'center',
     alignItems: 'flex-end',
-    marginRight: 80,
-  },
+   },
   shirk1: {
     flexShrink: 1,
   },
-  timeRight: { justifyContent: 'center', marginLeft: 80 },
+  timeRight: { justifyContent: 'center' },
   // container (view)
   grOption: {
     flexDirection: 'row',

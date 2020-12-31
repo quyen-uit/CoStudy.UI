@@ -43,16 +43,16 @@ function App() {
   .then(token => {
     console.log(token);
   });
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
-      console.log(JSON.parse(JSON.stringify(remoteMessage)).data);
-      console.log(JSON.parse(JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)).message)
+  // useEffect(() => {
+  //   const unsubscribe = messaging().onMessage(async remoteMessage => {
+  //     Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+  //     console.log(JSON.parse(JSON.stringify(remoteMessage)).data);
+  //     console.log(JSON.parse(JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)).message)
 
-     });
+  //    });
 
-    return unsubscribe;
-  }, []);
+  //   return unsubscribe;
+  // }, []);
   useEffect(() => {
     persistor(hideSplashScreen);
   }, []);
