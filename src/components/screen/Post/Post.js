@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   TextInput,
   ToastAndroid,
+  Keyboard,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
@@ -47,6 +48,8 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 import { getAPI } from '../../../apis/instance';
+import ImageView from 'react-native-image-viewing';
+import { ImageComponent } from 'react-native';
 
 const tmpPost = {
   id: '1',
@@ -122,9 +125,19 @@ function Post(props) {
   const [skip, setSkip] = useState(0);
   const [sending, setSending] = useState(false);
   const renderItem = ({ item }) => {
-    return <CommentCard comment={item} isInPost={true} />;
+    return (
+      <View style={{ opacity: item.opacity }}>
+        <CommentCard comment={item} isInPost={true} onViewImage={onViewImage} />
+      </View>
+    );
   };
-
+  ///image view
+  const [imgView, setImgView] = useState();
+  const [visible, setIsVisible] = useState(false);
+  const onViewImage = React.useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
   useEffect(() => {
     route.params.onUpvote(upvote);
     route.params.onVote(vote);
@@ -143,6 +156,7 @@ function Post(props) {
         .then(response => {
           if (!isOut) {
             setIsLoading(false);
+            response.data.result.forEach(i => (i.opacity = 1));
             setComments(response.data.result);
             setSkip(5);
           }
@@ -161,6 +175,7 @@ function Post(props) {
       .then(response => {
         if (response.data.result.length > 0) {
           setSkip(skip + 5);
+          response.data.result.forEach(i => (i.opacity = 1));
           setComments(comments.concat(response.data.result));
         }
         setIsEnd(false);
@@ -254,12 +269,30 @@ function Post(props) {
     });
   };
   const postComment = async () => {
-  
+    Keyboard.dismiss();
+
     let img = '';
-    if (comment == '') {
+    if (comment == '' && imgComment == '') {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
+    const tmp = {
+      author_avatar: curUser.avatar.image_hash,
+      author_name: curUser.first_name + curUser.last_name,
+      content: comment,
+      created_date: new Date(),
+      downvote_count: 0,
+      id: '',
+      image: imgComment.path,
+      oid: '',
+      post_id: post.oid,
+      replies: [],
+      replies_count: 0,
+      status: 0,
+      upvote_count: 0,
+      opacity: 0.5,
+    };
+    setComments(comments.concat(tmp));
     setSending(true);
     ToastAndroid.show('Đang tải bình luận lên...', ToastAndroid.SHORT);
     if (imgComment) {
@@ -298,11 +331,11 @@ function Post(props) {
       .then(response => {
         setImgComment('');
         setComment('');
-        console.log(response.data.result);
+        response.data.result.comment.opacity = 1;
         setComments(comments.concat(response.data.result.comment));
         setSending(false);
-        setCommentCount(commentCount+1)
-        route.params.onComment(commentCount+1);
+        setCommentCount(commentCount + 1);
+        route.params.onComment(commentCount + 1);
         Toast.show({
           type: 'success',
           position: 'top',
@@ -435,15 +468,19 @@ function Post(props) {
                             }}
                             key={index}
                           >
-                            <Image
-                              style={{
-                                width: '100%',
-                                height: 400,
-                                alignSelf: 'center',
-                                marginVertical: 8,
-                              }}
-                              source={{ uri: item.image_hash }}
-                            />
+                            <TouchableOpacity
+                              onPress={() => onViewImage(true, item.image_hash)}
+                            >
+                              <Image
+                                style={{
+                                  width: '100%',
+                                  height: 400,
+                                  alignSelf: 'center',
+                                  marginVertical: 8,
+                                }}
+                                source={{ uri: item.image_hash }}
+                              />
+                            </TouchableOpacity>
 
                             <Text style={styles.txtDes}>
                               {item.discription}
@@ -493,9 +530,7 @@ function Post(props) {
                         styles.btnVote,
                       ]}
                     >
-                      <Text style={styles.txtVoteNumber}>
-                        {commentCount}
-                      </Text>
+                      <Text style={styles.txtVoteNumber}>{commentCount}</Text>
                       <FontAwesome5
                         name={'comment-alt'}
                         size={22}
@@ -611,6 +646,7 @@ function Post(props) {
           onTouchEnd={() => setShowOption(false)}
           onChangeText={text => setComment(text)}
           placeholder="Nhập j đi tml.."
+          value={comment}
         />
         {sending ? (
           <View style={styles.btnInputOption}>
@@ -723,6 +759,12 @@ function Post(props) {
           </TouchableOpacity>
         </View>
       ) : null}
+      <ImageView
+        images={[{ uri: imgView }]}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
+      />
     </View>
   );
 }

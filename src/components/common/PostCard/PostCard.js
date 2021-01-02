@@ -198,12 +198,14 @@ function PostCard(props) {
           </View>
 
           {post.image_contents.length > 0 ? (
+            <TouchableOpacity onPress={()=>props.onViewImage(true,post.image_contents[0].image_hash)}>
             <Image
               style={styles.imgContent}
               source={{
                 uri: post.image_contents[0].image_hash,
               }}
             />
+            </TouchableOpacity>
           ) : null}
 
           <View style={styles.containerTag}>

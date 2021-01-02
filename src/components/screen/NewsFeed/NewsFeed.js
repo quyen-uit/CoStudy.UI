@@ -31,6 +31,7 @@ import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 import { getAPI } from '../../../apis/instance';
 import { actionTypes, update } from 'actions/UserActions';
+import ImageView from 'react-native-image-viewing';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -53,6 +54,14 @@ function NewsFeed() {
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
+
+  ///image view
+  const [imgView, setImgView] = useState();
+  const [visible, setIsVisible] = useState(false);
+  const onViewImage = React.useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
   React.useEffect(() => {
     console.log('dispatch update user');
     dispatch(update(user.jwtToken));
@@ -248,7 +257,7 @@ function NewsFeed() {
     //   .catch(error => alert(error));
   };
   const renderItem = ({ item }) => {
-    return <PostCard post={item} />;
+    return <PostCard post={item} onViewImage={onViewImage} />;
   };
   return (
     <View>
@@ -321,6 +330,12 @@ function NewsFeed() {
             )
           }
         />
+        <ImageView
+        images={[{ uri: imgView }]}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
+      />
         {isLoading ? (
           <View
             style={{

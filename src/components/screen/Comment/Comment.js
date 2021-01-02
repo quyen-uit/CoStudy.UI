@@ -110,12 +110,28 @@ function Comment(props) {
   //comment
   const [comment, setComment] = useState('');
 
+  const [upvote, setUpvote] = useState(route.params.upvote);
+  const [downvote, setDownvote] = useState(route.params.downvote);
+  const [comment_count, setCommentCount] = useState(route.params.replies);
+
   const [sending, setSending] = useState(false);
   const navigation = useNavigation();
+
+  useEffect(() => {
+    route.params.onUpvote(upvote);
+    // route.params.onVote(vote);
+  }, [upvote]);
+
+  useEffect(() => {
+    route.params.onDownvote(downvote);
+    // route.params.onVote(vote);
+  }, [downvote]);
+
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: data.author_id });
   };
   const renderItem = ({ item }) => {
+    console.log(item);
     return <CommentCard comment={item} />;
   };
   useEffect(() => {
@@ -129,6 +145,8 @@ function Comment(props) {
         })
         .then(response => {
           if (!isOut) {
+            response.data.result.forEach(i => (i.opacity = 1));
+
             response.data.result.forEach(i => {
               i.author_name = 'Lê Quốc Thắng';
               i.author_avatar =
@@ -154,19 +172,36 @@ function Comment(props) {
       .then(response => {
         if (response.data.result.length > 0) {
           setSkip(skip + 5);
+          response.data.result.forEach(i => (i.opacity = 1));
+
           setComments(comments.concat(response.data.result));
         }
         setIsEnd(false);
       })
       .catch(error => alert(error));
   };
+  const onUpvote = async () => {
+    setUpvote(upvote + 1);
+    setDownvote(downvote - 1);
+    await getAPI(curUser.jwtToken)
+      .post(api + 'Comment/upvote/' + comment.oid)
+      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+  };
+  const onDownvote = async () => {
+    setUpvote(upvote - 1);
+    setDownvote(downvote + 1);
+    await getAPI(curUser.jwtToken)
+      .post(api + 'Comment/downvote/' + comment.oid)
+      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
+  };
   const postComment = async () => {
-    setSending(true);
 
     if (comment == '') {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
+    setSending(true);
+
     ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
     await getAPI(curUser.jwtToken)
       .post(api + 'Comment/reply', {
@@ -188,13 +223,15 @@ function Comment(props) {
           text1: 'Bình luận đã được đăng',
           visibilityTime: 2000,
         });
+        route.params.onComment(comment_count + 1);
+        setCommentCount(comment_count + 1);
       })
       .catch(error => {
         setSending(false);
         alert(error);
       });
   };
-   return (
+  return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
@@ -261,8 +298,9 @@ function Comment(props) {
                     <Text style={styles.txtContent}>{data.content}</Text>
                   </View>
                 </View>
-              
-                  {data.image  ? <Image
+
+                {data.image ? (
+                  <Image
                     style={{
                       width: '100%',
                       height: 400,
@@ -270,10 +308,9 @@ function Comment(props) {
                       marginVertical: 8,
                     }}
                     source={{ uri: data.image }}
-                  /> : null}
+                  />
+                ) : null}
 
-                  
- 
                 <View style={styles.footer}>
                   <View style={styles.flex1}>
                     <Pressable
@@ -281,12 +318,11 @@ function Comment(props) {
                         { backgroundColor: pressed ? touch_color : '#fff' },
                         styles.btnVote,
                       ]}
+                      onPress={() => onDownvote()}
                     >
-                      <Text style={styles.txtVoteNumber}>
-                        {data.upvote_count}
-                      </Text>
+                      <Text style={styles.txtVoteNumber}>{downvote}</Text>
                       <FontAwesome5
-                        name={'thumbs-up'}
+                        name={'thumbs-down'}
                         size={24}
                         color={main_color}
                       />
@@ -302,13 +338,27 @@ function Comment(props) {
                       ]}
                       onPress={() => alert('Vote')}
                     >
-                      <Text style={styles.txtVoteNumber}>
-                        {data.replies_count}
-                      </Text>
+                      <Text style={styles.txtVoteNumber}>{comment_count}</Text>
                       <FontAwesome5
                         name={'comment-alt'}
                         size={24}
                         color={main_2nd_color}
+                      />
+                    </Pressable>
+                  </View>
+                  <View style={styles.flex1}>
+                    <Pressable
+                      style={({ pressed }) => [
+                        { backgroundColor: pressed ? touch_color : '#fff' },
+                        styles.btnVote,
+                      ]}
+                      onPress={() => onUpvote()}
+                    >
+                      <Text style={styles.txtVoteNumber}>{upvote}</Text>
+                      <FontAwesome5
+                        name={'thumbs-up'}
+                        size={24}
+                        color={main_color}
                       />
                     </Pressable>
                   </View>
