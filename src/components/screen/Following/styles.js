@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   cardContainer: {
-    padding: 12,
+    padding: -8,
     margin: 8,
     borderRadius: 8,
     borderWidth: 0, // Remove Border
@@ -41,7 +41,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   card: {
-    borderRadius: 8
+    borderRadius: 8,
+    padding: 12
   },
   // image
   imgAvatar: {

@@ -14,7 +14,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import styles from 'components/common/CommentCard/styles';
+import styles from 'components/common/ReplyCard/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
 import { color } from 'react-native-reanimated';
@@ -52,72 +52,9 @@ const comment = {
   amountVote: 10,
   amountComment: 20,
 };
-function ChildComment(props) {
-  const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(false);
-  return (
-    <View style={styles.containerComment}>
-      <TouchableOpacity onPress={() => alert('avatar is clicked')}>
-        <Image
-          style={styles.imgChildAvatar}
-          source={require('../../../assets/avatar.jpeg')}
-        />
-      </TouchableOpacity>
-      <TouchableHighlight
-        style={styles.btnChildComment}
-        underlayColor={touch_color}
-        onPress={() => alert('click')}
-        onLongPress={() => setModalVisible(true)}
-      >
-        <View>
-          <Text style={styles.txtChildAuthor}>{comment.author}</Text>
-          <Text style={styles.txtChildContent}>{comment.content}</Text>
-          <View style={styles.footer}>
-            <View style={styles.containerCreatedTime}>
-              <FontAwesome name={'circle'} size={6} color={active_color} />
-              <Text style={styles.txtChildCreateDate}>
-                {comment.createdDate}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row' }}>
-              <View style={styles.rowFlexStart}>
-                <Text style={styles.txtChildVoteNumber}>10</Text>
-                <TouchableOpacity>
-                  <FontAwesome5
-                    name={'thumbs-up'}
-                    size={14}
-                    color={main_color}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.rowFlexStart}>
-                <Text style={styles.txtChildVoteNumber}>11</Text>
-                <TouchableOpacity>
-                  <FontAwesome5 name={'comment'} size={14} color={main_color} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-      <CommentOptionModal
-        visible={modalVisible}
-        onSwipeOut={event => {
-          setModalVisible(false);
-        }}
-        onHardwareBackPress={() => {
-          setModalVisible(false);
-          return true;
-        }}
-        onTouchOutside={() => {
-          setModalVisible(false);
-        }}
-      />
-    </View>
-  );
-}
+ 
 
-function CommentCard(props) {
+function ReplyCard(props) {
   const curUser = useSelector(getUser);
 
   const post = tmpComment;
@@ -141,19 +78,7 @@ function CommentCard(props) {
   const onVoteCallback = useCallback((value)=> setVote(value));
 
   const GoToComment = () => {
-    if (isInPost) {
-      navigation.navigate(navigationConstants.comment, {
-        comment: comment,
-        onUpvote: onUpvoteCallback,
-        onDownvote: onDownvoteCallback,
-        onComment: onCommentCallback,
-        upvote: upvote,
-        downvote: downvote,
-        replies: comment_count,
-        vote: vote,
-        onVote: onVoteCallback
-      });
-    }
+    
   };
   console.log(comment);
   const GoToProfile = () => {
@@ -203,7 +128,7 @@ function CommentCard(props) {
         <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
             style={styles.imgAvatar}
-            source={{ uri: comment.author_avatar }}
+            source={{ uri: comment.avatar }}
           />
         </TouchableOpacity>
         <View style={styles.shrink1}>
@@ -214,7 +139,7 @@ function CommentCard(props) {
             onLongPress={() => setModalVisible(true)}
           >
             <View>
-              <Text style={styles.txtAuthor}>{comment.author_name}</Text>
+              <Text style={styles.txtAuthor}>{comment.name}</Text>
               <Text style={styles.txtContent}>{comment.content}</Text>
               <View style={styles.footer}>
                 <View style={styles.containerCreatedTime}>
@@ -275,22 +200,7 @@ function CommentCard(props) {
               </View>
             </View>
           </TouchableHighlight>
-          {comment.image != '' ? (
-            <TouchableOpacity
-              onPress={() => props.onViewImage(true, comment.image)}
-            >
-              <Image
-                source={{ uri: comment.image }}
-                style={{
-                  marginLeft: 24,
-                  width: 150,
-                  height: 200,
-                  alignSelf: 'flex-start',
-                  margin: 4,
-                }}
-              />
-            </TouchableOpacity>
-          ) : null}
+          
         </View>
       </View>
       <CommentOptionModal
@@ -310,6 +220,6 @@ function CommentCard(props) {
   );
 }
 
-export default CommentCard;
+export default ReplyCard;
 
 // {isInPost ? <ChildComment /> : null}

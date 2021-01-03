@@ -31,7 +31,13 @@ import ImagePicker from 'react-native-image-crop-picker';
 import moment from 'moment';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import navigationConstants from 'constants/navigation';
+import { getAPI } from '../../../apis/instance';
 
+import Modal, {
+  ModalContent,
+  BottomModal,
+  SlideAnimation,
+} from 'react-native-modals';
 const user = {
   name: 'Nguyễn Văn Nam',
   follower: 20,
@@ -85,12 +91,18 @@ function ProfileEdit({ userId }) {
   const [dob, setDOB] = useState(route.params.data.date_of_birth);
   const [phone, setPhone] = useState(route.params.data.phone_number);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [fields, setFields] = useState(route.params.data.fortes);
+
+  const [fieldPickers, setFieldPickers] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+
   const onChange = (event, selectedDate) => {
     setDOB(selectedDate || dob);
- 
+
     setShowDatePicker(Platform.OS === 'ios');
   };
   const update = async () => {
+    // update field ???
     navigation.navigate(navigationConstants.profile, {
       update: true,
       data: {
@@ -102,6 +114,31 @@ function ProfileEdit({ userId }) {
       },
     });
   };
+
+  useEffect(() => {
+    let isRender = true;
+    const fetchData = async () => {
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/field/all')
+        .then(response => {
+          if (isRender) {
+            response.data.result.forEach(element => {
+              element.isPick = false;
+              fields.forEach(i => {
+                if (i.oid == element.oid) element.isPick = true;
+              });
+            });
+            setFieldPickers(response.data.result);
+          }
+        })
+        .catch(error => alert(error));
+    };
+    fetchData();
+    return () => {
+      isRender = false;
+    };
+  }, []);
+
   function Field(props) {
     return (
       <View style={styles.field}>
@@ -123,242 +160,362 @@ function ProfileEdit({ userId }) {
     );
   }
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      style={{ flex: 1 }}
-      contentContainerStyle={{ flexGrow: 1 }}
-    >
-      <View style={styles.container}>
-        <View style={{ marginTop: 8 }}></View>
-        <Field icon={'id-card'} title={'ID'} value={route.params.data.oid} />
-        <View style={styles.editField}>
-          <View
-            style={{
-              marginRight: 12,
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name={'user'} size={16} color={main_color} />
-            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
-              Họ
-            </Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        <View style={styles.container}>
+          <View style={{ marginTop: 8 }}></View>
+          <Field icon={'id-card'} title={'ID'} value={route.params.data.oid} />
+          <View style={styles.editField}>
+            <View
+              style={{
+                marginRight: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name={'user'} size={16} color={main_color} />
+              <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+                Họ
+              </Text>
+            </View>
+
+            <TextInput
+              multiline={true}
+              maxLength={50}
+              style={{
+                alignSelf: 'stretch',
+                paddingVertical: 4,
+                fontSize: 18,
+                backgroundColor: '#ccc',
+                borderRadius: 8,
+                marginVertical: 4,
+                marginLeft: 20,
+                paddingHorizontal: 8,
+              }}
+              value={firstname}
+              onChangeText={text => setFirstname(text)}
+            />
+          </View>
+          <View style={styles.editField}>
+            <View
+              style={{
+                marginRight: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name={'signature'} size={16} color={main_color} />
+              <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 8 }}>
+                Tên
+              </Text>
+            </View>
+
+            <TextInput
+              multiline={true}
+              maxLength={50}
+              style={{
+                alignSelf: 'stretch',
+                paddingVertical: 4,
+                fontSize: 18,
+                backgroundColor: '#ccc',
+                borderRadius: 8,
+                marginVertical: 4,
+                marginLeft: 20,
+                paddingHorizontal: 8,
+              }}
+              value={lastname}
+              onChangeText={text => setLastname(text)}
+            />
           </View>
 
-          <TextInput
-            multiline={true}
-            maxLength={50}
-            style={{
-              alignSelf: 'stretch',
-              paddingVertical: 4,
-              fontSize: 18,
-              backgroundColor: '#ccc',
-              borderRadius: 8,
-              marginVertical: 4,
-              marginLeft: 20,
-              paddingHorizontal: 8,
-            }}
-            value={firstname}
-            onChangeText={text => setFirstname(text)}
+          <View style={styles.editField}>
+            <View
+              style={{
+                marginRight: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name={'birthday-cake'} size={16} color={main_color} />
+              <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+                Ngày sinh
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={{
+                alignSelf: 'stretch',
+                paddingVertical: 4,
+
+                backgroundColor: '#ccc',
+                borderRadius: 8,
+                marginVertical: 4,
+                marginLeft: 20,
+                paddingHorizontal: 8,
+              }}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={{ fontSize: 18 }}>
+                {moment(dob).format('DD-MM-YYYY')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Field
+            icon={'mail-bulk'}
+            title={'Email'}
+            value={route.params.data.email}
           />
-        </View>
-        <View style={styles.editField}>
-          <View
-            style={{
-              marginRight: 12,
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name={'signature'} size={16} color={main_color} />
-            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 8 }}>
-              Tên
-            </Text>
+          <View style={styles.editField}>
+            <View
+              style={{
+                marginRight: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name={'phone'} size={16} color={main_color} />
+              <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+                Số điện thoại (10 số)
+              </Text>
+            </View>
+
+            <TextInput
+              multiline={true}
+              maxLength={10}
+              keyboardType="number-pad"
+              style={{
+                alignSelf: 'stretch',
+                paddingVertical: 4,
+                fontSize: 18,
+                backgroundColor: '#ccc',
+                borderRadius: 8,
+                marginVertical: 4,
+                marginLeft: 20,
+                paddingHorizontal: 8,
+              }}
+              value={phone}
+              onChangeText={text => {
+                let numreg = /^[0-9]+$/;
+                if (numreg.test(text)) {
+                  setPhone(text);
+                }
+              }}
+            />
+          </View>
+          <View style={styles.editField}>
+            <View
+              style={{
+                marginRight: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name={'compass'} size={16} color={main_color} />
+              <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+                Quận/Huyện
+              </Text>
+            </View>
+
+            <TextInput
+              multiline={true}
+              maxLength={50}
+              style={{
+                alignSelf: 'stretch',
+                paddingVertical: 4,
+                fontSize: 18,
+                backgroundColor: '#ccc',
+                borderRadius: 8,
+                marginVertical: 4,
+                marginLeft: 20,
+                paddingHorizontal: 8,
+              }}
+              value={district}
+              onChangeText={text => setDistrict(text)}
+            />
+          </View>
+          <View style={styles.editField}>
+            <View
+              style={{
+                marginRight: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name={'city'} size={16} color={main_color} />
+              <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
+                Thành phố
+              </Text>
+            </View>
+
+            <TextInput
+              multiline={true}
+              maxLength={50}
+              style={{
+                alignSelf: 'stretch',
+                paddingVertical: 4,
+                fontSize: 18,
+                backgroundColor: '#ccc',
+                borderRadius: 8,
+                marginVertical: 4,
+                marginLeft: 20,
+                paddingHorizontal: 8,
+              }}
+              value={city}
+              onChangeText={text => setCity(text)}
+            />
+          </View>
+          <View style={styles.field}>
+            <View
+              style={{
+                width: 30,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 12,
+              }}
+            >
+              <Icon name={'city'} size={20} color={main_color} />
+            </View>
+            <View>
+              <Text style={{ color: '#ccc', fontSize: 13 }}>Lĩnh vực</Text>
+              <View style={styles.containerTag}>
+                {fieldPickers.map((item, index) =>
+                  item.isPick ? (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => alert('tag screen')}
+                    >
+                      <View style={styles.btnTag}>
+                        <Text style={styles.txtTag}>{item.value}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ) : null
+                )}
+                <TouchableOpacity
+                  onPress={() => setModalVisible(true)}
+                  style={{ paddingTop: 4 }}
+                >
+                  <Icon name={'plus-circle'} size={24} color={main_color} />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
-          <TextInput
-            multiline={true}
-            maxLength={50}
-            style={{
-              alignSelf: 'stretch',
-              paddingVertical: 4,
-              fontSize: 18,
-              backgroundColor: '#ccc',
-              borderRadius: 8,
-              marginVertical: 4,
-              marginLeft: 20,
-              paddingHorizontal: 8,
-            }}
-            value={lastname}
-            onChangeText={text => setLastname(text)}
-          />
-        </View>
-
-        <View style={styles.editField}>
-          <View
-            style={{
-              marginRight: 12,
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name={'birthday-cake'} size={16} color={main_color} />
-            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
-              Ngày sinh
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={{
-              alignSelf: 'stretch',
-              paddingVertical: 4,
-
-              backgroundColor: '#ccc',
-              borderRadius: 8,
-              marginVertical: 4,
-              marginLeft: 20,
-              paddingHorizontal: 8,
-            }}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={{ fontSize: 18 }}>
-              {moment(dob).format('DD-MM-YYYY')}
-            </Text>
+          <TouchableOpacity onPress={() => update()}>
+            <View
+              style={{
+                justifyContent: 'center',
+                backgroundColor: main_2nd_color,
+                marginHorizontal: 14,
+                alignItems: 'center',
+                paddingVertical: 8,
+                marginVertical: 8,
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}>
+                Chỉnh sửa
+              </Text>
+            </View>
           </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={new Date(2000, 0, 1)}
+              mode={'date'}
+              display="default"
+              onChange={onChange}
+            />
+          )}
         </View>
-
-        <Field
-          icon={'mail-bulk'}
-          title={'Email'}
-          value={route.params.data.email}
-        />
-        <View style={styles.editField}>
-          <View
-            style={{
-              marginRight: 12,
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name={'phone'} size={16} color={main_color} />
-            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
-              Số điện thoại (10 số)
-            </Text>
+      </ScrollView>
+      <BottomModal
+        visible={modalVisible}
+        swipeDirection={['up', 'down']} // can be string or an array
+        swipeThreshold={100} // default 100
+        useNativeDriver={true}
+        modalTitle={
+          <View style={{ alignSelf: 'center', alignItems: 'center' }}>
+            <Icon name={'grip-lines'} color={main_color} size={16} />
+            <Text>Chọn lĩnh vực cho bài biết</Text>
           </View>
+        }
+        modalAnimation={
+          new SlideAnimation({
+            initialValue: 0, // optional
+            slideFrom: 'bottom', // optional
+            useNativeDriver: true, // optional
+          })
+        }
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+      >
+        <ModalContent style={{ marginHorizontal: -16 }}>
+          <View>
+            <View
+              style={{ flexWrap: 'wrap', flexDirection: 'row', padding: 8 }}
+            >
+              {fieldPickers.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    item.isPick = item.isPick ? false : true;
 
-          <TextInput
-            multiline={true}
-            maxLength={10}
-            keyboardType="number-pad"
-            style={{
-              alignSelf: 'stretch',
-              paddingVertical: 4,
-              fontSize: 18,
-              backgroundColor: '#ccc',
-              borderRadius: 8,
-              marginVertical: 4,
-              marginLeft: 20,
-              paddingHorizontal: 8,
-            }}
-            value={phone}
-            onChangeText={text => {
-              let numreg = /^[0-9]+$/;
-              if (numreg.test(text)) {
-                setPhone(text);
-              }
-            }}
-          />
-        </View>
-        <View style={styles.editField}>
-          <View
-            style={{
-              marginRight: 12,
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name={'compass'} size={16} color={main_color} />
-            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
-              Quận/Huyện
-            </Text>
+                    setFieldPickers(fieldPickers.filter(item => item));
+                  }}
+                >
+                  <View
+                    style={{
+                      backgroundColor: item.isPick ? main_2nd_color : '#ccc',
+                      padding: 8,
+                      borderRadius: 100,
+                      margin: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: item.isPick ? '#fff' : main_2nd_color,
+                        fontSize: 16,
+                      }}
+                    >
+                      {item.value}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(false);
+              }}
+            >
+              <View
+                style={{
+                  justifyContent: 'center',
+                  backgroundColor: main_color,
+                  marginHorizontal: 16,
+                  marginBottom: -8,
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                }}
+              >
+                <Text
+                  style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
+                >
+                  Xác nhận
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
-
-          <TextInput
-            multiline={true}
-            maxLength={50}
-            style={{
-              alignSelf: 'stretch',
-              paddingVertical: 4,
-              fontSize: 18,
-              backgroundColor: '#ccc',
-              borderRadius: 8,
-              marginVertical: 4,
-              marginLeft: 20,
-              paddingHorizontal: 8,
-            }}
-            value={district}
-            onChangeText={text => setDistrict(text)}
-          />
-        </View>
-        <View style={styles.editField}>
-          <View
-            style={{
-              marginRight: 12,
-              flexDirection: 'row',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name={'city'} size={16} color={main_color} />
-            <Text style={{ color: '#ccc', fontSize: 13, marginLeft: 12 }}>
-              Thành phố
-            </Text>
-          </View>
-
-          <TextInput
-            multiline={true}
-            maxLength={50}
-            style={{
-              alignSelf: 'stretch',
-              paddingVertical: 4,
-              fontSize: 18,
-              backgroundColor: '#ccc',
-              borderRadius: 8,
-              marginVertical: 4,
-              marginLeft: 20,
-              paddingHorizontal: 8,
-            }}
-            value={city}
-            onChangeText={text => setCity(text)}
-          />
-        </View>
-        <TouchableOpacity onPress={() => update()}>
-          <View
-            style={{
-              justifyContent: 'center',
-              backgroundColor: main_2nd_color,
-              marginHorizontal: 14,
-              alignItems: 'center',
-              paddingVertical: 8,
-              marginVertical: 8,
-              borderRadius: 8,
-            }}
-          >
-            <Text style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}>
-              Chỉnh sửa
-            </Text>
-          </View>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={new Date(2000, 0, 1)}
-            mode={'date'}
-            display="default"
-            onChange={onChange}
-          />
-        )}
-      </View>
-    </ScrollView>
+        </ModalContent>
+      </BottomModal>
+    </View>
   );
 }
 
@@ -443,6 +600,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: 'flex-start',
+  },
+  containerTag: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  btnTag: {
+    backgroundColor: main_2nd_color,
+    marginRight: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  txtTag: {
+    fontSize: 12,
+    color: '#fff',
+    textAlign: 'center',
   },
 });
 

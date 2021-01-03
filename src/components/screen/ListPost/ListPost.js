@@ -343,16 +343,18 @@ function ListPost() {
         </View>
       </View>
       {posts.length == 0 ? (
-        <Text
-          style={{
-            alignSelf: 'center',
-            fontSize: 16,
-            color: '#616161',
-            marginTop: 200,
-          }}
-        >
-          Bạn chưa quan tâm bài đăng nào.
-        </Text>
+        <TouchableOpacity onPress={() => onRefresh()}>
+          <Text
+            style={{
+              alignSelf: 'center',
+              fontSize: 16,
+              color: '#616161',
+              marginTop: 200,
+            }}
+          >
+            Bạn chưa quan tâm bài đăng nào. Nhấn để làm mới.
+          </Text>
+        </TouchableOpacity>
       ) : (
         <SafeAreaView>
           <FlatList

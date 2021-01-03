@@ -110,6 +110,7 @@ function Profile({ userId }) {
         .then(res => {
           setLoading(false);
           setIsFollowing(false);
+          route.params.callback(false);
         })
         .catch(error => alert(error));
     } else {
@@ -118,6 +119,7 @@ function Profile({ userId }) {
         .then(res => {
           setLoading(false);
           setIsFollowing(true);
+          route.params.callback(true);
         })
         .catch(error => alert(error));
     }

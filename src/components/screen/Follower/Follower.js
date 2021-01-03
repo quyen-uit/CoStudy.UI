@@ -1,4 +1,4 @@
-import { useTheme, useRoute  } from '@react-navigation/native';
+import { useTheme, useRoute } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Card } from 'react-native-elements';
@@ -46,7 +46,9 @@ function UserCard({ item }) {
   const curUser = useSelector(getUser);
   const [following, setFollowing] = useState(item.following);
   const navigation = useNavigation();
-
+  const onCallback = React.useCallback(value => {
+    setFollowing(value);
+  });
   const onFollow = async () => {
     setLoading(true);
     if (following) {
@@ -72,9 +74,12 @@ function UserCard({ item }) {
   return (
     <Card containerStyle={styles.cardContainer}>
       <TouchableHighlight
-      onPress={() =>
-        navigation.push(navigationConstants.profile, { id: item.from_id })
-      }
+        onPress={() =>
+          navigation.push(navigationConstants.profile, {
+            id: item.from_id,
+            callback: onCallback,
+          })
+        }
         underlayColor={touch_color}
         style={styles.card}
       >
@@ -97,36 +102,38 @@ function UserCard({ item }) {
               </Text>
             </View>
           </View>
-          <View style={{ alignSelf: 'center', width: 96 }}>
-            {loading ? (
-              <ActivityIndicator
-                size="small"
-                color={main_color}
-                style={{ alignSelf: 'center' }}
-              />
-            ) : (
-              <TouchableOpacity
-                style={{
-                  backgroundColor: following ? main_color : '#ccc',
-                  padding: 4,
-                  paddingHorizontal: 8,
-                  borderRadius: 8,
-                }}
-                onPress={() => {
-                  onFollow();
-                }}
-              >
-                <Text
+          {item.from_id != curUser.oid ? (
+            <View style={{ alignSelf: 'center', width: 96 }}>
+              {loading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={main_color}
+                  style={{ alignSelf: 'center' }}
+                />
+              ) : (
+                <TouchableOpacity
                   style={{
-                    color: following ? 'white' : main_color,
-                    alignSelf: 'center',
+                    backgroundColor: !following ? main_color : '#ccc',
+                    padding: 4,
+                    paddingHorizontal: 8,
+                    borderRadius: 8,
+                  }}
+                  onPress={() => {
+                    onFollow();
                   }}
                 >
-                  {following ? 'Hủy theo dõi' : 'Theo dõi'}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+                  <Text
+                    style={{
+                      color: !following ? 'white' : main_color,
+                      alignSelf: 'center',
+                    }}
+                  >
+                    {following ? 'Hủy theo dõi' : 'Theo dõi'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : null}
         </View>
       </TouchableHighlight>
     </Card>
@@ -145,7 +152,9 @@ function Follower() {
     let isOut = false;
     const fetch = async () => {
       await getAPI(curUser.jwtToken)
-        .get(api + 'User/follower?UserId=' + route.params.id + '&Skip=0&Count=99')
+        .get(
+          api + 'User/follower?UserId=' + route.params.id + '&Skip=0&Count=99'
+        )
         .then(async res => {
           await getAPI(curUser.jwtToken)
             .get(
@@ -153,6 +162,7 @@ function Follower() {
             )
             .then(following => {
               if (!isOut) {
+                console.log(res.data.result);
                 res.data.result.forEach(er => {
                   er.following = false;
                   following.data.result.forEach(ing => {
@@ -176,6 +186,11 @@ function Follower() {
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
+      {list.length == 0 ? (
+        <Text style={{ alignSelf: 'center', marginTop: 100 }}>
+          Bạn chưa có người theo dõi
+        </Text>
+      ) : null}
       <FlatList
         showsVerticalScrollIndicator={false}
         data={list}

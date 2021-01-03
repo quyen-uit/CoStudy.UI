@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  Keyboard,
   ToastAndroid,
   Pressable,
   SafeAreaView,
@@ -30,7 +31,7 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
-import CommentCard from 'components/common/CommentCard';
+import ReplyCard from 'components/common/ReplyCard';
 import { getAPI } from '../../../apis/instance';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -109,7 +110,8 @@ function Comment(props) {
 
   //comment
   const [comment, setComment] = useState('');
-
+  const [vote, setVote] = useState(route.params.vote);
+  console.log(route.params.vote);
   const [upvote, setUpvote] = useState(route.params.upvote);
   const [downvote, setDownvote] = useState(route.params.downvote);
   const [comment_count, setCommentCount] = useState(route.params.replies);
@@ -119,42 +121,51 @@ function Comment(props) {
 
   useEffect(() => {
     route.params.onUpvote(upvote);
-    // route.params.onVote(vote);
+    route.params.onVote(vote);
   }, [upvote]);
-
   useEffect(() => {
     route.params.onDownvote(downvote);
-    // route.params.onVote(vote);
+    route.params.onVote(vote);
   }, [downvote]);
 
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: data.author_id });
   };
   const renderItem = ({ item }) => {
-    console.log(item);
-    return <CommentCard comment={item} />;
+    return (
+      <View style={{ opacity: item.opacity }}>
+        <ReplyCard comment={item} />
+      </View>
+    );
   };
   useEffect(() => {
     setIsLoading(true);
     let isOut = false;
     const fetchData = async () => {
       await getAPI(curUser.jwtToken)
-        .get(api + 'Comment/get/replies/' + data.oid + '?skip=0&count=5', {
+        .get(api + 'Comment/get/replies/' + data.oid + '?skip=0&count=100', {
           skip: 0,
-          count: 5,
+          count: 100,
         })
-        .then(response => {
+        .then(async response => {
           if (!isOut) {
-            response.data.result.forEach(i => (i.opacity = 1));
-
-            response.data.result.forEach(i => {
-              i.author_name = 'Lê Quốc Thắng';
-              i.author_avatar =
-                'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
-              i.image = '';
+            const a = response.data.result.map(async i => {
+              await getAPI(curUser.jwtToken)
+                .get(api + 'User/get/' + data.author_id)
+                .then(user => {
+                  i.avatar = user.data.result.avatar.image_hash;
+                  i.name =
+                    user.data.result.first_name + user.data.result.last_name;
+                  i.opacity = 1;
+                  if (i.is_vote_by_current) i.vote = 1;
+                  else if (i.is_downvote_by_current) i.vote = -1;
+                  else i.vote = 0;
+                });
             });
-            setIsLoading(false);
-            setReplies(response.data.result);
+            Promise.all(a).then(() => {
+              setIsLoading(false);
+              setReplies(response.data.result);
+            });
           }
         })
         .catch(error => alert(error));
@@ -181,27 +192,61 @@ function Comment(props) {
       .catch(error => alert(error));
   };
   const onUpvote = async () => {
-    setUpvote(upvote + 1);
-    setDownvote(downvote - 1);
+    if (vote == 1) {
+      ToastAndroid.show('Bạn đã upvote cho bình luận này.', 1000);
+      return;
+    } else if (vote == 0) {
+      setVote(1);
+      setUpvote(upvote + 1);
+    } else {
+      setVote(1);
+      setUpvote(upvote + 1);
+      setDownvote(downvote - 1);
+    }
     await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/upvote/' + comment.oid)
-      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+      .post(api + 'Comment/upvote/' + data.oid)
+      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
+      .catch(err => alert(err));
   };
   const onDownvote = async () => {
-    setUpvote(upvote - 1);
-    setDownvote(downvote + 1);
+    if (vote == -1) {
+      ToastAndroid.show('Bạn đã downvote cho bình luận này.', 1000);
+      return;
+    } else if (vote == 0) {
+      setVote(-1);
+      setDownvote(downvote + 1);
+    } else {
+      setVote(-1);
+      setDownvote(downvote + 1);
+      setUpvote(upvote - 1);
+    }
     await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/downvote/' + comment.oid)
-      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
+      .post(api + 'Comment/downvote/' + data.oid)
+      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
+      .catch(err => alert(err));
   };
   const postComment = async () => {
+    Keyboard.dismiss();
 
     if (comment == '') {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
     setSending(true);
-
+    const tmp = {
+      content: comment,
+      author_id: curUser.oid,
+      status: 0,
+      created_date: new Date(),
+      modified_date: new Date(),
+      upvote_count: 0,
+      downvote_count: 0,
+      avatar: curUser.avatar.image_hash,
+      name: curUser.first_name + curUser.last_name,
+      vote: 0,
+      opacity: 0.5,
+    };
+    setReplies(replies.concat(tmp));
     ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
     await getAPI(curUser.jwtToken)
       .post(api + 'Comment/reply', {
@@ -210,13 +255,10 @@ function Comment(props) {
       })
       .then(response => {
         setComment('');
-        response.data.result.author_name = 'Lê Quốc Thắng';
-        response.data.result.image = '';
-        response.data.author_avatar =
-          'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
-        setReplies(replies.concat(response.data.result));
+        tmp.opacity = 1;
+        setReplies(replies.concat(tmp));
         setSending(false);
-        data.replies_count = data.replies_count + 1;
+
         Toast.show({
           type: 'success',
           position: 'top',
@@ -236,11 +278,11 @@ function Comment(props) {
       <SafeAreaView>
         <FlatList
           showsVerticalScrollIndicator={false}
-          style={{ marginBottom: 50 }}
+          style={{ marginBottom: 54, paddingBottom: 12 }}
           data={replies}
           onEndReached={async () => {
             if (replies.length > 4) {
-              setIsEnd(true);
+              // setIsEnd(true);
               await fetchMore();
             }
           }}
@@ -324,7 +366,7 @@ function Comment(props) {
                       <FontAwesome5
                         name={'thumbs-down'}
                         size={24}
-                        color={main_color}
+                        color={vote == -1 ? main_color : '#ccc'}
                       />
                     </Pressable>
                   </View>
@@ -358,7 +400,7 @@ function Comment(props) {
                       <FontAwesome5
                         name={'thumbs-up'}
                         size={24}
-                        color={main_color}
+                        color={vote == 1 ? main_color : '#ccc'}
                       />
                     </Pressable>
                   </View>
@@ -426,6 +468,7 @@ function Comment(props) {
           onTouchEnd={() => setShowOption(false)}
           onChangeText={text => setComment(text)}
           placeholder="Nhập j đi tml.."
+          value={comment}
         />
         {sending ? (
           <View style={styles.btnInputOption}>

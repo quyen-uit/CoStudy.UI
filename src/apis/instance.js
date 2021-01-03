@@ -4,9 +4,8 @@ import { store } from '../store/index';
 import { actionTypes, update } from 'actions/UserActions';
 
 export const getAPI = jwtToken => {
- 
   const options = {};
- 
+
   const instance = axios.create(options);
   instance.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
   instance.interceptors.response.use(
@@ -18,7 +17,12 @@ export const getAPI = jwtToken => {
       if (error.response.status === 400 && !originalRequest._retry) {
         await axios.post(api + 'Accounts/refresh-token').then(response => {
           console.log(response.data.result);
+
           store.dispatch(update(response.data.result.jwtToken));
+          originalRequest.headers.common[
+            'Authorization'
+          ] = `Bearer ${response.data.result.jwtToken}`;
+          return axios(originalRequest);
         });
       }
       return Promise.reject(error);

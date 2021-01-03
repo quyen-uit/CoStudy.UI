@@ -1,4 +1,4 @@
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useRoute } from '@react-navigation/native';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Image,
@@ -119,7 +119,7 @@ const comment = {
 
 function RightMessage({ item, onViewImage }) {
   const [showTime, setShowTime] = useState(false);
-   
+
   return (
     <TouchableOpacity onPress={() => setShowTime(!showTime)}>
       <View style={styles.containerRightMessage}>
@@ -148,11 +148,11 @@ function RightMessage({ item, onViewImage }) {
         <View>
           {item.media_content != null ? (
             <TouchableOpacity
-              onPress={() => onViewImage(true, item.media_content)}
+              onPress={() => onViewImage(true, item.media_content.image_hash)}
             >
               <Image
                 style={{ width: 200, height: 300, marginRight: 8 }}
-                source={{ uri: item.media_content }}
+                source={{ uri: item.media_content.image_hash }}
               />
             </TouchableOpacity>
           ) : (
@@ -178,7 +178,7 @@ function RightMessage({ item, onViewImage }) {
     </TouchableOpacity>
   );
 }
-function LeftMessage({ item }) {
+function LeftMessage({ item, onViewImage }) {
   const [showTime, setShowTime] = useState(false);
 
   return (
@@ -192,13 +192,13 @@ function LeftMessage({ item }) {
             />
           </View>
 
-          {item.media_content != null  ? (
+          {item.media_content != null ? (
             <TouchableOpacity
-              onPress={() => onViewImage(true, item.media_content)}
+              onPress={() => onViewImage(true, item.media_content.image_hash)}
             >
               <Image
                 style={{ width: 200, height: 300, marginLeft: 8 }}
-                source={{ uri: item.media_content }}
+                source={{ uri: item.media_content.image_hash }}
               />
             </TouchableOpacity>
           ) : (
@@ -232,6 +232,7 @@ function LeftMessage({ item }) {
 }
 function Conversation(props) {
   const post = tmpConversation;
+  const route = useRoute();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [showOption, setShowOption] = useState(true);
@@ -241,7 +242,8 @@ function Conversation(props) {
   const flatListRef = useRef();
   const [chosing, setChosing] = useState(false);
   const [imgMessage, setImgMessage] = useState();
-  const conversation_id = '5fed5ea4f054f238cf51c477';
+  const [isSending, setSending] = useState(false);
+  const conversation_id = route.params.id;
   const [visible, setIsVisible] = useState(false);
   const onViewImage = useCallback((value, uri) => {
     setIsVisible(true);
@@ -265,19 +267,24 @@ function Conversation(props) {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message
       );
-
-      // const tmp = {
-      //   id: '',
-      //   sender_id: res.SenderId,
-      //   conversation_id: res.ConversationId,
-      //   media_content: res.MediaContent,
-      //   string_content: res.StringContent,
-      //   status: res.Status,
-      //   created_date: res.CreatedDate,
-      //   modified_date: res.ModifiedDate,
-      //   oid: res.OId,
-      // };
-      // setListMes([...listMes, tmp]);
+      if (res.SenderId == curUser.oid) return;
+      if (res.MediaContent == null) {
+        route.params.callback(res.StringContent, new Date());
+      } else {
+        route.params.callback('Ảnh', new Date());
+      }
+      const tmp = {
+        id: '',
+        sender_id: res.SenderId,
+        conversation_id: res.ConversationId,
+        media_content: res.MediaContent,
+        string_content: res.StringContent,
+        status: res.Status,
+        created_date: res.CreatedDate,
+        modified_date: res.ModifiedDate,
+        oid: res.OId,
+      };
+      setListMes([tmp, ...listMes]);
 
       // console.log(
       //   JSON.parse(
@@ -291,31 +298,39 @@ function Conversation(props) {
     return unsubscribe;
   }, [listMes]);
   useEffect(() => {
+    let isRender = true;
     const fetchData = async () => {
       await getAPI(curUser.jwtToken)
         .get(
           api +
             'Message/message/get/conversation/' +
             conversation_id +
-            '/limit/' +
-            20
+            '/skip/' +
+            skip +
+            '/count/10'
         )
         .then(response => {
           response.data.result.messages.forEach(i => (i.sending = false));
-          setListMes(response.data.result.messages);
-          setIsLoading(false);
-          setSkip(skip + 10);
+          if (isRender) {
+            setListMes(response.data.result.messages);
+            setIsLoading(false);
+            setSkip(skip + 10);
+          }
         })
         .catch(err => alert(err));
     };
     fetchData();
+    return () => {
+      isRender = false;
+    };
   }, []);
 
   const sendMessage = async () => {
+    setSending(true);
     const tmp = {
       id: '',
       sender_id: curUser.oid,
-      media_content: '',
+      media_content: null,
       string_content: message,
 
       created_date: new Date(),
@@ -335,6 +350,10 @@ function Conversation(props) {
         listMes.forEach(i => {
           if (i.sending) is.sending = false;
         });
+        route.params.callback(
+          'Bạn: ' + response.data.result.string_content,
+          new Date()
+        );
         setListMes([
           {
             id: '',
@@ -348,16 +367,23 @@ function Conversation(props) {
           },
           ...listMes,
         ]);
+        setSending(false);
       })
-      .catch(err => alert(err));
+      .catch(err => {
+        alert(err);
+        setSending(false);
+      });
   };
   const renderItem = ({ item }) => {
     if (item.sender_id == curUser.oid)
       return <RightMessage item={item} onViewImage={onViewImage} />;
-    else return <LeftMessage item={item} />;
+    else return <LeftMessage item={item} onViewImage={onViewImage} />;
   };
 
   const pickImage = () => {
+    setSending(true);
+
+    route.params.callback('Bạn: Ảnh', new Date());
     ImagePicker.openPicker({
       width: 800,
       height: 1000,
@@ -370,14 +396,13 @@ function Conversation(props) {
         const tmp = {
           id: '',
           sender_id: curUser.oid,
-          media_content: image.path,
+          media_content: { image_hash: image.path },
 
           created_date: new Date(),
           modified_date: new Date(),
           sending: true,
         };
         setListMes([tmp, ...listMes]);
-        return;
         ///
         if (image) {
           const uri = image.path;
@@ -407,33 +432,41 @@ function Conversation(props) {
                   await getAPI(curUser.jwtToken)
                     .post(api + 'Message/message/add', {
                       conversation_id: conversation_id,
-                      image: url,
+                      image: {
+                        image_url: url,
+                        image_hash: url,
+                      },
                     })
                     .then(response => {
-                      console.log(response.data.result);
-                      // const tmp = {
-                      //   id: '',
-                      //   sender_id: curUser.oid,
-                      //   media_content: image.path,
+                      const tmp = {
+                        id: '',
+                        sender_id: curUser.oid,
+                        media_content: { image_hash: image.path },
 
-                      //   created_date: new Date(),
-                      //   modified_date: new Date(),
-                      //  sending: false
-                      // };
-                      // setListMes([...listMes, tmp]);
-                      // setListMes([...listMes, response.data.result]);
+                        created_date: new Date(),
+                        modified_date: new Date(),
+                        sending: false,
+                      };
+                      setListMes([tmp, ...listMes]);
+                      setSending(false);
+
+                      //setListMes([...listMes, response.data.result]);
                     })
-                    .catch(err => alert('â'));
+                    .catch(err => console.log(err));
                 });
             });
           } catch (e) {
             console.error(e);
+            setSending(false);
           }
         }
       }
     });
   };
   const cameraImage = () => {
+    setSending(true);
+
+    route.params.callback('Bạn: Ảnh', new Date());
     ImagePicker.openCamera({
       width: 800,
       height: 1000,
@@ -443,7 +476,73 @@ function Conversation(props) {
       compressImageQuality: 1,
     }).then(async image => {
       if (image) {
-        setImgMessage(image);
+        const tmp = {
+          id: '',
+          sender_id: curUser.oid,
+          media_content: { image_hash: image.path },
+
+          created_date: new Date(),
+          modified_date: new Date(),
+          sending: true,
+        };
+        setListMes([tmp, ...listMes]);
+        ///
+        if (image) {
+          const uri = image.path;
+          const filename = uuidv4();
+          const uploadUri =
+            Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+          const task = storage()
+            .ref(
+              'conversation/' +
+                conversation_id +
+                '/' +
+                curUser.oid +
+                '/' +
+                filename
+            )
+            .putFile(uploadUri);
+          // set progress state
+          task.on('state_changed', snapshot => {
+            console.log('uploading avatar..');
+          });
+          try {
+            await task.then(async response => {
+              await storage()
+                .ref(response.metadata.fullPath)
+                .getDownloadURL()
+                .then(async url => {
+                  await getAPI(curUser.jwtToken)
+                    .post(api + 'Message/message/add', {
+                      conversation_id: conversation_id,
+                      image: {
+                        image_url: url,
+                        image_hash: url,
+                      },
+                    })
+                    .then(response => {
+                      const tmp = {
+                        id: '',
+                        sender_id: curUser.oid,
+                        media_content: { image_hash: image.path },
+
+                        created_date: new Date(),
+                        modified_date: new Date(),
+                        sending: false,
+                      };
+                      setListMes([tmp, ...listMes]);
+                      setSending(false);
+
+                      //setListMes([...listMes, response.data.result]);
+                    })
+                    .catch(err => console.log(err));
+                });
+            });
+          } catch (e) {
+            console.error(e);
+            setSending(false);
+          }
+        }
       }
     });
   };
@@ -453,8 +552,9 @@ function Conversation(props) {
         api +
           'Message/message/get/conversation/' +
           conversation_id +
-          '/limit/' +
-          10
+          '/skip/' +
+          skip +
+          '/count/10'
       )
       .then(response => {
         response.data.result.messages.forEach(i => (i.sending = false));
@@ -531,7 +631,7 @@ function Conversation(props) {
           value={message}
           onChangeText={text => setMessage(text)}
         />
-        {message == '' ? (
+        {isSending ? (
           <View style={styles.btnInputOption}>
             <FontAwesome5 name={'paper-plane'} size={24} color={'#ccc'} />
           </View>

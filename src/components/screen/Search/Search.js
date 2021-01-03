@@ -13,6 +13,7 @@ import {
   Alert,
   ToastAndroid,
   BackHandler,
+  Keyboard,
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
@@ -41,6 +42,9 @@ function UserCard({ item }) {
   const [loading, setLoading] = useState(false);
   const curUser = useSelector(getUser);
   const [following, setFollowing] = useState(item.following);
+  const onCallback = React.useCallback(value => {
+    setFollowing(value);
+  });
   const navigation = useNavigation();
 
   const onFollow = async () => {
@@ -69,7 +73,10 @@ function UserCard({ item }) {
     <Card containerStyle={styles.cardContainer}>
       <TouchableHighlight
         onPress={() =>
-          navigation.push(navigationConstants.profile, { id: item.oid })
+          navigation.push(navigationConstants.profile, {
+            id: item.oid,
+            callback: onCallback,
+          })
         }
         underlayColor={touch_color}
         style={styles.card}
@@ -93,36 +100,38 @@ function UserCard({ item }) {
               <Text style={styles.txtContent}>{item.address.city}</Text>
             </View>
           </View>
-          <View style={{ alignSelf: 'center', width: 96 }}>
-            {loading ? (
-              <ActivityIndicator
-                size="small"
-                color={main_color}
-                style={{ alignSelf: 'center' }}
-              />
-            ) : (
-              <TouchableOpacity
-                style={{
-                  backgroundColor: following ? '#ccc':  main_color ,
-                  padding: 4,
-                  paddingHorizontal: 8,
-                  borderRadius: 8,
-                }}
-                onPress={() => {
-                  onFollow();
-                }}
-              >
-                <Text
+          {item.oid == curUser.oid ? null : (
+            <View style={{ alignSelf: 'center', width: 96 }}>
+              {loading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={main_color}
+                  style={{ alignSelf: 'center' }}
+                />
+              ) : (
+                <TouchableOpacity
                   style={{
-                    color: following ?  main_color :'white' ,
-                    alignSelf: 'center',
+                    backgroundColor: following ? '#ccc' : main_color,
+                    padding: 4,
+                    paddingHorizontal: 8,
+                    borderRadius: 8,
+                  }}
+                  onPress={() => {
+                    onFollow();
                   }}
                 >
-                  {following ? 'Hủy theo dõi' : 'Theo dõi'}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+                  <Text
+                    style={{
+                      color: following ? main_color : 'white',
+                      alignSelf: 'center',
+                    }}
+                  >
+                    {following ? 'Hủy theo dõi' : 'Theo dõi'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
       </TouchableHighlight>
     </Card>
@@ -197,105 +206,179 @@ function Search() {
     };
   }, []);
 
-  useEffect(() => {
-    if (isFirst) {
-      setIsFirst(false);
-      return;
-    }
-    let isRender = true;
+  // useEffect(() => {
+  //   if (isFirst) {
+  //     setIsFirst(false);
+  //     return;
+  //   }
+  //   let isRender = true;
+  //   if (isPostSearch) {
+  //     setIsLoading(true);
+  //     const tmp = [];
+  //     fieldPickers.forEach(item => {
+  //       if (item.isPick) tmp.push(item);
+  //     });
+
+  //     const fetchData1 = async () => {
+  //       await getAPI(curUser.jwtToken)
+  //         .get(api + 'User/current')
+  //         .then(async response => {
+  //           await getAPI(curUser.jwtToken)
+  //             .post(api + `Post/post/filter`, {
+  //               skip: 0,
+  //               count: 3,
+  //               keyword: keyword,
+  //             })
+  //             .then(async res => {
+  //               res.data.result.forEach(item => {
+  //                 response.data.result.post_saved.forEach(i => {
+  //                   if (i == item.oid) {
+  //                     item.saved = true;
+  //                   } else item.saved = false;
+  //                 });
+  //                 item.vote = 0;
+  //                 response.data.result.post_upvote.forEach(i => {
+  //                   if (i == item.oid) {
+  //                     item.vote = 1;
+  //                   }
+  //                 });
+  //                 response.data.result.post_downvote.forEach(i => {
+  //                   if (i == item.oid) {
+  //                     item.vote = -1;
+  //                   }
+  //                 });
+  //               });
+
+  //               setPosts(res.data.result);
+
+  //               setIsLoading(false);
+  //               setSkip(3);
+  //             })
+  //             .catch(error => alert(error));
+  //         })
+  //         .catch(error => alert(error));
+  //     };
+
+  //     fetchData1();
+  //   } else {
+  //     setIsLoading(true);
+  //     const tmp = [];
+  //     fieldPickers.forEach(item => {
+  //       if (item.isPick) tmp.push(item);
+  //     });
+
+  //     const fetchData1 = async () => {
+  //       await getAPI(curUser.jwtToken)
+  //         .post(api + 'User/user/filter', {
+  //           keyword: keyword,
+  //           skip: 0,
+  //           count: 99,
+  //         })
+  //         .then(async res => {
+  //           await getAPI(curUser.jwtToken)
+  //             .get(
+  //               api +
+  //                 'User/following?UserId=' +
+  //                 curUser.oid +
+  //                 '&Skip=0&Count=99'
+  //             )
+  //             .then(following => {
+  //               if (isRender) {
+  //                 res.data.result.forEach(er => {
+  //                   er.following = false;
+  //                   following.data.result.forEach(ing => {
+  //                     if (er.oid == ing.toId) er.following = true;
+  //                   });
+  //                 });
+  //                 setIsLoading(false);
+  //                 setUsers(res.data.result);
+  //               }
+  //             });
+  //         })
+  //         .catch(error => alert(error));
+  //     };
+
+  //     fetchData1();
+  //   }
+  //   return () => {
+  //     isRender = false;
+  //   };
+  // }, [keyword]);
+
+  const onSearch = async () => {
+    console.log(search);
     if (isPostSearch) {
       setIsLoading(true);
       const tmp = [];
       fieldPickers.forEach(item => {
         if (item.isPick) tmp.push(item);
       });
-
-      const fetchData1 = async () => {
-        await getAPI(curUser.jwtToken)
-          .get(api + 'User/current')
-          .then(async response => {
-            await getAPI(curUser.jwtToken)
-              .post(api + `Post/post/filter`, {
-                skip: 0,
-                count: 3,
-                keyword: keyword,
-              })
-              .then(async res => {
-                res.data.result.forEach(item => {
-                  response.data.result.post_saved.forEach(i => {
-                    if (i == item.oid) {
-                      item.saved = true;
-                    } else item.saved = false;
-                  });
-                  item.vote = 0;
-                  response.data.result.post_upvote.forEach(i => {
-                    if (i == item.oid) {
-                      item.vote = 1;
-                    }
-                  });
-                  response.data.result.post_downvote.forEach(i => {
-                    if (i == item.oid) {
-                      item.vote = -1;
-                    }
-                  });
+      await getAPI(curUser.jwtToken)
+        .get(api + 'User/current')
+        .then(async response => {
+          await getAPI(curUser.jwtToken)
+            .post(api + `Post/post/filter`, {
+              skip: 0,
+              count: 3,
+              keyword: search,
+            })
+            .then(async res => {
+              res.data.result.forEach(item => {
+                response.data.result.post_saved.forEach(i => {
+                  if (i == item.oid) {
+                    item.saved = true;
+                  } else item.saved = false;
                 });
-
-                setPosts(res.data.result);
-
-                setIsLoading(false);
-                setSkip(3);
-              })
-              .catch(error => alert(error));
-          })
-          .catch(error => alert(error));
-      };
-
-      fetchData1();
+                item.vote = 0;
+                response.data.result.post_upvote.forEach(i => {
+                  if (i == item.oid) {
+                    item.vote = 1;
+                  }
+                });
+                response.data.result.post_downvote.forEach(i => {
+                  if (i == item.oid) {
+                    item.vote = -1;
+                  }
+                });
+              });
+              setPosts(res.data.result);
+              setIsLoading(false);
+              setSkip(3);
+            })
+            .catch(error => alert(error));
+        })
+        .catch(error => alert(error));
     } else {
       setIsLoading(true);
       const tmp = [];
       fieldPickers.forEach(item => {
         if (item.isPick) tmp.push(item);
       });
-
-      const fetchData1 = async () => {
-        await getAPI(curUser.jwtToken)
-          .post(api + 'User/user/filter', {
-            keyword: keyword,
-            skip: 0,
-            count: 99,
-          })
-          .then(async res => {
-            await getAPI(curUser.jwtToken)
-              .get(
-                api +
-                  'User/following?UserId=' +
-                  curUser.oid +
-                  '&Skip=0&Count=99'
-              )
-              .then(following => {
-                if (isRender) {
-                  res.data.result.forEach(er => {
-                    er.following = false;
-                    following.data.result.forEach(ing => {
-                      if (er.oid == ing.toId) er.following = true;
-                    });
-                  });
-                  setIsLoading(false);
-                  setUsers(res.data.result);
-                }
+      await getAPI(curUser.jwtToken)
+        .post(api + 'User/user/filter', {
+          keyword: search,
+          skip: 0,
+          count: 99,
+        })
+        .then(async res => {
+          await getAPI(curUser.jwtToken)
+            .get(
+              api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99'
+            )
+            .then(following => {
+              res.data.result.forEach(er => {
+                er.following = false;
+                following.data.result.forEach(ing => {
+                  if (er.oid == ing.toId) er.following = true;
+                });
               });
-          })
-          .catch(error => alert(error));
-      };
-
-      fetchData1();
+              setIsLoading(false);
+              setUsers(res.data.result);
+            });
+        })
+        .catch(error => alert(error));
     }
-    return () => {
-      isRender = false;
-    };
-  }, [keyword]);
-
+  };
   const fetchMore = async () => {
     if (isEnd == true) return;
     await getAPI(curUser.jwtToken)
@@ -352,24 +435,6 @@ function Search() {
   };
   return (
     <View>
-      {isLoading ? (
-        <View
-          style={{
-            position: 'absolute',
-            justifyContent: 'center',
-            backgroundColor: '#cccccc',
-            opacity: 0.5,
-            width: deviceWidth,
-            height: deviceHeight - 20,
-          }}
-        >
-          <ActivityIndicator
-            size="large"
-            color={main_color}
-            style={{ marginBottom: 100 }}
-          />
-        </View>
-      ) : null}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -385,7 +450,13 @@ function Search() {
           <View
             style={{ position: 'absolute', alignSelf: 'flex-end', right: 16 }}
           >
-            <TouchableOpacity onPress={() => setKeyword(search)}>
+            <TouchableOpacity
+              onPress={() => {
+                Keyboard.dismiss();
+                setKeyword(search);
+                onSearch();
+              }}
+            >
               <Icon name={'search'} size={24} color={'#000'} />
             </TouchableOpacity>
           </View>
@@ -430,7 +501,7 @@ function Search() {
             keyExtractor={(item, index) => index.toString()}
             ListHeaderComponent={() => (
               <View>
-                {!isFirst && posts.length == 0 ? (
+                {posts.length == 0 ? (
                   <Text
                     style={{
                       alignSelf: 'center',
@@ -464,7 +535,7 @@ function Search() {
             keyExtractor={(item, index) => index.toString()}
             ListHeaderComponent={() => (
               <View>
-                { users.length == 0 ? (
+                {users.length == 0 ? (
                   <Text
                     style={{
                       alignSelf: 'center',
@@ -482,6 +553,24 @@ function Search() {
             )}
           />
         )}
+        {isLoading ? (
+          <View
+            style={{
+              position: 'absolute',
+              justifyContent: 'center',
+              backgroundColor: '#cccccc',
+              opacity: 0.5,
+              width: deviceWidth,
+              height: deviceHeight - 20,
+            }}
+          >
+            <ActivityIndicator
+              size="large"
+              color={main_color}
+              style={{ marginBottom: 100 }}
+            />
+          </View>
+        ) : null}
       </SafeAreaView>
 
       <BottomModal

@@ -40,13 +40,13 @@ import CommentCard from 'components/common/CommentCard';
 import { useRoute } from '@react-navigation/native';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
-import { api } from 'constants/route';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
+import { api } from 'constants/route';
 import { getAPI } from '../../../apis/instance';
 import ImageView from 'react-native-image-viewing';
 import { ImageComponent } from 'react-native';
@@ -156,7 +156,12 @@ function Post(props) {
         .then(response => {
           if (!isOut) {
             setIsLoading(false);
-            response.data.result.forEach(i => (i.opacity = 1));
+            response.data.result.forEach(i => {
+              i.opacity = 1;
+              if (i.is_vote_by_current) i.vote = 1;
+              else if (i.is_downvote_by_current) i.vote = -1;
+              else i.vote = 0;
+            });
             setComments(response.data.result);
             setSkip(5);
           }
@@ -175,7 +180,12 @@ function Post(props) {
       .then(response => {
         if (response.data.result.length > 0) {
           setSkip(skip + 5);
-          response.data.result.forEach(i => (i.opacity = 1));
+          response.data.result.forEach(i => {
+            i.opacity = 1;
+            if (i.is_vote_by_current) i.vote = 1;
+            else if (i.is_downvote_by_current) i.vote = -1;
+            else i.vote = 0;
+          });
           setComments(comments.concat(response.data.result));
         }
         setIsEnd(false);
@@ -191,6 +201,10 @@ function Post(props) {
           setIsSaving(false);
           setSaved(false);
           ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+        })
+        .catch(err => {
+          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+          setIsSaving(false);
         });
     } else {
       await getAPI(curUser.jwtToken)
@@ -199,6 +213,10 @@ function Post(props) {
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
           setSaved(true);
+        })
+        .catch(err => {
+          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+          setIsSaving(false);
         });
     }
   };
@@ -291,6 +309,7 @@ function Post(props) {
       status: 0,
       upvote_count: 0,
       opacity: 0.5,
+      vote: 0,
     };
     setComments(comments.concat(tmp));
     setSending(true);

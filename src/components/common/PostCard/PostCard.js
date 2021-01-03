@@ -46,13 +46,17 @@ function PostCard(props) {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [author, setAuthor] = useState();
-  const [upvote, setUpvote] = useState(post.upvote);
-  const [downvote, setDownvote] = useState(post.downvote);
-  const [comment, setComment] = useState(post.comments_countd);
-  const [vote, setVote] = useState(post.vote);
+   
   const curUser = useSelector(getUser);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
+
+  // like, comment
+  const [upvote, setUpvote] = useState(post.upvote);
+  const [downvote, setDownvote] = useState(post.downvote);
+  const [comment, setComment] = useState(post.comments_countd);
+  
+  const [vote, setVote] = useState(post.vote);
   const onUpvoteCallback = useCallback((value)=>setUpvote(value));
   const onDownvoteCallback = useCallback((value) => setDownvote(value));
   const onCommentCallback = useCallback((value)=> setComment(value));
@@ -287,6 +291,7 @@ function PostCard(props) {
           setModalVisible(false);
         }}
         saved={post.saved}
+        id={post.oid}
       />
     </Card>
   );
