@@ -55,7 +55,10 @@ export const login = (email, password) => async dispatch => {
                 await axios
                   .post(
                     api +
-                      `Fcm/add?userId={response.data.result.oid}&token={token}`,
+                      'Fcm/add?userId=' +
+                      response.data.result.oid +
+                      '&token=' +
+                      token,
                     { userId: response.data.result.oid, token: token }
                   )
                   .then(res => console.log(res))
