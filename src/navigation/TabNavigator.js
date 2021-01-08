@@ -31,6 +31,7 @@ import {
   TouchableHighlight,
 } from 'react-native';
 import { Badge } from 'react-native-elements';
+import messaging from '@react-native-firebase/messaging';
 
 const {
   home,
@@ -213,7 +214,20 @@ function ListPostNavigator({ navigation }) {
 
 function TabNavigator() {
   const navigation = useNavigation();
+  const [countNotify, setCountNotify] = React.useState(0);
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      const res = JSON.parse(
+        JSON.parse(
+          JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+        ).message
+      );
+      console.log('oke');
+      setCountNotify(countNotify + 1);
+    });
 
+    return unsubscribe;
+  }, []);
   return (
     <BottomTab.Navigator
       swipeEnabled={true}
@@ -264,7 +278,6 @@ function TabNavigator() {
             );
           },
         }}
-       
         options={navigation => ({
           unmountOnBlur: true,
           tabBarLabel: 'Đăng',
@@ -287,7 +300,13 @@ function TabNavigator() {
           tabBarIcon: ({ color }) => (
             <View>
               <Icon name="envelope" color={color} size={24} />
-              <Badge status="success" value="1" containerStyle={styles.badge} />
+              {countNotify > 0 ? (
+                <Badge
+                  status="success"
+                  value={countNotify}
+                  containerStyle={styles.badge}
+                />
+              ) : null}
             </View>
           ),
         }}

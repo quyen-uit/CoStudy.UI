@@ -2,6 +2,8 @@ import UserController from 'controllers/UserController';
 import axios from 'axios';
 import { api } from '../constants/route';
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import messaging from '@react-native-firebase/messaging';
 
 export const actionTypes = {
   CLEAR_STORE: 'CLEAR_STORE',
@@ -47,6 +49,18 @@ export const login = (email, password) => async dispatch => {
           })
           .then(response => {
             response.data.result.jwtToken = res.data.result.jwtToken;
+            messaging()
+              .getToken()
+              .then(async token => {
+                await axios
+                  .post(
+                    api +
+                      `Fcm/add?userId={response.data.result.oid}&token={token}`,
+                    { userId: response.data.result.oid, token: token }
+                  )
+                  .then(res => console.log(res))
+                  .catch(err => console.log(err));
+              });
             dispatch(loginSuccess(response.data.result));
           })
           .catch(error => alert(error));

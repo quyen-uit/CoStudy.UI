@@ -178,7 +178,7 @@ function RightMessage({ item, onViewImage }) {
     </TouchableOpacity>
   );
 }
-function LeftMessage({ item, onViewImage }) {
+function LeftMessage({ item, onViewImage, avatar }) {
   const [showTime, setShowTime] = useState(false);
 
   return (
@@ -186,10 +186,7 @@ function LeftMessage({ item, onViewImage }) {
       <View>
         <View style={styles.containerLeftMessage}>
           <View>
-            <Image
-              style={styles.imgAvatar}
-              source={require('../../../assets/avatar.jpeg')}
-            />
+            <Image style={styles.imgAvatar} source={{ uri: avatar }} />
           </View>
 
           {item.media_content != null ? (
@@ -268,11 +265,12 @@ function Conversation(props) {
         ).message
       );
       if (res.SenderId == curUser.oid) return;
-      if (res.MediaContent == null) {
-        route.params.callback(res.StringContent, new Date());
-      } else {
-        route.params.callback('Ảnh', new Date());
-      }
+      if (route.params?.callback)
+        if (res.MediaContent == null) {
+          route.params.callback(res.StringContent, new Date());
+        } else {
+          route.params.callback('Ảnh', new Date());
+        }
       const tmp = {
         id: '',
         sender_id: res.SenderId,
@@ -350,10 +348,12 @@ function Conversation(props) {
         listMes.forEach(i => {
           if (i.sending) is.sending = false;
         });
-        route.params.callback(
-          'Bạn: ' + response.data.result.string_content,
-          new Date()
-        );
+        if (route.params?.callback) {
+          route.params.callback(
+            'Bạn: ' + response.data.result.string_content,
+            new Date()
+          );
+        }
         setListMes([
           {
             id: '',
@@ -374,16 +374,25 @@ function Conversation(props) {
         setSending(false);
       });
   };
+ 
   const renderItem = ({ item }) => {
+    
     if (item.sender_id == curUser.oid)
       return <RightMessage item={item} onViewImage={onViewImage} />;
-    else return <LeftMessage item={item} onViewImage={onViewImage} />;
+    else
+      return (
+        <LeftMessage
+          item={item}
+          onViewImage={onViewImage}
+          avatar={route.params.avatar}
+        />
+      );
   };
 
   const pickImage = () => {
     setSending(true);
+    if (route.params?.callback) route.params.callback('Bạn: Ảnh', new Date());
 
-    route.params.callback('Bạn: Ảnh', new Date());
     ImagePicker.openPicker({
       width: 800,
       height: 1000,
@@ -465,8 +474,7 @@ function Conversation(props) {
   };
   const cameraImage = () => {
     setSending(true);
-
-    route.params.callback('Bạn: Ảnh', new Date());
+    if (route.params?.callback) route.params.callback('Bạn: Ảnh', new Date());
     ImagePicker.openCamera({
       width: 800,
       height: 1000,

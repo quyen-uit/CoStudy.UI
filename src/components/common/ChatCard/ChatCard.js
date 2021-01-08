@@ -34,7 +34,7 @@ function ChatCard(props) {
   });
 
   const GoToConversation = () => {
-    navigation.navigate(navigationConstants.conversation, { id: chat.id, callback: onCallback });
+    navigation.navigate(navigationConstants.conversation, { id: chat.id, callback: onCallback, avatar: chat.avatar  });
   };
   return (
     <View

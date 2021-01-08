@@ -407,7 +407,16 @@ function Profile({ userId }) {
       }
     });
   };
-
+  const goToConversation = async () => {
+    await getAPI(curUser.jwtToken)
+      .post(api + 'Message/conversation/add', { participants: [data.oid] })
+      .then(res => {
+        navigation.navigate(navigationConstants.conversation, {
+          id: res.data.result.id,
+          avatar: data.avatar.image_hash,
+        });
+      });
+  };
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -556,7 +565,7 @@ function Profile({ userId }) {
                       <TouchableHighlight
                         style={styles.btnFollow}
                         underlayColor={touch_color}
-                        onPress={() => alert('â')}
+                        onPress={() => goToConversation()}
                       >
                         <Text style={styles.txtFollow}>Nhắn tin</Text>
                       </TouchableHighlight>
