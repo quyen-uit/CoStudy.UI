@@ -1,0 +1,21 @@
+import { actionTypes } from 'actions/ChatAction';
+
+const chatReducer = (state = { count: 0 }, { payload, type }) => {
+  switch (type) {
+    case actionTypes.SET_CHAT:
+       return { count: 0 };
+    case actionTypes.INCREASE_CHAT:
+      let newState1 = { ...state };
+      newState1.count = newState1.count + 1;
+      return newState1;
+    case actionTypes.DECREASE_CHAT:
+      let newState = { ...state };
+      newState.count = newState.count - 1 < 0 ? 0 : newState.count - 1;
+
+      return newState;
+    default:
+      return state;
+  }
+};
+
+export default chatReducer;

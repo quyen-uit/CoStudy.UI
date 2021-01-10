@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
-
+ 
 const styles = StyleSheet.create({
   // container (view)
   container: {
@@ -11,12 +11,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     padding: 8,
-  },
+   },
   headerAvatar: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-start',
-  },
+   },
   headerAuthor: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   btnCard: {
     borderRadius: 8,
   },
-  btnCancel: { flex: 1, alignItems: 'flex-end' },
+  btnCancel: {  alignItems: 'flex-end' },
   // image
   imgAvatar: {
     width: 48,

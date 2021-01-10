@@ -32,6 +32,7 @@ import Toast from 'react-native-toast-message';
 import { getAPI } from '../../../apis/instance';
 import { actionTypes, update } from 'actions/UserActions';
 import ImageView from 'react-native-image-viewing';
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -43,7 +44,6 @@ function NewsFeed() {
   const user = useSelector(getUser);
   const navigation = useNavigation();
   const route = useRoute();
-  const [modalVisible, setModalVisible] = useState(false);
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post);
   };
@@ -61,6 +61,15 @@ function NewsFeed() {
   const onViewImage = React.useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
+  });
+  //modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [idModal, setIdModal] = useState();
+  const [savedModal, setSavedModal] = useState();
+  const onModal = React.useCallback((value, id, saved) => {
+    setModalVisible(value);
+    setIdModal(id);
+    setSavedModal(saved);
   });
   React.useEffect(() => {
     console.log('dispatch update user');
@@ -257,7 +266,7 @@ function NewsFeed() {
     //   .catch(error => alert(error));
   };
   const renderItem = ({ item }) => {
-    return <PostCard post={item} onViewImage={onViewImage} />;
+    return <PostCard post={item} onViewImage={onViewImage} onModal={onModal} />;
   };
   return (
     <View>
@@ -331,11 +340,11 @@ function NewsFeed() {
           }
         />
         <ImageView
-        images={[{ uri: imgView }]}
-        imageIndex={0}
-        visible={visible}
-        onRequestClose={() => setIsVisible(false)}
-      />
+          images={[{ uri: imgView }]}
+          imageIndex={0}
+          visible={visible}
+          onRequestClose={() => setIsVisible(false)}
+        />
         {isLoading ? (
           <View
             style={{
@@ -355,6 +364,21 @@ function NewsFeed() {
           </View>
         ) : null}
       </SafeAreaView>
+      <PostOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        saved={savedModal}
+        id={idModal}
+      />
     </View>
   );
 }

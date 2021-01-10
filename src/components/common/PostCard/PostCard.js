@@ -44,9 +44,8 @@ function PostCard(props) {
   const userId = props.userId;
   const [isVote, setIsVote] = useState(false);
   const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(false);
   const [author, setAuthor] = useState();
-   
+
   const curUser = useSelector(getUser);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
@@ -55,15 +54,14 @@ function PostCard(props) {
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
   const [comment, setComment] = useState(post.comments_countd);
-  
-  const [vote, setVote] = useState(post.vote);
-  const onUpvoteCallback = useCallback((value)=>setUpvote(value));
-  const onDownvoteCallback = useCallback((value) => setDownvote(value));
-  const onCommentCallback = useCallback((value)=> setComment(value));
-  const onVoteCallback = useCallback((value)=> setVote(value));
 
-   const config = {
-     
+  const [vote, setVote] = useState(post.vote);
+  const onUpvoteCallback = useCallback(value => setUpvote(value));
+  const onDownvoteCallback = useCallback(value => setDownvote(value));
+  const onCommentCallback = useCallback(value => setComment(value));
+  const onVoteCallback = useCallback(value => setVote(value));
+
+  const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
   useEffect(() => {
@@ -71,7 +69,6 @@ function PostCard(props) {
     fetchData();
   }, []);
   const GoToPost = () => {
-
     navigation.navigate(navigationConstants.post, {
       post: post,
       author: author,
@@ -82,19 +79,18 @@ function PostCard(props) {
       onUpvote: onUpvoteCallback,
       onDownvote: onDownvoteCallback,
       onComment: onCommentCallback,
-      onVote: onVoteCallback
+      onVote: onVoteCallback,
     });
   };
 
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.',1000)
+      ToastAndroid.show('Bạn đã upvote cho bài viết này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
       setUpvote(upvote + 1);
-    } else 
-    {
+    } else {
       setVote(1);
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
@@ -105,13 +101,12 @@ function PostCard(props) {
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000)
+      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
       setDownvote(downvote + 1);
-    } else 
-    {
+    } else {
       setVote(-1);
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
@@ -121,7 +116,7 @@ function PostCard(props) {
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
   };
   const GoToProfile = () => {
-    navigation.push(navigationConstants.profile, {id: post.author_id});
+    navigation.push(navigationConstants.profile, { id: post.author_id });
   };
   return (
     <Card containerStyle={styles.container}>
@@ -175,7 +170,7 @@ function PostCard(props) {
                 activeOpacity={1}
                 underlayColor={touch_color}
                 style={styles.btn3Dot}
-                onPress={() => setModalVisible(true)}
+                onPress={() => props.onModal(true, post.oid, post.saved)}
               >
                 <View style={styles.btnOption}>
                   <FontAwesome name={'ellipsis-v'} size={24} color="#c4c4c4" />
@@ -202,13 +197,17 @@ function PostCard(props) {
           </View>
 
           {post.image_contents.length > 0 ? (
-            <TouchableOpacity onPress={()=>props.onViewImage(true,post.image_contents[0].image_hash)}>
-            <Image
-              style={styles.imgContent}
-              source={{
-                uri: post.image_contents[0].image_hash,
-              }}
-            />
+            <TouchableOpacity
+              onPress={() =>
+                props.onViewImage(true, post.image_contents[0].image_hash)
+              }
+            >
+              <Image
+                style={styles.imgContent}
+                source={{
+                  uri: post.image_contents[0].image_hash,
+                }}
+              />
             </TouchableOpacity>
           ) : null}
 
@@ -258,7 +257,11 @@ function PostCard(props) {
             ]}
           >
             <Text style={styles.txtVoteNumber}>{comment}</Text>
-            <FontAwesome5 name={'comment-alt'} size={22} color={main_2nd_color} />
+            <FontAwesome5
+              name={'comment-alt'}
+              size={22}
+              color={main_2nd_color}
+            />
           </Pressable>
         </View>
         <View style={styles.flex1}>
@@ -278,21 +281,6 @@ function PostCard(props) {
           </Pressable>
         </View>
       </View>
-      <PostOptionModal
-        visible={modalVisible}
-        onSwipeOut={event => {
-          setModalVisible(false);
-        }}
-        onHardwareBackPress={() => {
-          setModalVisible(false);
-          return true;
-        }}
-        onTouchOutside={() => {
-          setModalVisible(false);
-        }}
-        saved={post.saved}
-        id={post.oid}
-      />
     </Card>
   );
 }

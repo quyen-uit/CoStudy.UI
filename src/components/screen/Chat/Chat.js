@@ -22,6 +22,8 @@ import { touch_color } from 'constants/colorCommon';
 import { api } from 'constants/route';
 import moment from 'moment';
 import { getAPI } from '../../../apis/instance';
+import messaging from '@react-native-firebase/messaging';
+import Toast from 'react-native-toast-message';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -31,7 +33,55 @@ function Chat() {
   const navigation = useNavigation();
   const [listMes, setListMes] = useState([]);
   const curUser = useSelector(getUser);
+  const onCallback = React.useCallback(conversation => {
+    let userTemp = listMes.filter(i => i.id === conversation.id)[0];
+    let tmp = listMes.filter(i => i.id !== conversation.id);
+    
+    setListMes([conversation, ...tmp]);
+  });
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(remoteMessage => {
+      if (
+        typeof JSON.parse(
+          JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+        ).message == 'undefined'
+      )
+        return;
 
+      const res = JSON.parse(
+        JSON.parse(
+          JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+        ).message
+      );
+      // test
+      
+      // console.log(res);
+      let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
+      let tmp = listMes.filter(i => i.id !== res.ConversationId);
+
+      setListMes([
+        {
+          name: userTemp.name,
+          modified_date: res.CreatedDate,
+          avatar: userTemp.avatar,
+          content: res.MediaContent == null ? res.StringContent : 'Ảnh',
+          id: userTemp.id,
+          isUnread: true,
+        },
+        ...tmp,
+      ]);
+      if (res.SenderId == curUser.oid) return;
+      Toast.show({
+        type: 'success',
+        position: 'top',
+        text1: 'Bạn có tin nhắn mới từ ' + userTemp.name,
+        visibilityTime: 2000,
+      });
+      ///
+    });
+
+    return unsubscribe;
+  }, [listMes]);
   useEffect(() => {
     let isRender = true;
     let temp = [];
@@ -48,7 +98,9 @@ function Chat() {
                   .get(api + 'User/get/' + item.item1.participants[1])
                   .then(user => {
                     obj.name =
-                      user.data.result.first_name + user.data.result.last_name;
+                      user.data.result.first_name +
+                      ' ' +
+                      user.data.result.last_name;
                     obj.avatar = user.data.result.avatar.image_hash;
                   });
               } else {
@@ -56,7 +108,9 @@ function Chat() {
                   .get(api + 'User/get/' + item.item1.participants[0])
                   .then(user => {
                     obj.name =
-                      user.data.result.first_name + user.data.result.last_name;
+                      user.data.result.first_name +
+                      ' ' +
+                      user.data.result.last_name;
                     obj.avatar = user.data.result.avatar.image_hash;
                   });
               }
@@ -77,9 +131,16 @@ function Chat() {
                 content:
                   obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
                 id: item.item2.conversation_id,
+                isUnread: false,
               });
               //console.log('1');
-              if (isRender) setListMes(temp);
+              if (isRender) {
+                temp.sort(
+                  (d1, d2) =>
+                    new Date(d2.modified_date) - new Date(d1.modified_date)
+                );
+                setListMes(temp);
+              }
             }
           });
           //setListMes([...listMes, ...temp]);
@@ -101,7 +162,7 @@ function Chat() {
     navigation.navigate(navigationConstants.conversation, { id: id });
   };
   const renderItem = ({ item }) => {
-    return <ChatCard chat={item} />;
+    return <ChatCard chat={item} onCallback={onCallback} />;
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>

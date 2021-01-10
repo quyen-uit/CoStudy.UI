@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Text,
   View,
@@ -8,7 +8,12 @@ import {
 } from 'react-native';
 import styles from 'components/common/ChatCard/styles';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { main_color, active_color, touch_color } from '../../../constants/colorCommon';
+import {
+  main_color,
+  active_color,
+  touch_color,
+  main_2nd_color,
+} from '../../../constants/colorCommon';
 import { useNavigation } from '@react-navigation/native';
 import navigationConstants from 'constants/navigation';
 import moment from 'moment';
@@ -25,28 +30,47 @@ function ChatCard(props) {
   const navigation = useNavigation();
   const chat = props.chat;
   const [content, setContent] = React.useState(chat.content);
-  const [date, setDate] = React.useState(chat.modified_date);
+  const [date, setDate] = React.useState(props.chat.modified_date);
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [isUnread, setIsUnread] = useState(props.chat.isUnread);
+  console.log(props.chat);
   const onCallback = React.useCallback((value, date) => {
     setContent(value);
     setDate(date);
+    props.onCallback({
+      name: chat.name,
+      modified_date: date,
+      avatar: chat.avatar,
+      content: value,
+      id: chat.id,
+      isUnread: false,
+    });
   });
-
+  useEffect(() => {
+    setContent(chat.content);
+    setDate(chat.modified_date);
+    setIsUnread(chat.isUnread)
+  }, [chat.content, chat.modified_date]);
   const GoToConversation = () => {
-    navigation.navigate(navigationConstants.conversation, { id: chat.id, callback: onCallback, avatar: chat.avatar  });
+    setIsUnread(false);
+    navigation.navigate(navigationConstants.conversation, {
+      id: chat.id,
+      callback: onCallback,
+      avatar: chat.avatar,
+    });
   };
   return (
     <View
       style={{
         padding: -8,
-        margin: 8,
+        marginTop: 8,
+        marginHorizontal: 8,
         borderRadius: 8,
         borderWidth: 0.5, // Remove Border
         elevation: 0,
-        backgroundColor: '#fff',
+        backgroundColor: isUnread ? main_color : '#fff',
         borderColor: main_color,
-        
+        opacity: isUnread ? 0.5 : 1,
       }}
     >
       <TouchableHighlight

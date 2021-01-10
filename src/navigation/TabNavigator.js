@@ -11,11 +11,12 @@ import {
   useNavigation,
   StackActions,
   CommonActions,
+  Vibration
 } from '@react-navigation/native';
 import axios from 'axios';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch, shallowEqual } from 'react-redux';
 import navigationConstants from 'constants/navigation';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { main_color, main_2nd_color, touch_color } from 'constants/colorCommon';
@@ -32,6 +33,8 @@ import {
 } from 'react-native';
 import { Badge } from 'react-native-elements';
 import messaging from '@react-native-firebase/messaging';
+import { getChatCount } from 'selectors/ChatSelectors';
+import { actionTypes, increaseChat , setChat} from 'actions/ChatAction';
 
 const {
   home,
@@ -56,7 +59,6 @@ function HomeNavigator() {
 
 function NewsFeedNavigator({ navigation }) {
   const curUser = useSelector(getUser);
-
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -96,7 +98,7 @@ function NewsFeedNavigator({ navigation }) {
   );
 }
 function ChatNavigator() {
-  return (
+   return (
     <Stack.Navigator>
       <Stack.Screen
         name={chat}
@@ -215,19 +217,31 @@ function ListPostNavigator({ navigation }) {
 function TabNavigator() {
   const navigation = useNavigation();
   const [countNotify, setCountNotify] = React.useState(0);
+  //const [countChat, setCountChat] = React.useState(0);
+  const countChat = useSelector(getChatCount);
+
+  const dispatch = useDispatch();
+  useEffect(() => {
+    console.log(countChat);
+  }, [countChat]);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      const res = JSON.parse(
-        JSON.parse(
+      if (
+        typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
-        ).message
-      );
-      console.log('oke');
-      setCountNotify(countNotify + 1);
+        ).notification != 'undefined'
+      )
+        dispatch(increaseChat());
+      else if (
+        typeof JSON.parse(
+          JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+        ).message != 'undefined'
+      )
+        dispatch(increaseChat());
     });
 
     return unsubscribe;
-  }, []);
+  }, [countNotify]);
   return (
     <BottomTab.Navigator
       swipeEnabled={true}
@@ -300,10 +314,10 @@ function TabNavigator() {
           tabBarIcon: ({ color }) => (
             <View>
               <Icon name="envelope" color={color} size={24} />
-              {countNotify > 0 ? (
+              {countChat.count > 0 ? (
                 <Badge
                   status="success"
-                  value={countNotify}
+                  value={countChat.count}
                   containerStyle={styles.badge}
                 />
               ) : null}
@@ -318,8 +332,14 @@ function TabNavigator() {
           tabBarLabel: notify,
           tabBarIcon: ({ color }) => (
             <View>
-              <Icon name="bell" color={color} size={24} />
-              <Badge status="success" value="1" containerStyle={styles.badge} />
+              <Icon name="envelope" color={color} size={24} />
+              {countNotify > 0 ? (
+                <Badge
+                  status="success"
+                  value={countNotify}
+                  containerStyle={styles.badge}
+                />
+              ) : null}
             </View>
           ),
         }}

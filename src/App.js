@@ -12,6 +12,7 @@ import { hide } from 'react-native-bootsplash';
 import Toast, { BaseToast } from 'react-native-toast-message';
 import messaging from '@react-native-firebase/messaging';
 import { Alert } from 'react-native';
+import { ModalPortal } from 'react-native-modals';
 
 import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
@@ -38,11 +39,11 @@ function App() {
   const hideSplashScreen = async () => {
     await hide({ fade: true });
   };
-  messaging()
-  .getToken()
-  .then(token => {
-    console.log(token);
-  });
+  // messaging()
+  // .getToken()
+  // .then(token => {
+  //   console.log(token);
+  // });
   // useEffect(() => {
   //   const unsubscribe = messaging().onMessage(async remoteMessage => {
   //     Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));

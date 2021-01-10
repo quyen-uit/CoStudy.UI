@@ -259,11 +259,19 @@ function Conversation(props) {
   // }, [message]);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
+      if (
+        typeof JSON.parse(
+          JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+        ).message == 'undefined'
+      )
+        return;
+
       const res = JSON.parse(
         JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message
       );
+
       if (res.SenderId == curUser.oid) return;
       if (route.params?.callback)
         if (res.MediaContent == null) {
@@ -305,7 +313,7 @@ function Conversation(props) {
             conversation_id +
             '/skip/' +
             skip +
-            '/count/10'
+            '/count/15'
         )
         .then(response => {
           response.data.result.messages.forEach(i => (i.sending = false));
@@ -374,9 +382,8 @@ function Conversation(props) {
         setSending(false);
       });
   };
- 
+
   const renderItem = ({ item }) => {
-    
     if (item.sender_id == curUser.oid)
       return <RightMessage item={item} onViewImage={onViewImage} />;
     else
@@ -562,7 +569,7 @@ function Conversation(props) {
           conversation_id +
           '/skip/' +
           skip +
-          '/count/10'
+          '/count/15'
       )
       .then(response => {
         response.data.result.messages.forEach(i => (i.sending = false));
@@ -580,7 +587,7 @@ function Conversation(props) {
           onEndReached={() => {
             console.log('end');
             if (isEnd) return;
-            if (listMes.length > 9) {
+            if (listMes.length > 14) {
               setIsEnd(true);
 
               fetchData();

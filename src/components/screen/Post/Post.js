@@ -152,9 +152,13 @@ function Post(props) {
     let isOut = false;
     const fetchData = async () => {
       await getAPI(curUser.jwtToken)
-        .get(api + 'Comment/get/' + post.oid + '/skip/0/count/5')
+        .get(api + 'Comment/get/post?PostId=' + post.oid + '&Skip=0&Count=5', {
+          PostId: post.oid,
+          Skip: 0,
+          Count: 5,
+        })
         .then(response => {
-          if (!isOut) {
+           if (!isOut) {
             setIsLoading(false);
             response.data.result.forEach(i => {
               i.opacity = 1;
@@ -176,7 +180,11 @@ function Post(props) {
 
   const fetchMore = async () => {
     await getAPI(curUser.jwtToken)
-      .get(api + 'Comment/get/' + post.oid + '/skip/' + skip + '/count/5')
+      .get(api + 'Comment/get/post?PostId=' + post.oid + '&Skip=0&Count=5', {
+        PostId: post.oid,
+        Skip: 0,
+        Count: 5,
+      })
       .then(response => {
         if (response.data.result.length > 0) {
           setSkip(skip + 5);

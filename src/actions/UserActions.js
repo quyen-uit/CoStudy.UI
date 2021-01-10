@@ -61,7 +61,7 @@ export const login = (email, password) => async dispatch => {
                       token,
                     { userId: response.data.result.oid, token: token }
                   )
-                  .then(res => console.log(res))
+
                   .catch(err => console.log(err));
               });
             dispatch(loginSuccess(response.data.result));

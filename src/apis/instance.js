@@ -33,12 +33,11 @@ export const getAPI = jwtToken => {
       if (status === 400) {
         if (!isRefreshing) {
           isRefreshing = true;
-          refreshAccessToken().then(async newToken => {
+
+          await axios.post(api + 'Accounts/refresh-token').then(response => {
             isRefreshing = false;
-            await axios.post(api + 'Accounts/refresh-token').then(response => {
-              store.dispatch(update(response.data.result.jwtToken));
-              onRrefreshed(jwtToken);
-            });
+            store.dispatch(update(response.data.result.jwtToken));
+            onRrefreshed(jwtToken);
           });
         }
 
