@@ -74,6 +74,7 @@ function App() {
     <Provider store={store}>
       <Navigation theme={scheme === DARK ? DarkTheme : LightTheme} />
       <Toast config={toastConfig} ref={ref => Toast.setRef(ref)} />
+      <ModalPortal />
     </Provider>
   );
 }

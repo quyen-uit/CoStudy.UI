@@ -22,6 +22,6 @@ export const decreaseChat = () => ({
 });
 
 export const setChat = (value) => ({
-  type: actionTypes.INCREASE_CHAT,
+  type: actionTypes.SET_CHAT,
   payload: value,
 });

@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/Chat/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
@@ -24,21 +24,30 @@ import moment from 'moment';
 import { getAPI } from '../../../apis/instance';
 import messaging from '@react-native-firebase/messaging';
 import Toast from 'react-native-toast-message';
+import { actionTypes, increaseChat, setChat } from 'actions/ChatAction';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
 function Chat() {
   const { colors } = useTheme();
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const [listMes, setListMes] = useState([]);
   const curUser = useSelector(getUser);
   const onCallback = React.useCallback(conversation => {
     let userTemp = listMes.filter(i => i.id === conversation.id)[0];
     let tmp = listMes.filter(i => i.id !== conversation.id);
-    
+
     setListMes([conversation, ...tmp]);
   });
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      dispatch(setChat(0));
+    });
+
+    return unsubscribe;
+  }, [navigation]);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(remoteMessage => {
       if (
@@ -54,7 +63,7 @@ function Chat() {
         ).message
       );
       // test
-      
+
       // console.log(res);
       let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
       let tmp = listMes.filter(i => i.id !== res.ConversationId);

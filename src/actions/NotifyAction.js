@@ -22,6 +22,6 @@ export const decreaseNotify = () => ({
 });
 
 export const setNotify = value => ({
-  type: actionTypes.INCREASE_NOTIFY,
+  type: actionTypes.SET_NOTIFY,
   payload: value,
 });

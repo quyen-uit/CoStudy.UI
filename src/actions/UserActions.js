@@ -49,6 +49,9 @@ export const login = (email, password) => async dispatch => {
           })
           .then(response => {
             response.data.result.jwtToken = res.data.result.jwtToken;
+            if (response.data.result.avatar.image_hash == null)
+              response.data.result.avatar.image_hash =
+                'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
             messaging()
               .getToken()
               .then(async token => {

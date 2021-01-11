@@ -28,6 +28,7 @@ import { main_color, main_2nd_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { TextInput } from 'react-native-gesture-handler';
 import PostCard from '../../common/PostCard';
+import { Badge } from 'react-native-elements';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -147,7 +148,7 @@ function Search() {
   const [isPostSearch, setIsPostSearch] = useState(true);
   // query
   const [search, setSearch] = useState('');
-
+  const [countFilter, setCountFilter] = useState(0);
   const [keyword, setKeyword] = useState('');
   const [filterTime, setFilterTime] = useState();
   const [filterVote, setFilterVote] = useState();
@@ -205,7 +206,17 @@ function Search() {
       isRender = false;
     };
   }, []);
-
+  useEffect(() => {
+    let tmp = 0;
+    if (filterComment > 0) tmp = tmp + 1;
+    if (filterTime > 0) tmp = tmp + 1;
+    if (filterVote > 0) tmp = tmp + 1;
+    fieldPickers.forEach(i => {
+      if (i.isPick) tmp = tmp + 1;
+    });
+    setCountFilter(tmp);
+    
+  }, [filterComment, filterTime, filterVote, fieldPickers,countFilter]);
   // useEffect(() => {
   //   if (isFirst) {
   //     setIsFirst(false);
@@ -482,6 +493,13 @@ function Search() {
             color={main_color}
             style={{ marginHorizontal: 8 }}
           />
+          {countFilter > 0 ? (
+            <Badge
+              status="success"
+              value={countFilter}
+              containerStyle={styles.badge}
+            />
+          ) : null}
         </TouchableOpacity>
       </View>
       <SafeAreaView>

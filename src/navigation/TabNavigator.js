@@ -11,7 +11,7 @@ import {
   useNavigation,
   StackActions,
   CommonActions,
-  Vibration
+  Vibration,
 } from '@react-navigation/native';
 import axios from 'axios';
 import { api } from 'constants/route';
@@ -34,8 +34,9 @@ import {
 import { Badge } from 'react-native-elements';
 import messaging from '@react-native-firebase/messaging';
 import { getChatCount } from 'selectors/ChatSelectors';
-import { actionTypes, increaseChat , setChat} from 'actions/ChatAction';
-
+import { actionTypes, increaseChat, setChat } from 'actions/ChatAction';
+import { increaseNotify } from 'actions/NotifyAction';
+import { getNotifyCount } from 'selectors/NotifySelectors';
 const {
   home,
   create,
@@ -98,7 +99,7 @@ function NewsFeedNavigator({ navigation }) {
   );
 }
 function ChatNavigator() {
-   return (
+  return (
     <Stack.Navigator>
       <Stack.Screen
         name={chat}
@@ -216,10 +217,10 @@ function ListPostNavigator({ navigation }) {
 
 function TabNavigator() {
   const navigation = useNavigation();
-  const [countNotify, setCountNotify] = React.useState(0);
+  //const [countNotify, setCountNotify] = React.useState(0);
   //const [countChat, setCountChat] = React.useState(0);
   const countChat = useSelector(getChatCount);
-
+  const countNotify = useSelector(getNotifyCount);
   const dispatch = useDispatch();
   useEffect(() => {
     console.log(countChat);
@@ -231,17 +232,18 @@ function TabNavigator() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification != 'undefined'
       )
-        dispatch(increaseChat());
+        
+      dispatch(increaseNotify());
       else if (
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message != 'undefined'
       )
-        dispatch(increaseChat());
+      dispatch(increaseChat());
     });
 
     return unsubscribe;
-  }, [countNotify]);
+  }, []);
   return (
     <BottomTab.Navigator
       swipeEnabled={true}
@@ -333,10 +335,10 @@ function TabNavigator() {
           tabBarIcon: ({ color }) => (
             <View>
               <Icon name="envelope" color={color} size={24} />
-              {countNotify > 0 ? (
+              {countNotify.count > 0 ? (
                 <Badge
                   status="success"
-                  value={countNotify}
+                  value={countNotify.count}
                   containerStyle={styles.badge}
                 />
               ) : null}

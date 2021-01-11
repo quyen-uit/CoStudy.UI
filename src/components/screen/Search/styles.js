@@ -150,6 +150,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
      
   },
+  badge: { position: 'absolute', right: 0, top: -4},
+
 });
 
 export default styles;

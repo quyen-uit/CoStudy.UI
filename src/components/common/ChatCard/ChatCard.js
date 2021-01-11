@@ -68,7 +68,7 @@ function ChatCard(props) {
         borderRadius: 8,
         borderWidth: 0.5, // Remove Border
         elevation: 0,
-        backgroundColor: isUnread ? main_color : '#fff',
+        backgroundColor: isUnread ? '#ccc' : '#fff',
         borderColor: main_color,
         opacity: isUnread ? 0.5 : 1,
       }}
