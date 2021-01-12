@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
   },
   largeContainer: { flex: 1, backgroundColor: background_gray_color },
   containerInput: {
+    position: 'absolute',
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingBottom: 12,
@@ -33,6 +34,8 @@ const styles = StyleSheet.create({
     borderTopColor: main_color,
     borderTopWidth: 1,
     backgroundColor: '#fff',
+    bottom: 0,
+    left: 0
   },
   container: {
     padding: 0,

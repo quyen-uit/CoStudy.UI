@@ -1,6 +1,7 @@
 export default {
   connectionError: 'Connection error',
   email: 'Email',
+  phoneNumber: 'Số điện thoại',
   emailHint: 'Enter your email',
   home: 'Home',
   homeMessage: 'Welcome',

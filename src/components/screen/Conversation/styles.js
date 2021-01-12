@@ -8,13 +8,13 @@ import {
 const styles = StyleSheet.create({
   timeLeft: {
     justifyContent: 'center',
-    alignItems: 'flex-end',
-    marginRight: 80,
+    marginLeft: 60,
+    marginTop: -6
   },
   shirk1: {
     flexShrink: 1,
   },
-  timeRight: { justifyContent: 'center', marginLeft: 80 },
+  timeRight: { justifyContent: 'center', alignSelf: 'flex-end', marginRight: 28 },
   // container (view)
   grOption: {
     flexDirection: 'row',
@@ -36,6 +36,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     backgroundColor: '#fff',
     marginTop: 8,
+    position: 'absolute',
+    bottom: 0,
+    left: 0
   },
   container: {
     padding: 0,
@@ -70,7 +73,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   boxRightMessage: {
-    backgroundColor: '#fff',
+    backgroundColor: main_color,
     borderRadius: 32,
     padding: 8,
     flexShrink: 1,

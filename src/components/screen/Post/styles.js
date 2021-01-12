@@ -39,6 +39,9 @@ const styles = StyleSheet.create({
     borderTopColor: main_color,
     borderTopWidth: 1,
     backgroundColor: '#fff',
+    position: 'absolute',
+    bottom: 0,
+    left: 0
   },
   largeContainer: {
     flex: 1,
@@ -72,6 +75,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     marginTop: 8,
     marginLeft: 8,
+    flexWrap: 'wrap'
   },
   footer: {
     alignItems: 'stretch',
@@ -134,6 +138,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 16,
+    marginTop: 8
   },
   // text
   txtAuthor: {
@@ -154,6 +159,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginLeft: 16,
     marginRight: 8,
+    textAlign: 'left',
+  },
+  txtDes: {
+    fontSize: 15,
+    marginVertical: 8,
     textAlign: 'left',
   },
   txtTag: {

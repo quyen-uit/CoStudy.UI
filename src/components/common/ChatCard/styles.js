@@ -3,6 +3,18 @@ import { main_2nd_color, main_color } from 'constants/colorCommon';
 
 const styles = StyleSheet.create({
   // container (view)
+  cardContainer: {
+    padding: -8,
+    margin: 8,
+    borderRadius: 8,
+    borderWidth: 0, // Remove Border
+    elevation: 0,
+    backgroundColor: '#fff',
+  },
+  card: {
+    padding: 12,
+    borderRadius: 8,
+  },
   container: {
     padding: 0,
     margin: 8,
@@ -10,7 +22,6 @@ const styles = StyleSheet.create({
     borderWidth: 0, // Remove Border
     elevation: 0,
     backgroundColor: '#fff',
-    position: 'relative'
   },
   header: {
     flexDirection: 'row',
@@ -38,7 +49,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderColor: '#c4c4c4',
-    marginRight: 8
+    marginRight: 8,
   },
 
   // text

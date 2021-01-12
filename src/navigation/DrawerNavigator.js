@@ -15,20 +15,16 @@ import Home from 'components/screen/Home';
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
-const { profile, home, tabNav } = navigationConstants;
+const { profile, home, tabNav, follower } = navigationConstants;
 
 function DrawerNavigator() {
   return (
     <Drawer.Navigator
       initialRouteName={'bottom'}
-      drawerContent={(props) => <DrawerContent {...props} />}
+      drawerContent={props => <DrawerContent {...props} />}
     >
-      <Drawer.Screen
-        name={tabNav}
-        component={TabNavigator}
-       
-      />
-    </Drawer.Navigator>
+      <Drawer.Screen name={tabNav} component={TabNavigator} />
+     </Drawer.Navigator>
   );
 }
 

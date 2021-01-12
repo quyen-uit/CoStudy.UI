@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "925601383470",
+    "project_id": "costudy-c5390",
+    "storage_bucket": "costudy-c5390.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:925601383470:android:9c0ba7fc5d85a763788bbf",
+        "android_client_info": {
+          "package_name": "com.costudy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "925601383470-g4afm1vui2r5ehv9j596dqfjcge9gm0p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.costudy",
+            "certificate_hash": "d3c5a6840a642a2ba0f949189158a9adc34dfba8"
+          }
+        },
+        {
+          "client_id": "925601383470-1q1jmrvscdvdaankjk9hsl2hhm3ivlq7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYX9h13miDkIK4E5kWQJGgROc-RHe9RfQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "925601383470-1q1jmrvscdvdaankjk9hsl2hhm3ivlq7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
