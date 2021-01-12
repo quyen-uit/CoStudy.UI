@@ -22,7 +22,9 @@ Build an Android Application to connect people together and answer problems in s
 ...
 
 ## Usage
-
+1. Clone project 
+2. Run npm i
+3. Run react-native run-android
 
 
 ## Useful resources & Further reading
