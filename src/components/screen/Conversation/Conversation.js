@@ -7,6 +7,7 @@ import {
   View,
   ScrollView,
   TouchableHighlight,
+  ToastAndroid,
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
@@ -44,84 +45,26 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 import ImageView from 'react-native-image-viewing';
-
+import ChatOptionModal from 'components/modal/ChatOptionModal/ChatOptionModal';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
-const tmpConversation = {
-  id: '1',
-  title: 'Đây là title 1',
-  author: 'Nguyễn Văn Nam',
-  content:
-    'Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé. Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé',
-  createdDate: '10 phut truoc',
-};
-const list = [
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content Đây là content Đây làaaaaa content Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '1',
-    id: '1',
-  },
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '1',
+ 
 
-    id: '2',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content:
-      'Đây là contentĐây là content Đây là content Đây là content Đây là contentsss',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '2',
-
-    id: '3',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '1',
-
-    id: '4',
-  },
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '2',
-
-    id: '6',
-  },
-];
-const comment = {
-  author: 'Võ Thanh Tâm',
-  content: 'Đây là content',
-  createdDate: '10 phut truoc',
-  amountVote: 10,
-  amountComment: 20,
-};
-
-function RightMessage({ item, onViewImage }) {
+function RightMessage({ item, onViewImage,onDelete }) {
   const [showTime, setShowTime] = useState(false);
-
+  const [visible, setVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const onDelete1 = React.useCallback(value => {
+    setVisible(true);
+  });
   return (
-    <TouchableOpacity onPress={() => setShowTime(!showTime)}>
+    <TouchableOpacity onLongPress={()=>setModalVisible(true)} onPress={() => setShowTime(!showTime)}>
       <View style={styles.containerRightMessage}>
         <View
           style={[
@@ -175,6 +118,49 @@ function RightMessage({ item, onViewImage }) {
           </Text>
         </View>
       ) : null}
+      <ChatOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        onDelete = {onDelete1}
+      />
+      <Modal
+        visible={visible}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisible(false)}
+            />
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Xóa"
+              onPress={() => {
+                onDelete(item.oid);
+                setVisible(false);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn muốn xóa thông báo này?
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </TouchableOpacity>
   );
 }
@@ -224,11 +210,11 @@ function LeftMessage({ item, onViewImage, avatar }) {
           </View>
         ) : null}
       </View>
+      
     </TouchableOpacity>
   );
 }
 function Conversation(props) {
-  const post = tmpConversation;
   const route = useRoute();
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -246,7 +232,23 @@ function Conversation(props) {
     setIsVisible(true);
     setImgMessage(uri);
   });
-
+  const onDeleteCallBack = React.useCallback(async id => {
+    let tmp = listMes.filter(i => i.oid !== id);
+     
+    setListMes([...tmp]);
+    
+    await getAPI(curUser.jwtToken)
+      .delete(api + 'Message/message/' + id)
+      .then(res =>
+        setTimeout(
+          () => ToastAndroid.show('Đã xóa', 1000),
+          1000
+        )
+      ).catch(err=> {
+        console.log(err);
+        ToastAndroid.show('Xóa thất bại.', 1000)
+      });
+  });
   //lazy
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
@@ -385,7 +387,7 @@ function Conversation(props) {
 
   const renderItem = ({ item }) => {
     if (item.sender_id == curUser.oid)
-      return <RightMessage item={item} onViewImage={onViewImage} />;
+      return <RightMessage item={item} onViewImage={onViewImage} onDelete={onDeleteCallBack}/>;
     else
       return (
         <LeftMessage

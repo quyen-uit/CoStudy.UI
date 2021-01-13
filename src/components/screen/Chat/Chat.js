@@ -7,7 +7,9 @@ import {
   FlatList,
   Pressable,
   TouchableHighlight,
+  RefreshControl,
   TouchableOpacity,
+  ToastAndroid,
   Dimensions,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -18,7 +20,7 @@ import { getUser } from 'selectors/UserSelectors';
 import ChatCard from '../../common/ChatCard';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
-import { touch_color } from 'constants/colorCommon';
+import { touch_color, main_color } from 'constants/colorCommon';
 import { api } from 'constants/route';
 import moment from 'moment';
 import { getAPI } from '../../../apis/instance';
@@ -35,12 +37,101 @@ function Chat() {
   const navigation = useNavigation();
   const [listMes, setListMes] = useState([]);
   const curUser = useSelector(getUser);
+  const [refreshing, setRefreshing] = useState(false);
+
   const onCallback = React.useCallback(conversation => {
     let userTemp = listMes.filter(i => i.id === conversation.id)[0];
     let tmp = listMes.filter(i => i.id !== conversation.id);
 
     setListMes([conversation, ...tmp]);
   });
+
+  const onDeleteCallBack = React.useCallback(async id => {
+    let tmp = listMes.filter(i => i.id !== id);
+    ToastAndroid.show('Đang xóa...', 1000)
+    setListMes([...tmp]);
+    await getAPI(curUser.jwtToken)
+      .delete(api + 'Message/conversation/' + id)
+      .then(res =>
+        setTimeout(
+          () => ToastAndroid.show('Đã xóa cuộc trò chuyện này.', 1000),
+          1000
+        )
+      ).catch(err=> {
+        console.log(err);
+        ToastAndroid.show('Xóa thất bại.', 1000)
+      });
+  });
+  const onRefresh = React.useCallback(() => {
+    let temp = [];
+
+    setRefreshing(true);
+     const fetchData1 = async () => {
+      await getAPI(curUser.jwtToken)
+      .get(api + 'Message/conversation/current')
+      .then(async res => {
+        res.data.result.conversations.forEach(async item => {
+          if (item.item2.conversation_id != null) {
+            const obj = {};
+
+            if (item.item1.participants[0] == curUser.oid) {
+              await getAPI(curUser.jwtToken)
+                .get(api + 'User/get/' + item.item1.participants[1])
+                .then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                });
+            } else {
+              await getAPI(curUser.jwtToken)
+                .get(api + 'User/get/' + item.item1.participants[0])
+                .then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                });
+            }
+
+            if (item.item2.sender_id == curUser.oid) {
+              if (item.item2.media_content == null)
+                obj.content = 'Bạn: ' + item.item2.string_content;
+              else obj.content = 'Bạn: Ảnh';
+            } else {
+              if (item.item2.media_content == null)
+                obj.content = item.item2.string_content;
+              else obj.content = 'Ảnh';
+            }
+            temp.push({
+              name: obj.name,
+              modified_date: item.item2.modified_date,
+              avatar: obj.avatar,
+              content:
+                obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
+              id: item.item2.conversation_id,
+              isUnread: false,
+            });
+            //console.log('1');
+           
+              temp.sort(
+                (d1, d2) =>
+                  new Date(d2.modified_date) - new Date(d1.modified_date)
+              );
+              setListMes(temp);
+              setRefreshing(false);
+
+          }
+        });
+        //setListMes([...listMes, ...temp]);
+      })
+      .catch(err => alert(err));
+    };
+
+    fetchData1();
+  }, []);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       dispatch(setChat(0));
@@ -170,8 +261,15 @@ function Chat() {
   const GoToConversation = id => {
     navigation.navigate(navigationConstants.conversation, { id: id });
   };
+
   const renderItem = ({ item }) => {
-    return <ChatCard chat={item} onCallback={onCallback} />;
+    return (
+      <ChatCard
+        chat={item}
+        onCallback={onCallback}
+        onDelete={onDeleteCallBack}
+      />
+    );
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
@@ -180,6 +278,15 @@ function Chat() {
         data={listMes}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl
+            colors={[main_color]}
+            refreshing={refreshing}
+            onRefresh={() => {
+              onRefresh();
+            }}
+          />
+        }
       />
     </View>
   );

@@ -138,6 +138,11 @@ function Profile({ userId }) {
               dispatch(update(curUser.jwtToken));
             })
             .catch(error => alert(error));
+            alert(route.params.fields)
+          await getAPI(curUser.jwtToken)
+            .put(api + 'User/field', { field_value: route.params.data.fields })
+
+            .catch(error => alert(error));
         };
         postAPI();
       }

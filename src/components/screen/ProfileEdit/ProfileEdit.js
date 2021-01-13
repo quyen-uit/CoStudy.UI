@@ -92,7 +92,7 @@ function ProfileEdit({ userId }) {
   const [phone, setPhone] = useState(route.params.data.phone_number);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [fields, setFields] = useState(route.params.data.fortes);
-
+  console.log(fields)
   const [fieldPickers, setFieldPickers] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -103,6 +103,12 @@ function ProfileEdit({ userId }) {
   };
   const update = async () => {
     // update field ???
+    let temp = [];
+    fieldPickers.forEach(i=>{
+      if(i.isPick)
+        temp.push(i.oid);
+    })
+    console.log(temp);
     navigation.navigate(navigationConstants.profile, {
       update: true,
       data: {
@@ -111,6 +117,7 @@ function ProfileEdit({ userId }) {
         date_of_birth: dob,
         address: { district: district, city: city },
         phone_number: phone,
+        fields: temp
       },
     });
   };
@@ -451,6 +458,13 @@ function ProfileEdit({ userId }) {
             useNativeDriver: true, // optional
           })
         }
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
         onSwipeOut={event => {
           setModalVisible(false);
         }}

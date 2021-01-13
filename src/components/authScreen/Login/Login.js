@@ -38,7 +38,7 @@ function Login() {
   );
 
   const handleSubmit = () => {
-    if (email === '') Alert.alert('Thông báo', 'Vui lòng nhập email.');
+     if (email === '') Alert.alert('Thông báo', 'Vui lòng nhập email.');
     else if (password === '')
       Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
     else dispatch(login(email, password));

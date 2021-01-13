@@ -223,16 +223,20 @@ function ProfileDetail({ userId }) {
             <View>
               <Text style={{ color: '#ccc', fontSize: 13 }}>Lĩnh vực</Text>
               <View style={styles.containerTag}>
-                {fields.map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => alert('tag screen')}
-                  >
-                    <View style={styles.btnTag}>
-                      <Text style={styles.txtTag}>{item.value}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                {fields.length < 1 ? (
+                  <Text>Chưa có thông tin</Text>
+                ) : (
+                  fields.map((item, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => alert('tag screen')}
+                    >
+                      <View style={styles.btnTag}>
+                        <Text style={styles.txtTag}>{item.value}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
             </View>
           </View>

@@ -44,7 +44,7 @@ function ChatOptionModal({ ...rest }) {
       }
     >
       <ModalContent style={styles.content}>
-        <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+        <TouchableHighlight underlayColor={'#000'} onPress={() => rest.onDelete(true)}>
           <View style={styles.optionContainer}>
             <Icon
               name={'times'}

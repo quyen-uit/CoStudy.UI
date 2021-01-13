@@ -125,7 +125,7 @@ function ListPost() {
 
               setPosts(res.data.result);
               setRefreshing(false);
-
+              setIsLoading(false);
               setSkip(5);
             })
             .catch(error => alert(error));
@@ -343,7 +343,12 @@ function ListPost() {
         </View>
       </View>
       {posts.length == 0 ? (
-        <TouchableOpacity onPress={() => onRefresh()}>
+        <TouchableOpacity
+          onPress={() => {
+            onRefresh();
+            setIsLoading(true);
+          }}
+        >
           <Text
             style={{
               alignSelf: 'center',
@@ -460,6 +465,19 @@ function ListPost() {
             useNativeDriver: true, // optional
           })
         }
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          setAmoutField(
+            fieldPickers.filter(item => item.isPick == true).length
+          );
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+          setAmoutField(
+            fieldPickers.filter(item => item.isPick == true).length
+          );
+        }}
         onSwipeOut={event => {
           setModalVisible(false);
           setAmoutField(

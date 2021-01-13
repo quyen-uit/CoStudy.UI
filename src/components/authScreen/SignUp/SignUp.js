@@ -44,11 +44,22 @@ function SignUp() {
 
   const onNext = () => {
     if (first == '' || last == '') {
-      Alert.alert('Thông báo', 'Vui lòng đầy đủ họ và tên.');
+      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ họ và tên.');
       return;
-    }else 
+    } 
+    else if (district == '' || city == '')
     {
-      navigation.navigate(navigationConstants.signup2, {first: first, last: last, dob: date, city: city, district: district})
+      Alert.alert('Thông báo', 'Vui lòng chọn thông tin nơi ở.');
+      return;
+    }
+    else {
+      navigation.navigate(navigationConstants.signup2, {
+        first: first,
+        last: last,
+        dob: date,
+        city: city,
+        district: district,
+      });
     }
   };
 
@@ -106,6 +117,26 @@ function SignUp() {
               <Icon name={'birthday-cake'} size={22} color={main_2nd_color} />
             </View>
           </TouchableOpacity>
+
+          <View style={styles.picker}>
+            <RNPickerSelect
+              onValueChange={value => setCity(value)}
+              style={{
+                placeholder: { color: hint_color },
+                inputAndroid: {
+                  color: '#000',
+                },
+              }}
+              placeholder={{
+                label: 'Thành phố',
+                value: '',
+              }}
+              items={[{ label: 'Hồ Chí Minh', value: 'Hồ Chí Minh' }]}
+            />
+            <View style={styles.icon}>
+              <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
+            </View>
+          </View>
           <View style={styles.picker}>
             <RNPickerSelect
               onValueChange={value => setDistrict(value)}
@@ -129,32 +160,7 @@ function SignUp() {
               <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
             </View>
           </View>
-          <View style={styles.picker}>
-            <RNPickerSelect
-              onValueChange={value => console.log(value)}
-              style={{
-                placeholder: { color: hint_color },
-                inputAndroid: {
-                  color: '#000',
-                },
-              }} 
-              placeholder={{
-                label: 'Thành phố',
-                value: '',
-              }}
-              items={[
-                { label: 'Hồ Chí Minh', value: 'Hồ Chí Minh' },
-                
-              ]}
-            />
-            <View style={styles.icon}>
-              <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.btnSignUp}
-            onPress={() => onNext()}
-          >
+          <TouchableOpacity style={styles.btnSignUp} onPress={() => onNext()}>
             <Text style={styles.txtSignUp}>{strings.next}</Text>
           </TouchableOpacity>
         </View>

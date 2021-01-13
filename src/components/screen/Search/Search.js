@@ -215,8 +215,42 @@ function Search() {
       if (i.isPick) tmp = tmp + 1;
     });
     setCountFilter(tmp);
-    
-  }, [filterComment, filterTime, filterVote, fieldPickers,countFilter]);
+    //sort
+
+    if (filterTime == 0) {
+      let tmpList = posts.sort(
+        (d1, d2) => new Date(d1.modified_date) - new Date(d2.modified_date)
+      );
+      if (tmpList.length > 0) setPosts([...tmpList]);
+    } else if (filterTime == 1) {
+      let tmpList = posts.sort(
+        (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)
+      );
+      if (tmpList.length > 0) setPosts([...tmpList]);
+    }
+    if (filterComment == 0) {
+      let tmpList = posts.sort(
+        (d1, d2) =>  d1.comments_countd - d2.comments_countd
+      );
+      if (tmpList.length > 0) setPosts([...tmpList]);
+    } else if (filterComment == 1) {
+      let tmpList = posts.sort(
+        (d1, d2) => d2.comments_countd - d1.comments_countd
+      );
+      if (tmpList.length > 0) setPosts([...tmpList]);
+    }
+    if (filterVote == 0) {
+      let tmpList = posts.sort(
+        (d1, d2) =>  d1.vote - d2.vote
+      );
+      if (tmpList.length > 0) setPosts([...tmpList]);
+    } else if (filterVote == 1) {
+      let tmpList = posts.sort(
+        (d1, d2) => d2.vote - d1.vote
+      );
+      if (tmpList.length > 0) setPosts([...tmpList]);
+    }
+  }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
   // useEffect(() => {
   //   if (isFirst) {
   //     setIsFirst(false);
@@ -732,7 +766,7 @@ function Search() {
                 </TouchableOpacity>
               </View>
               <View>
-                <TouchableOpacity onPress={() => setModalOrder(3)}>
+                <TouchableOpacity onPress={() => setModalOrder(4)}>
                   <View style={styles.md_field}>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -744,9 +778,9 @@ function Search() {
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Text style={styles.md_txtchoose}>
-                        {filterVote == 1
+                        {filterComment == 1
                           ? 'Giảm dần'
-                          : filterVote == 0
+                          : filterComment == 0
                           ? 'Tăng dần'
                           : 'Chưa chọn'}
                       </Text>
@@ -848,6 +882,8 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterTime(1);
+                    setFilterVote(-1);
+                    setFilterComment(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -874,6 +910,8 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterTime(0);
+                     setFilterVote(-1);
+                    setFilterComment(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -930,6 +968,8 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterVote(1);
+                    setFilterTime(-1);
+                     setFilterComment(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -956,6 +996,9 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterVote(0);
+                    
+                    setFilterTime(-1);
+                     setFilterComment(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -1012,6 +1055,9 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterComment(1);
+                    
+                    setFilterTime(-1);
+                     setFilterVote(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -1040,6 +1086,9 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterComment(0);
+                    
+                    setFilterTime(-1);
+                     setFilterVote(-1);
                     setModalOrder(0);
                   }}
                 >

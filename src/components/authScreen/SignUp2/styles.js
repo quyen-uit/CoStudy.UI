@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: main_color,
-    justifyContent: 'space-around'
+    justifyContent: 'center'
   },
   otherContainer: {
     flexDirection: 'row',
@@ -51,8 +51,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     elevation: 10,
     fontWeight: 'bold',
-    marginTop: 40
-  },
+    marginBottom: 40
+   },
   picker: {
     backgroundColor: '#fff',
     borderRadius: 32,

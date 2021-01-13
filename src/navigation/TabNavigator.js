@@ -44,6 +44,7 @@ const {
   notify,
   newsfeed,
   chat,
+  search,
   tabNav,
 } = navigationConstants;
 
@@ -99,6 +100,7 @@ function NewsFeedNavigator({ navigation }) {
   );
 }
 function ChatNavigator() {
+  const navigation = useNavigation();
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -115,7 +117,7 @@ function ChatNavigator() {
           },
           headerLeft: () => (
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+              <TouchableOpacity onPress={() => navigation.navigate(search)}>
                 <Icon name={'search'} size={24} color={'#fff'} />
               </TouchableOpacity>
             </View>

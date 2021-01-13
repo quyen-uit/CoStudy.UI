@@ -7,6 +7,7 @@ import {
   View,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
   ScrollView,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
@@ -36,22 +37,31 @@ function SignUp2() {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
+
   const [phone, setPhone] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
 
   const data = route.params;
   const handleSubmit = async () => {
+    if (phone == '') {
+      Alert.alert('Thông báo', 'Vui lòng nhập số điện thoại.');
+      return;
+    } else  if (email == '') {
+      Alert.alert('Thông báo', 'Vui lòng nhập email.');
+      return;
+    } else  if (password.length < 6 || password2.length < 6) {
+      Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu ít nhất 6 kí tự.');
+      return;
+    } 
+    else if (password != password2)
+    {
+      Alert.alert('Thông báo', 'Mật khẩu không trùng khớp, vui lòng nhập lại');
+      return;
+    }
     setIsLoading(true);
-    console.log({
-      first_name: data.first,
-      last_name: data.last,
-      date_of_birth: data.dob,
-      address: { city: data.city, district: data.district },
-      email: email,
-      phone_number: phone,
-      password: password,
-    });
-
+     
     await axios
       .post(api + 'User/register', {
         first_name: data.first,
@@ -61,15 +71,18 @@ function SignUp2() {
         email: email,
         phone_number: phone,
         password: password,
+        confirmPassword: password,
+        accept_term: true,
+        title: 'title'
       })
       .then(res => {
-        console.log(res);
+       
         setIsLoading(false);
         navigation.navigate(navigationConstants.verifyEmail, {email: email, password: password});
       })
       .catch(err => {
         setIsLoading(false);
-        alert(err);
+        Alert.alert('Đăng kí không thành công', err.message);
       });
   };
   return (
@@ -105,7 +118,14 @@ function SignUp2() {
             value={password}
             icon={'unlock-alt'}
           />
-
+          <TextField
+          accessibilityHint={strings.lastName}
+          accessibilityLabel={strings.lastName}
+          onChangeText={setPassword2}
+          placeholder={'Nhập lại mật khẩu'}
+          value={password2}
+          icon={'unlock'}
+        />
           <TouchableOpacity
             style={styles.btnSignUp}
             onPress={() => handleSubmit()}

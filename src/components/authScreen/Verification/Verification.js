@@ -6,7 +6,7 @@ import {
   Image,
   View,
   TouchableOpacity,
-  ScrollView,
+   ScrollView,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -21,6 +21,7 @@ import errorsSelector from 'selectors/ErrorSelectors';
 import { isLoadingSelector } from 'selectors/StatusSelectors';
 import navigationConstants from 'constants/navigation';
 import axios from 'axios';
+import { api } from 'constants/route';
 import Loading from 'components/common/Loading';
 function Verification() {
   const { colors } = useTheme();
@@ -28,6 +29,7 @@ function Verification() {
   const [key, setKey] = useState('');
   const route = useRoute();
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
 
   const errors = useSelector(
     state => errorsSelector([actionTypes.LOGIN], state),
@@ -35,13 +37,21 @@ function Verification() {
   );
 
   const handleSubmit = () => {
+    if (token == '') {
+      Alert.alert('Thông báo', 'Bạn chưa nhập mã xác nhận.');
+      return;
+    }
+    setIsLoading(true);
     axios
       .post(api + 'Accounts/verify-email', token)
       .then(res => {
         //check response
         dispatch(login(route.params.email, route.params.password));
       })
-      .catch(err => alert(err));
+      .catch(err => {
+        Alert.alert('Thất bại', err.message);
+        setIsLoading(false);
+      });
   };
   return (
     <View style={{ flex: 1 }}>
@@ -72,6 +82,24 @@ function Verification() {
           </View>
         </View>
       </ScrollView>
+      {isLoading ? (
+        <View
+          style={{
+            position: 'absolute',
+            justifyContent: 'center',
+            backgroundColor: '#cccccc',
+            opacity: 0.5,
+            width: deviceWidth,
+            height: deviceHeight - 20,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={main_color}
+            style={{ marginBottom: 100 }}
+          />
+        </View>
+      ) : null}
     </View>
   );
   // return (

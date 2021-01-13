@@ -109,9 +109,9 @@ function NewsFeed() {
 
               setSkip(5);
             })
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -203,14 +203,14 @@ function NewsFeed() {
 
                         if (isRender) setPosts([tmp, ...resPost.data.result]);
                       })
-                      .catch(error => alert(error));
+                      .catch(error => console.log(error));
                   });
                 }
               }
             })
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -252,9 +252,9 @@ function NewsFeed() {
             }
             setIsEnd(false);
           })
-          .catch(error => alert(error));
+          .catch(error => console.log(error));
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
     // await axios
     //   .get(api + `Post/timeline/skip/${skip}/count/5`, config)
     //   .then(res => {
@@ -263,7 +263,7 @@ function NewsFeed() {
     //     setIsEnd(false);
     //     setSkip(skip + 5);
     //   })
-    //   .catch(error => alert(error));
+    //   .catch(error => console.log(error));
   };
   const renderItem = ({ item }) => {
     return <PostCard post={item} onViewImage={onViewImage} onModal={onModal} />;
