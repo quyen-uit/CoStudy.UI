@@ -27,18 +27,19 @@ export const getAPI = jwtToken => {
         config,
         response: { status },
       } = error;
-
+       
       const originalRequest = config;
 
       if (status === 400) {
         if (!isRefreshing) {
           isRefreshing = true;
-
-          await axios.post(api + 'Accounts/refresh-token').then(response => {
+          
+          await axios.post('https://costudy-api.azurewebsites.net/api/Accounts/refresh-token').then(response => {
+            console.log('bbb')  
             isRefreshing = false;
             store.dispatch(update(response.data.result.jwtToken));
             onRrefreshed(jwtToken);
-          });
+          }).catch(err=>alert(err));
         }
 
         const retryOrigReq = new Promise((resolve, reject) => {

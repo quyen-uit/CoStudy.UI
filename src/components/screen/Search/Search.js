@@ -228,23 +228,44 @@ function Search() {
       );
       if (tmpList.length > 0) setPosts([...tmpList]);
     }
+    // let type;
+    // let order;
+    // if (filterComment > 0) {
+    //   type = 0;
+    //   if(filterComment == 0)
+    //   order = 0;
+    //   else order = 1;
+    // }
+    // if (filterTime > 0)  {type = 1;
+    //   if(filterComment == 0)
+    //   order = 0;
+    //   else order = 1;}
+    // if (filterVote > 0)  {type = 2
+    //   if(filterComment == 0)
+    //   order = 0;
+    //   else order = 1;}
+    
     if (filterComment == 0) {
       let tmpList = posts.sort(
         (d1, d2) =>  d1.comments_countd - d2.comments_countd
       );
-      if (tmpList.length > 0) setPosts([...tmpList]);
+      
+      if (tmpList.length > 0) {
+        setPosts([]);
+        setPosts([...tmpList]);
+      }
     } else if (filterComment == 1) {
       let tmpList = posts.sort(
         (d1, d2) => d2.comments_countd - d1.comments_countd
       );
       if (tmpList.length > 0) setPosts([...tmpList]);
     }
-    if (filterVote == 0) {
+     if (filterVote == 1) {
       let tmpList = posts.sort(
         (d1, d2) =>  d1.vote - d2.vote
       );
       if (tmpList.length > 0) setPosts([...tmpList]);
-    } else if (filterVote == 1) {
+    } else if (filterVote == 0) {
       let tmpList = posts.sort(
         (d1, d2) => d2.vote - d1.vote
       );

@@ -65,10 +65,11 @@ function ChatCard(props) {
   }, [chat.content, chat.modified_date]);
   const GoToConversation = () => {
     setIsUnread(false);
-    navigation.navigate(navigationConstants.conversation, {
+     navigation.navigate(navigationConstants.conversation, {
       id: chat.id,
       callback: onCallback,
       avatar: chat.avatar,
+      name: chat.name
     });
   };
   return (

@@ -225,8 +225,8 @@ function TabNavigator() {
   const countNotify = useSelector(getNotifyCount);
   const dispatch = useDispatch();
   useEffect(() => {
-    console.log(countChat);
-  }, [countChat]);
+    console.log(countNotify);
+  }, [countNotify]);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       if (

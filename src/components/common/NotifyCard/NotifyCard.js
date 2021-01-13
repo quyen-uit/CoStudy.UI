@@ -35,8 +35,7 @@ function NotifyCard(props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [visible, setVisible] = useState(false);
   const [isUnread, setIsUnread] = useState(props.notify.isUnread);
-
-  return (
+   return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
         style={styles.btnCard}

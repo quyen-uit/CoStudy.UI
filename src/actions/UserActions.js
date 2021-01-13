@@ -43,15 +43,14 @@ export const login = (email, password) => async dispatch => {
     await axios
       .post(api + `Accounts/login`, { email: email, password: password })
       .then(async res => {
+        console.log(res);
         await axios
           .get(api + 'User/current', {
             headers: { Authorization: `Bearer ${res.data.result.jwtToken}` },
           })
           .then(response => {
             response.data.result.jwtToken = res.data.result.jwtToken;
-            if (response.data.result.avatar.image_hash == null)
-              response.data.result.avatar.image_hash =
-                'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/avatar%2Favatar.jpeg?alt=media&token=dbfd6455-9355-4b68-a711-111c18b0b243';
+
             messaging()
               .getToken()
               .then(async token => {
@@ -72,6 +71,7 @@ export const login = (email, password) => async dispatch => {
           .catch(error => alert(error));
       })
       .catch(error => {
+        console.log(error)
         Alert.alert('Thông báo', 'Email hoặc mật khẩu không đúng.');
         dispatch(loginSuccess());
       });

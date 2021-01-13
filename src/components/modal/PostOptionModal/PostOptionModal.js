@@ -21,11 +21,12 @@ import styles from './styles';
 //   latestTime: '10 phut truoc',
 // }
 const PostOptionModal = ({ ...rest }) => {
-   const curUser = useSelector(getUser);
+  const curUser = useSelector(getUser);
   const [saved, setSaved] = useState(rest.saved);
   const [isSaving, setIsSaving] = useState(false);
 
   const onSaved = async () => {
+    rest.onVisible(false);
     setIsSaving(true);
     if (saved) {
       await getAPI(curUser.jwtToken)
@@ -113,7 +114,7 @@ const PostOptionModal = ({ ...rest }) => {
         <TouchableHighlight
           underlayColor={'#000'}
           onPress={() => {
-            setModalVisible(false);
+            ToastAndroid.show('Đã báo cáo', ToastAndroid.SHORT);
           }}
         >
           <View style={styles.optionContainer}>

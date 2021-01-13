@@ -5,8 +5,10 @@ import {
   Text,
   Image,
   View,
+  ActivityIndicator,
   TouchableOpacity,
    ScrollView,
+   Dimensions
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -23,6 +25,7 @@ import navigationConstants from 'constants/navigation';
 import axios from 'axios';
 import { api } from 'constants/route';
 import Loading from 'components/common/Loading';
+import { main_color } from 'constants/colorCommon';
 function Verification() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -30,20 +33,21 @@ function Verification() {
   const route = useRoute();
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
-
+  const deviceWidth = Dimensions.get('window').width;
+  const deviceHeight = Dimensions.get('window').height;
   const errors = useSelector(
     state => errorsSelector([actionTypes.LOGIN], state),
     shallowEqual
   );
 
   const handleSubmit = () => {
-    if (token == '') {
+    if (key == '') {
       Alert.alert('Thông báo', 'Bạn chưa nhập mã xác nhận.');
       return;
     }
     setIsLoading(true);
     axios
-      .post(api + 'Accounts/verify-email', token)
+      .post(api + 'Accounts/verify-email?token=' + key, {token: key})
       .then(res => {
         //check response
         dispatch(login(route.params.email, route.params.password));

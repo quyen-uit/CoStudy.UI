@@ -188,8 +188,8 @@ function AppNavigator() {
       <Stack.Screen
         name={conversation}
         component={Conversation}
-        options={{
-          title: conversation,
+        options={({ route }) => ({
+          title: route.params.name,
           headerStyle: {
             backgroundColor: main_color,
           },
@@ -205,7 +205,7 @@ function AppNavigator() {
               </TouchableOpacity>
             </View>
           ),
-        }}
+        })}
       />
       <Stack.Screen
         name={comment}

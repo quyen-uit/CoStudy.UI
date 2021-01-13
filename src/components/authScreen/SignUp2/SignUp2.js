@@ -117,6 +117,8 @@ function SignUp2() {
             placeholder={strings.password}
             value={password}
             icon={'unlock-alt'}
+            secureTextEntry={true}
+
           />
           <TextField
           accessibilityHint={strings.lastName}
@@ -125,6 +127,8 @@ function SignUp2() {
           placeholder={'Nhập lại mật khẩu'}
           value={password2}
           icon={'unlock'}
+          secureTextEntry={true}
+
         />
           <TouchableOpacity
             style={styles.btnSignUp}

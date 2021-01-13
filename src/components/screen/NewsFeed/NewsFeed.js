@@ -71,6 +71,10 @@ function NewsFeed() {
     setIdModal(id);
     setSavedModal(saved);
   });
+  const onVisibleCallBack = React.useCallback((value) => {
+    setModalVisible(value);
+    
+  });
   React.useEffect(() => {
     console.log('dispatch update user');
     dispatch(update(user.jwtToken));
@@ -268,7 +272,7 @@ function NewsFeed() {
   const renderItem = ({ item }) => {
     return <PostCard post={item} onViewImage={onViewImage} onModal={onModal} />;
   };
-  return (
+   return (
     <View>
       <View
         style={{
@@ -378,6 +382,7 @@ function NewsFeed() {
         }}
         saved={savedModal}
         id={idModal}
+        onVisible={onVisibleCallBack}
       />
     </View>
   );

@@ -60,7 +60,12 @@ function PostCard(props) {
   const onDownvoteCallback = useCallback(value => setDownvote(value));
   const onCommentCallback = useCallback(value => setComment(value));
   const onVoteCallback = useCallback(value => setVote(value));
-
+  useEffect(()=>{
+    setComment(post.comments_countd);
+    setUpvote(post.upvote);
+    setDownvote(post.downvote);
+    setVote(post.vote)
+   },[post.comments_countd])
   const config = {
     headers: { Authorization: `Bearer ${curUser.jwtToken}` },
   };
