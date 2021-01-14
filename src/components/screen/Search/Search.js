@@ -59,7 +59,7 @@ function UserCard({ item }) {
           setLoading(false);
           setFollowing(false);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     } else {
       await getAPI(curUser.jwtToken)
         .post(api + 'User/following', { followers: [item.oid] })
@@ -67,7 +67,7 @@ function UserCard({ item }) {
           setLoading(false);
           setFollowing(true);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     }
   };
   return (
@@ -84,7 +84,7 @@ function UserCard({ item }) {
       >
         <View style={styles.headerCard}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+            <TouchableOpacity>
               <Image
                 style={styles.imgAvatar}
                 source={
@@ -199,7 +199,7 @@ function Search() {
             setIsLoading(false);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
@@ -320,9 +320,9 @@ function Search() {
   //               setIsLoading(false);
   //               setSkip(3);
   //             })
-  //             .catch(error => alert(error));
+  //             .catch(error => console.log(error));
   //         })
-  //         .catch(error => alert(error));
+  //         .catch(error => console.log(error));
   //     };
 
   //     fetchData1();
@@ -361,7 +361,7 @@ function Search() {
   //               }
   //             });
   //         })
-  //         .catch(error => alert(error));
+  //         .catch(error => console.log(error));
   //     };
 
   //     fetchData1();
@@ -411,9 +411,9 @@ function Search() {
               setIsLoading(false);
               setSkip(3);
             })
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     } else {
       setIsLoading(true);
       const tmp = [];
@@ -442,7 +442,7 @@ function Search() {
               setUsers(res.data.result);
             });
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     }
   };
   const fetchMore = async () => {
@@ -476,9 +476,9 @@ function Search() {
             setSkip(skip + 3);
             setIsEnd(false);
           })
-          .catch(error => alert(error));
+          .catch(error => console.log(error));
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   };
   const reset = () => {
     setFilterComment();

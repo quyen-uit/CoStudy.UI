@@ -87,7 +87,7 @@ function ListPost() {
             setIsLoading(false);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
@@ -128,9 +128,9 @@ function ListPost() {
               setIsLoading(false);
               setSkip(5);
             })
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -230,14 +230,14 @@ function ListPost() {
                         });
                         if (isRender) setPosts([tmp, ...res.data.result]);
                       })
-                      .catch(error => alert(error));
+                      .catch(error => console.log(error));
                   });
                 }
               }
             })
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -282,9 +282,9 @@ function ListPost() {
             }
             setIsEnd(false);
           })
-          .catch(error => alert(error));
+          .catch(error => console.log(error));
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
     // await axios
     //   .get(api + `Post/timeline/skip/${skip}/count/5`, config)
     //   .then(res => {
@@ -293,7 +293,7 @@ function ListPost() {
     //     setIsEnd(false);
     //     setSkip(skip + 5);
     //   })
-    //   .catch(error => alert(error));
+    //   .catch(error => console.log(error));
   };
   const reset = () => {
     setFilterComment();

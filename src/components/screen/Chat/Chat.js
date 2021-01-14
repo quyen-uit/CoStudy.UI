@@ -127,7 +127,7 @@ function Chat() {
         });
         //setListMes([...listMes, ...temp]);
       })
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
     };
 
     fetchData1();
@@ -155,7 +155,8 @@ function Chat() {
       );
       // test
 
-      // console.log(res);
+       console.log(res);
+
       let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
       let tmp = listMes.filter(i => i.id !== res.ConversationId);
 
@@ -245,7 +246,7 @@ function Chat() {
           });
           //setListMes([...listMes, ...temp]);
         })
-        .catch(err => alert(err));
+        .catch(err => console.log(err));
     };
     fetch();
     return () => {

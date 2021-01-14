@@ -59,7 +59,7 @@ function GroupOption(props) {
     <View style={styles.flex1}>
       <TouchableHighlight
         underlayColor={touch_color}
-        onPress={() => alert('option')}
+        
       >
         <View style={styles.btnOption}>
           <Icon name={props.icon} size={22} color={main_color} />
@@ -112,7 +112,7 @@ function Profile({ userId }) {
           setIsFollowing(false);
           route.params.callback(false);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     } else {
       await getAPI(curUser.jwtToken)
         .post(api + 'User/following', { followers: [data.oid] })
@@ -121,7 +121,7 @@ function Profile({ userId }) {
           setIsFollowing(true);
           route.params.callback(true);
         })
-        .catch(error => alert(error));
+        .catch(error =>console.log(error));
     }
   };
   useEffect(() => {
@@ -137,17 +137,16 @@ function Profile({ userId }) {
               setIsLoading(false);
               dispatch(update(curUser.jwtToken));
             })
-            .catch(error => alert(error));
-            alert(route.params.fields)
-          await getAPI(curUser.jwtToken)
+            .catch(error => console.log(error));
+           await getAPI(curUser.jwtToken)
             .put(api + 'User/field', { field_value: route.params.data.fields })
 
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         };
         postAPI();
       }
     } else console.log('update cc');
-  }, [route.params?.update]);
+  }, [route.params?.update,route.params?.data]);
   useEffect(() => {
     let isRender = true;
     let url = 'User/get/' + curUser.oid;
@@ -182,7 +181,7 @@ function Profile({ userId }) {
 
                 setLoading(false);
               })
-              .catch(error => alert(error));
+              .catch(error => console.log(error));
           }
           await getAPI(curUser.jwtToken)
             .get(
@@ -219,9 +218,9 @@ function Profile({ userId }) {
                 setSkip(5);
               }
             })
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -268,9 +267,9 @@ function Profile({ userId }) {
             }
             setIsEnd(false);
           })
-          .catch(error => alert(error));
+          .catch(error => console.log(error));
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   };
 
   const renderItem = ({ item }) => {
@@ -319,7 +318,7 @@ function Profile({ userId }) {
                     });
                     dispatch(update(curUser.jwtToken));
                   })
-                  .catch(error => alert(error));
+                  .catch(error => console.log(error));
               });
           });
         } catch (e) {
@@ -372,7 +371,7 @@ function Profile({ userId }) {
                     });
                     dispatch(update(curUser.jwtToken));
                   })
-                  .catch(error => alert(error));
+                  .catch(error =>console.log(error));
               });
           });
         } catch (e) {
@@ -527,7 +526,7 @@ function Profile({ userId }) {
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate(navigationConstants.profileDetail, {
-                        id: data.oid,
+                        data: data
                       })
                     }
                   >

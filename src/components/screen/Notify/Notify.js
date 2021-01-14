@@ -45,22 +45,29 @@ function Notify() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification
       );
-      Toast.show({
-        type: 'success',
-        position: 'top',
-        text1: JSON.parse(
+      if (
+        JSON.parse(
           JSON.parse(
             JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
           ).notification
-        ).Content,
-        visibilityTime: 2000,
-      });
+        ).AuthorId != curUser.oid
+      )
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: JSON.parse(
+            JSON.parse(
+              JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+            ).notification
+          ).Content,
+          visibilityTime: 2000,
+        });
       setList([
         {
           author_avatar: res.AuthorAvatar,
           content: res.Content,
           created_date: new Date(),
-          isUnread: true
+          isUnread: true,
         },
         ...list,
       ]);
@@ -82,7 +89,7 @@ function Notify() {
           res.data.result.map(i => (i.isUnread = false));
           setList(res.data.result);
         })
-        .catch(err => alert(err));
+        .catch(err => console.log(err));
     };
     fetch();
     return () => {

@@ -94,7 +94,7 @@ function ChatCard(props) {
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+            <TouchableOpacity>
               <Image style={styles.imgAvatar} source={{ uri: chat.avatar }} />
             </TouchableOpacity>
             <View style={{ marginLeft: 8 }}>

@@ -98,7 +98,7 @@ function Create() {
             setIsLoading(false);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
       await getAPI(curUser.jwtToken)
         .get(api + 'User/field/all')
         .then(response => {
@@ -110,7 +110,7 @@ function Create() {
             setFieldPickers(response.data.result);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
@@ -222,7 +222,7 @@ function Create() {
     //         visibilityTime: 2000,
     //       });
     //     })
-    //     .catch(error => alert(error));
+    //     .catch(error => console.log(error));
     // });
     // navigation.navigate(navigationConstants.newsfeed);
   };
@@ -256,7 +256,7 @@ function Create() {
                 width: 140,
                 color: '#fff',
               }}
-              onValueChange={(itemValue, itemIndex) => alert(itemValue)}
+              //onValueChange={(itemValue, itemIndex) => alert(itemValue)}
             >
               <Picker.Item label="Công khai" value="public" />
               <Picker.Item label="Riêng tư" value="private" />
@@ -381,8 +381,7 @@ function Create() {
           <TouchableHighlight
             underlayColor={touch_color}
             style={styles.btnInputOption}
-            onPress={() => alert('a')}
-          >
+           >
             <View style={styles.flex}>
               <Icon name={'square-root-alt'} size={24} color={main_color} />
               <Text style={styles.txtField}>Công thức</Text>

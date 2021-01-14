@@ -53,7 +53,7 @@ function Verification() {
         dispatch(login(route.params.email, route.params.password));
       })
       .catch(err => {
-        Alert.alert('Thất bại', err.message);
+        Alert.alert('Thất bại', 'Mã xác thực không đúng, vui lòng nhập lại.');
         setIsLoading(false);
       });
   };

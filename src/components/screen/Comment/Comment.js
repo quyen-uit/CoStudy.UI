@@ -151,11 +151,11 @@ function Comment(props) {
           if (!isOut) {
             const a = response.data.result.map(async i => {
               await getAPI(curUser.jwtToken)
-                .get(api + 'User/get/' + data.author_id)
+                .get(api + 'User/get/' + i.author_id)
                 .then(user => {
                   i.avatar = user.data.result.avatar.image_hash;
                   i.name =
-                    user.data.result.first_name + user.data.result.last_name;
+                    user.data.result.first_name + ' ' + user.data.result.last_name;
                   i.opacity = 1;
                   if (i.is_vote_by_current) i.vote = 1;
                   else if (i.is_downvote_by_current) i.vote = -1;
@@ -168,7 +168,7 @@ function Comment(props) {
             });
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
@@ -189,7 +189,7 @@ function Comment(props) {
         }
         setIsEnd(false);
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   };
   const onUpvote = async () => {
     if (vote == 1) {
@@ -206,7 +206,7 @@ function Comment(props) {
     await getAPI(curUser.jwtToken)
       .post(api + 'Comment/upvote/' + data.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
   const onDownvote = async () => {
     if (vote == -1) {
@@ -223,7 +223,7 @@ function Comment(props) {
     await getAPI(curUser.jwtToken)
       .post(api + 'Comment/downvote/' + data.oid)
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
   const postComment = async () => {
     Keyboard.dismiss();
@@ -270,7 +270,7 @@ function Comment(props) {
       })
       .catch(error => {
         setSending(false);
-        alert(error);
+        console.log(error);
       });
   };
   return (
@@ -373,12 +373,12 @@ function Comment(props) {
 
                   <View style={styles.flex1}>
                     <Pressable
-                      onPress={() => alert('comment')}
+                      
                       style={({ pressed }) => [
                         { backgroundColor: pressed ? touch_color : '#fff' },
                         styles.btnVote,
                       ]}
-                      onPress={() => alert('Vote')}
+                      
                     >
                       <Text style={styles.txtVoteNumber}>{comment_count}</Text>
                       <FontAwesome5

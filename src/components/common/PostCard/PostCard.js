@@ -224,7 +224,7 @@ function PostCard(props) {
               {post.fields.map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  onPress={() => alert('tag screen')}
+                  
                 >
                   <View style={styles.btnTag}>
                     <Text style={styles.txtTag}>{item.value}</Text>

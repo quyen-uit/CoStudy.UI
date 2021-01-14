@@ -170,7 +170,7 @@ function Post(props) {
             setSkip(5);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
@@ -198,7 +198,7 @@ function Post(props) {
         }
         setIsEnd(false);
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   };
   const onSaved = async () => {
     setIsSaving(true);
@@ -372,7 +372,7 @@ function Post(props) {
       })
       .catch(error => {
         setSending(false);
-        alert(error);
+        console.log(error);
       });
   };
 
@@ -522,7 +522,7 @@ function Post(props) {
                   {post.fields.map((item, index) => (
                     <TouchableOpacity
                       key={index}
-                      onPress={() => alert('tag screen')}
+                      
                     >
                       <View style={styles.btnTag}>
                         <Text style={styles.txtTag}>{item.value}</Text>
@@ -551,7 +551,7 @@ function Post(props) {
 
                   <View style={styles.flex1}>
                     <Pressable
-                      onPress={() => alert('comment')}
+                     
                       style={({ pressed }) => [
                         { backgroundColor: pressed ? touch_color : '#fff' },
                         styles.btnVote,

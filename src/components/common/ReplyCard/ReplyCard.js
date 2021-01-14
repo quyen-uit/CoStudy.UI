@@ -101,7 +101,7 @@ function ReplyCard(props) {
     await getAPI(curUser.jwtToken)
       .post(api + 'Comment/upvote/' + comment.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
   const onDownvote = async () => {
     if (vote == -1) {
@@ -119,7 +119,7 @@ function ReplyCard(props) {
     await getAPI(curUser.jwtToken)
       .post(api + 'Comment/downvote/' + comment.oid)
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
 
   return (

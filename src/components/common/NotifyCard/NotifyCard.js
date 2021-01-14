@@ -35,6 +35,10 @@ function NotifyCard(props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [visible, setVisible] = useState(false);
   const [isUnread, setIsUnread] = useState(props.notify.isUnread);
+  React.useEffect(() => {
+ 
+    setIsUnread(notify.isUnread);
+  }, [notify.oid]);
    return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
@@ -50,12 +54,12 @@ function NotifyCard(props) {
             flexDirection: 'row',
             padding: 8,
             borderRadius: 8,
-            backgroundColor: isUnread ? '#c4c4c4' : '#fff',
+            backgroundColor: isUnread ? '#ccc' : '#fff',
             opacity: isUnread ? 0.8 : 1,
           }}
         >
           <View style={styles.headerAvatar}>
-            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+            <TouchableOpacity>
               <Image
                 style={styles.imgAvatar}
                 source={{ uri: notify.author_avatar }}

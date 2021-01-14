@@ -26,7 +26,8 @@ function ItemDrawer({ icon, route }) {
       label={route}
       labelStyle={styles.label}
       onPress={() => {
-        navigation.navigate(route);
+        if(route == profile)
+         navigation.navigate(route);
       }}
     />
   );
@@ -72,8 +73,7 @@ function DrawerContent(props) {
               icon={() => <Icon name="home" color={main_color} size={24} />}
               labelStyle={styles.label}
               label={home}
-              onPress={() => alert('sign out')}
-            />
+             />
             <ItemDrawer icon={'user-circle'} route={profile} />
             <ItemDrawer icon={'cog'} route={setting} />
             <ItemDrawer icon={'question-circle'} route={help} />

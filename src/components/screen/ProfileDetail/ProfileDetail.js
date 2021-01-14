@@ -72,7 +72,7 @@ function ProfileDetail({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const route = useRoute();
-  const [data, setData] = useState([]);
+  const [data, setData] = useState(route.params.data);
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
   const [isMe, setIsMe] = useState(true);
@@ -80,16 +80,16 @@ function ProfileDetail({ userId }) {
   const [fields, setFields] = useState([]);
   const navigation = useNavigation();
   useEffect(() => {
-    if (route.params.id != curUser.oid) {
+    if (route.params.data.oid != curUser.oid) {
       setIsMe(false);
     }
     let isOut = false;
     const fetchData = async () => {
       await getAPI(curUser.jwtToken)
-        .get(api + 'User/get/' + route.params.id)
+        .get(api + 'User/get/' + route.params.data.oid)
         .then(response => {
           if (!isOut) {
-            setData(response.data.result);
+           // setData(response.data.result);
             setAvatar(response.data.result.avatar.image_hash);
             setFields(response.data.result.fortes);
             setIsLoading(false);

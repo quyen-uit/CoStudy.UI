@@ -180,7 +180,7 @@ function LeftMessage({ item, onViewImage, avatar }) {
               onPress={() => onViewImage(true, item.media_content.image_hash)}
             >
               <Image
-                style={{ width: 200, height: 300, marginLeft: 8 }}
+                style={{ width: 200, height: 300, marginLeft: 8, borderRadius: 8, borderWidth: 0.5, borderColor: main_color }}
                 source={{ uri: item.media_content.image_hash }}
               />
             </TouchableOpacity>
@@ -285,7 +285,7 @@ function Conversation(props) {
         id: '',
         sender_id: res.SenderId,
         conversation_id: res.ConversationId,
-        media_content: res.MediaContent,
+        media_content: res.MediaContent ? {image_hash: res.MediaContent.ImageUrl} :  res.MediaContent ,
         string_content: res.StringContent,
         status: res.Status,
         created_date: res.CreatedDate,
@@ -325,7 +325,7 @@ function Conversation(props) {
             setSkip(skip + 10);
           }
         })
-        .catch(err => alert(err));
+        .catch(err => console.log(err));
     };
     fetchData();
     return () => {
@@ -380,7 +380,7 @@ function Conversation(props) {
         setSending(false);
       })
       .catch(err => {
-        alert(err);
+       console.log(err);
         setSending(false);
       });
   };
@@ -579,7 +579,7 @@ function Conversation(props) {
         setSkip(skip + 10);
         setIsEnd(false);
       })
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
   return (
     <View style={styles.largeContainer}>

@@ -3,8 +3,7 @@ import { actionTypes } from 'actions/NotifyAction';
 const notifyReducer = (state = { count: 0 }, { payload, type }) => {
   switch (type) {
     case actionTypes.SET_NOTIFY:
-      state.count = payload.value;
-      return state;
+      return { count: 0 };
     case actionTypes.INCREASE_NOTIFY:
       let newState1 = { ...state };
       newState1.count = newState1.count + 1;

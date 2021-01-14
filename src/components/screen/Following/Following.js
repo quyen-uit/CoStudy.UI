@@ -52,13 +52,13 @@ function UserCard({ item }) {
     let isRender = true;
     const fetch = async () =>
       await getAPI(curUser.jwtToken)
-        .get(api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99')
+        .get(api + 'User/follower?UserId=' + curUser.oid + '&Skip=0&Count=99')
         .then(res => {
           res.data.result.forEach(i => {
             if (item.toId == i.toId) if (isRender) setFollowing(true);
           });
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     fetch();
     return () => {
       isRender = false;
@@ -75,7 +75,7 @@ function UserCard({ item }) {
           setLoading(false);
           setFollowing(false);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     } else {
       await getAPI(curUser.jwtToken)
         .post(api + 'User/following', { followers: [item.toId] })
@@ -83,7 +83,7 @@ function UserCard({ item }) {
           setLoading(false);
           setFollowing(true);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     }
   };
   return (
@@ -97,7 +97,7 @@ function UserCard({ item }) {
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+            <TouchableOpacity>
               <Image
                 style={styles.imgAvatar}
                 source={
@@ -125,7 +125,7 @@ function UserCard({ item }) {
               ) : (
                 <TouchableOpacity
                   style={{
-                    backgroundColor: following ? main_color : '#ccc',
+                    backgroundColor: following ?  '#ccc': main_color,
                     padding: 4,
                     paddingHorizontal: 8,
                     borderRadius: 8,
@@ -136,7 +136,7 @@ function UserCard({ item }) {
                 >
                   <Text
                     style={{
-                      color: following ? 'white' : main_color,
+                      color: following ?  main_color : 'white' ,
                       alignSelf: 'center',
                     }}
                   >
@@ -172,7 +172,7 @@ function Following() {
             setIsLoading(false);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetch();
     return () => {

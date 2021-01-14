@@ -136,7 +136,7 @@ function ChatNavigator() {
 }
 function NotifyNavigator() {
   const curUser = useSelector(getUser);
-
+  const navigation = useNavigation();
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -153,7 +153,13 @@ function NotifyNavigator() {
           },
           headerLeft: () => (
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.push(navigationConstants.profile, {
+                    id: curUser.oid,
+                  })
+                }
+              >
                 <Image
                   style={styles.imgAvatar}
                   source={{ uri: curUser.avatar.image_hash }}
@@ -224,6 +230,8 @@ function TabNavigator() {
   const countChat = useSelector(getChatCount);
   const countNotify = useSelector(getNotifyCount);
   const dispatch = useDispatch();
+  const curUser = useSelector(getUser);
+
   useEffect(() => {
     console.log(countNotify);
   }, [countNotify]);
@@ -233,15 +241,22 @@ function TabNavigator() {
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification != 'undefined'
-      )
-        
-      dispatch(increaseNotify());
-      else if (
+      ) {
+        if (
+          JSON.parse(
+            JSON.parse(
+              JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+            ).notification
+          ).AuthorId != curUser.oid
+        ) {
+          dispatch(increaseNotify());
+        }
+      } else if (
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message != 'undefined'
       )
-      dispatch(increaseChat());
+        dispatch(increaseChat());
     });
 
     return unsubscribe;

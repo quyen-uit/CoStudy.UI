@@ -53,14 +53,14 @@ function UserCard({ item }) {
     setLoading(true);
     if (following) {
       await getAPI(curUser.jwtToken)
-        .post(api + 'User/follower/remove?followingId=' + item.from_id, {
+        .post(api + 'User/following/remove?followingId=' + item.from_id, {
           followingId: item.from_id,
         })
         .then(res => {
           setLoading(false);
           setFollowing(false);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     } else {
       await getAPI(curUser.jwtToken)
         .post(api + 'User/following', { followers: [item.from_id] })
@@ -68,7 +68,7 @@ function UserCard({ item }) {
           setLoading(false);
           setFollowing(true);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     }
   };
   return (
@@ -85,7 +85,7 @@ function UserCard({ item }) {
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+            <TouchableOpacity>
               <Image
                 style={styles.imgAvatar}
                 source={
@@ -113,7 +113,7 @@ function UserCard({ item }) {
               ) : (
                 <TouchableOpacity
                   style={{
-                    backgroundColor: !following ? main_color : '#ccc',
+                    backgroundColor: following ?  '#ccc' : main_color,
                     padding: 4,
                     paddingHorizontal: 8,
                     borderRadius: 8,
@@ -124,7 +124,7 @@ function UserCard({ item }) {
                 >
                   <Text
                     style={{
-                      color: !following ? 'white' : main_color,
+                      color: following ?  main_color : 'white',
                       alignSelf: 'center',
                     }}
                   >
@@ -163,18 +163,27 @@ function Follower() {
             .then(following => {
               if (!isOut) {
                 console.log(res.data.result);
-                res.data.result.forEach(er => {
+                let promises = res.data.result.map(async er => {
+                  await getAPI(curUser.jwtToken)
+                    .get(api + 'User/get/' + er.from_id)
+                    .then(user => {
+                      er.full_name = user.data.result.first_name + ' ' + user.data.result.last_name;
+                      er.avatar = user.data.result.avatar.image_hash;
+                    })
+                    .catch(er => alert(er));
                   er.following = false;
                   following.data.result.forEach(ing => {
                     if (er.from_id == ing.toId) er.following = true;
                   });
                 });
-                setIsLoading(false);
-                setList(res.data.result);
+                Promise.all(promises).then(() => {
+                  setIsLoading(false);
+                  setList(res.data.result);
+                });
               }
             });
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetch();
     return () => {
