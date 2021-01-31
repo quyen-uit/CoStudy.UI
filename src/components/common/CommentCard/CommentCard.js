@@ -20,7 +20,7 @@ import strings from 'localization';
 import { color } from 'react-native-reanimated';
 import moment from 'moment';
 import { api } from '../../../constants/route';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import {
   main_2nd_color,
@@ -34,7 +34,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import navigationConstants from 'constants/navigation';
 import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
-import { getAPI } from '../../../apis/instance';
+import CommentService from 'controllers/CommentService';
 
 const tmpComment = {
   id: '1',
@@ -118,14 +118,10 @@ function ChildComment(props) {
 }
 
 function CommentCard(props) {
-  const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
 
-  const post = tmpComment;
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
-  const [isVote, setIsVote] = useState(false);
-  const [showOption, setShowOption] = useState(true);
+
   const comment = props.comment;
   const isInPost = props.isInPost;
   const [modalVisible, setModalVisible] = useState(false);
@@ -173,10 +169,9 @@ function CommentCard(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/upvote/' + comment.oid)
+    await CommentService.upVoteComment(jwtToken, comment.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
   const onDownvote = async () => {
     if (vote == -1) {
@@ -191,10 +186,9 @@ function CommentCard(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/downvote/' + comment.oid)
+    await CommentService.downVoteComment(jwtToken, comment.oid)
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
 
   return (

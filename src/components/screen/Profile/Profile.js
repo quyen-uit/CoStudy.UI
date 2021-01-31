@@ -22,7 +22,6 @@ import { color } from 'react-native-reanimated';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
-import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector, useDispatch } from 'react-redux';
@@ -32,6 +31,10 @@ import navigationConstants from 'constants/navigation';
 import Toast from 'react-native-toast-message';
 import storage from '@react-native-firebase/storage';
 import { actionTypes, update } from 'actions/UserActions';
+import FollowService from 'controllers/FollowService';
+import UserService from 'controllers/UserService';
+import PostService from 'controllers/PostService';
+import ChatService from 'controllers/ChatService';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -103,10 +106,7 @@ function Profile({ userId }) {
   const onFollow = async () => {
     setLoading(true);
     if (isFollowing) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following/remove?followingId=' + data.oid, {
-          followingId: data.oid,
-        })
+      await FollowService.unfollow(curUser.jwtToken, {from_id: data.oid})
         .then(res => {
           setLoading(false);
           setIsFollowing(false);
@@ -114,8 +114,7 @@ function Profile({ userId }) {
         })
         .catch(error => console.log(error));
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following', { followers: [data.oid] })
+      await FollowService.follow(curUser.jwtToken, data.oid)
         .then(res => {
           setLoading(false);
           setIsFollowing(true);
@@ -130,17 +129,14 @@ function Profile({ userId }) {
       ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
       if (route.params.update) {
         const postAPI = async () => {
-          await getAPI(curUser.jwtToken)
-            .put(api + 'User/update', route.params.data)
+          await UserService.updateUser(curUser.jwtToken, route.params.data)             
             .then(res => {
               setData(res.data.result);
               setIsLoading(false);
               dispatch(update(curUser.jwtToken));
             })
             .catch(error => console.log(error));
-           await getAPI(curUser.jwtToken)
-            .put(api + 'User/field', { field_value: route.params.data.fields })
-
+           await   UserService.updateFieldOfUser(curUser.jwtToken, {fields: route.params.data.fields })
             .catch(error => console.log(error));
         };
         postAPI();
@@ -158,19 +154,12 @@ function Profile({ userId }) {
     if (isMe) dispatch(update(curUser.jwtToken));
 
     const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + url)
+      await UserService.getUser(curUser.jwtToken, url)
         .then(async resUser => {
           setData(resUser.data.result);
           setAvatar(resUser.data.result.avatar.image_hash);
           if (route.params?.id) {
-            await getAPI(curUser.jwtToken)
-              .get(
-                api +
-                  'User/following?UserId=' +
-                  curUser.oid +
-                  '&Skip=0&Count=99'
-              )
+            await FollowService.getFollowingByUserId(curUser.jwtToken, {id: curUser.oid, skip: 0, count: 99})
               .then(res => {
                 res.data.result.forEach(i => {
                   if (resUser.data.result.oid == i.toId)
@@ -183,15 +172,7 @@ function Profile({ userId }) {
               })
               .catch(error => console.log(error));
           }
-          await getAPI(curUser.jwtToken)
-            .get(
-              api +
-                'Post/get/user/' +
-                resUser.data.result.oid +
-                '/skip/' +
-                0 +
-                '/count/5'
-            )
+          await PostService.getPostByUserId(curUser.jwtToken, {oid: resUser.data.result.oid, skip: 0, count: 5})
             .then(async resPost => {
               resPost.data.result.forEach(item => {
                 resUser.data.result.post_saved.forEach(i => {
@@ -230,18 +211,9 @@ function Profile({ userId }) {
   }, [route.params?.id]);
 
   const fetchMore = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(api + 'User/current')
+    await UserService.getUserById(curUser.jwtToken, data.oid )
       .then(async resUser => {
-        await getAPI(curUser.jwtToken)
-          .get(
-            api +
-              'Post/get/user/' +
-              resUser.data.result.oid +
-              '/skip/' +
-              skip +
-              '/count/5'
-          )
+        await PostService.getPostByUserId(curUser.jwtToken, {oid: resUser.data.result.oid, skip: skip, count: 5})
           .then(async resPost => {
             resPost.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
@@ -304,11 +276,7 @@ function Profile({ userId }) {
               .getDownloadURL()
               .then(async url => {
                 setAvatar(url);
-                await getAPI(curUser.jwtToken)
-                  .post(api + 'User/avatar/update', {
-                    discription: '',
-                    avatar_hash: url,
-                  })
+                await UserService.updateAvatar(curUser.jwtToken, url)
                   .then(response => {
                     Toast.show({
                       type: 'success',
@@ -357,11 +325,7 @@ function Profile({ userId }) {
               .getDownloadURL()
               .then(async url => {
                 setAvatar(url);
-                await getAPI(curUser.jwtToken)
-                  .post(api + 'User/avatar/update', {
-                    discription: '',
-                    avatar_hash: url,
-                  })
+                await UserService.updateAvatar(curUser.jwtToken, url) 
                   .then(response => {
                     Toast.show({
                       type: 'success',
@@ -391,7 +355,7 @@ function Profile({ userId }) {
     }).then(async image => {
       if (image) {
         const uri = image.path;
-        const filename = 'avatar_' + curUser.id;
+        const filename = 'avatar_' + curUser.oid;
         const uploadUri =
           Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
         const task = storage()
@@ -412,12 +376,13 @@ function Profile({ userId }) {
     });
   };
   const goToConversation = async () => {
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Message/conversation/add', { participants: [data.oid] })
+    await ChatService.createConversation(curUser.jwtToken, data.oid)
       .then(res => {
+        console.log(res.data.result.oid)
         navigation.navigate(navigationConstants.conversation, {
-          id: res.data.result.id,
+          id: res.data.result.oid,
           avatar: data.avatar.image_hash,
+          name: data.first_name + ' ' + data.last_name
         });
       });
   };

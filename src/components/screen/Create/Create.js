@@ -20,20 +20,14 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Create/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
+import { getUser, getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import ImagePicker from 'react-native-image-crop-picker';
-import { getAPI } from '../../../apis/instance';
-import { api } from 'constants/route';
-import Toast from 'react-native-toast-message';
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
-import storage from '@react-native-firebase/storage';
+import UserService from 'controllers/UserService';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -44,13 +38,12 @@ import Modal, {
 } from 'react-native-modals';
 
 function Create() {
-  const { colors } = useTheme();
-  const user = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
+
   const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState();
   const [listImg, setListImg] = useState([]);
-  const curUser = useSelector(getUser);
   const [data, setData] = useState([]);
   const [fieldPickers, setFieldPickers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,7 +51,7 @@ function Create() {
   const [chosing, setChosing] = useState(false);
 
   const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+    headers: { Authorization: `Bearer ${ jwtToken}` },
   };
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -90,8 +83,7 @@ function Create() {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/current')
+      await UserService.getCurrentUser( jwtToken)
         .then(response => {
           if (isRender) {
             setData(response.data.result);
@@ -99,8 +91,7 @@ function Create() {
           }
         })
         .catch(error => console.log(error));
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/field/all')
+      await UserService.getAllField( jwtToken)
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {
@@ -202,7 +193,7 @@ function Create() {
     //   }
     // });
     // Promise.all(promises).then(async () => {
-    //   await getAPI(curUser.jwtToken)
+    //   await getAPI( jwtToken)
     //     .post(
     //       api + 'Post/add',
     //       {

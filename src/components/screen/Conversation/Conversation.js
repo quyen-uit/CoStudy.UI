@@ -28,23 +28,19 @@ import {
   active_color,
   background_gray_color,
 } from 'constants/colorCommon';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import * as signalR from '@microsoft/signalr';
 import axios from 'axios';
-import { getUser } from 'selectors/UserSelectors';
+import { getUser, getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
-import { api } from 'constants/route';
 import messaging from '@react-native-firebase/messaging';
-import { getAPI } from '../../../apis/instance';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
-import ImageView from 'react-native-image-viewing';
 import ChatOptionModal from 'components/modal/ChatOptionModal/ChatOptionModal';
 import {
   Modal,
@@ -52,6 +48,9 @@ import {
   ModalButton,
   ModalContent,
 } from 'react-native-modals';
+import ImageView from 'react-native-image-viewing';
+
+import ChatService from 'controllers/ChatService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
  
@@ -216,12 +215,14 @@ function LeftMessage({ item, onViewImage, avatar }) {
 }
 function Conversation(props) {
   const route = useRoute();
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
   const [message, setMessage] = useState('');
-  const curUser = useSelector(getUser);
+
+
   const flatListRef = useRef();
   const [chosing, setChosing] = useState(false);
   const [imgMessage, setImgMessage] = useState();
@@ -237,8 +238,7 @@ function Conversation(props) {
      
     setListMes([...tmp]);
     
-    await getAPI(curUser.jwtToken)
-      .delete(api + 'Message/message/' + id)
+    await ChatService.deleteMessageById(id)
       .then(res =>
         setTimeout(
           () => ToastAndroid.show('Đã xóa', 1000),
@@ -254,7 +254,7 @@ function Conversation(props) {
   const [skip, setSkip] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+    headers: { Authorization: `Bearer ${jwtToken}` },
   };
   // useEffect(() => {
   //   flatListRef.current.scrollToEnd({ animated: true, duration: 1000 });
@@ -274,7 +274,7 @@ function Conversation(props) {
         ).message
       );
 
-      if (res.SenderId == curUser.oid) return;
+      if (res.SenderId == userInfo.id) return;
       if (route.params?.callback)
         if (res.MediaContent == null) {
           route.params.callback(res.StringContent, new Date());
@@ -308,15 +308,7 @@ function Conversation(props) {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(
-          api +
-            'Message/message/get/conversation/' +
-            conversation_id +
-            '/skip/' +
-            skip +
-            '/count/15'
-        )
+      await ChatService.getAllMessage(jwtToken, {conversation_id: conversation_id, skip: skip, count: 15})
         .then(response => {
           response.data.result.messages.forEach(i => (i.sending = false));
           if (isRender) {
@@ -337,7 +329,7 @@ function Conversation(props) {
     setSending(true);
     const tmp = {
       id: '',
-      sender_id: curUser.oid,
+      sender_id: userInfo.id,
       media_content: null,
       string_content: message,
 
@@ -348,11 +340,7 @@ function Conversation(props) {
     setMessage('');
     setListMes([tmp, ...listMes]);
 
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Message/message/add', {
-        conversation_id: conversation_id,
-        content: message,
-      })
+    await ChatService.createMessage(jwtToken, {conversation_id: conversation_id, message: message})
       .then(response => {
         // setListMes([...listMes, response.data.result]);
         listMes.forEach(i => {
@@ -367,7 +355,7 @@ function Conversation(props) {
         setListMes([
           {
             id: '',
-            sender_id: curUser.oid,
+            sender_id: userInfo.id,
             media_content: response.data.result.media_content,
             string_content: response.data.result.string_content,
             conversation_id: response.data.result.conversation_id,
@@ -386,7 +374,7 @@ function Conversation(props) {
   };
 
   const renderItem = ({ item }) => {
-    if (item.sender_id == curUser.oid)
+    if (item.sender_id == userInfo.id)
       return <RightMessage item={item} onViewImage={onViewImage} onDelete={onDeleteCallBack}/>;
     else
       return (
@@ -413,7 +401,7 @@ function Conversation(props) {
       if (image) {
         const tmp = {
           id: '',
-          sender_id: curUser.oid,
+          sender_id: userInfo.id,
           media_content: { image_hash: image.path },
 
           created_date: new Date(),
@@ -432,7 +420,7 @@ function Conversation(props) {
               'conversation/' +
                 conversation_id +
                 '/' +
-                curUser.oid +
+                userInfo.id +
                 '/' +
                 filename
             )
@@ -447,18 +435,11 @@ function Conversation(props) {
                 .ref(response.metadata.fullPath)
                 .getDownloadURL()
                 .then(async url => {
-                  await getAPI(curUser.jwtToken)
-                    .post(api + 'Message/message/add', {
-                      conversation_id: conversation_id,
-                      image: {
-                        image_url: url,
-                        image_hash: url,
-                      },
-                    })
+                  await ChatService.createImageMessage(jwtToken, {conversation_id: conversation_id, url: url})
                     .then(response => {
                       const tmp = {
                         id: '',
-                        sender_id: curUser.oid,
+                        sender_id: userInfo.id,
                         media_content: { image_hash: image.path },
 
                         created_date: new Date(),
@@ -495,7 +476,7 @@ function Conversation(props) {
       if (image) {
         const tmp = {
           id: '',
-          sender_id: curUser.oid,
+          sender_id: userInfo.id,
           media_content: { image_hash: image.path },
 
           created_date: new Date(),
@@ -514,7 +495,7 @@ function Conversation(props) {
               'conversation/' +
                 conversation_id +
                 '/' +
-                curUser.oid +
+                userInfo.id +
                 '/' +
                 filename
             )
@@ -529,18 +510,11 @@ function Conversation(props) {
                 .ref(response.metadata.fullPath)
                 .getDownloadURL()
                 .then(async url => {
-                  await getAPI(curUser.jwtToken)
-                    .post(api + 'Message/message/add', {
-                      conversation_id: conversation_id,
-                      image: {
-                        image_url: url,
-                        image_hash: url,
-                      },
-                    })
+                  await ChatService.createImageMessage(jwtToken, {conversation_id: conversation_id, url: url})
                     .then(response => {
                       const tmp = {
                         id: '',
-                        sender_id: curUser.oid,
+                        sender_id: userInfo.id,
                         media_content: { image_hash: image.path },
 
                         created_date: new Date(),
@@ -564,15 +538,7 @@ function Conversation(props) {
     });
   };
   const fetchData = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(
-        api +
-          'Message/message/get/conversation/' +
-          conversation_id +
-          '/skip/' +
-          skip +
-          '/count/15'
-      )
+    await ChatService.getAllMessage(jwtToken, {conversation_id: conversation_id, skip: skip, count: 15})
       .then(response => {
         response.data.result.messages.forEach(i => (i.sending = false));
         setListMes([...listMes, ...response.data.result.messages]);
@@ -760,8 +726,7 @@ function Conversation(props) {
           </TouchableOpacity>
         </View>
       ) : null}
-
-      <ImageView
+       <ImageView
         images={[{ uri: imgMessage }]}
         imageIndex={0}
         visible={visible}

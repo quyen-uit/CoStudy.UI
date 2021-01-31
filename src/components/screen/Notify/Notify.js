@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/Notify/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
+import { getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import NotifyCard from '../../common/NotifyCard';
 import { api } from 'constants/route';
 import moment from 'moment';
@@ -13,12 +13,14 @@ import { getAPI } from '../../../apis/instance';
 import messaging from '@react-native-firebase/messaging';
 import Toast from 'react-native-toast-message';
 import { setNotify } from 'actions/NotifyAction';
+import NotifyService from 'controllers/NotifyService';
 function Notify() {
-  const { colors } = useTheme();
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const [list, setList] = useState([]);
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const curUser = useSelector(getUser);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       dispatch(setNotify(0));
@@ -50,7 +52,7 @@ function Notify() {
           JSON.parse(
             JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
           ).notification
-        ).AuthorId != curUser.oid
+        ).AuthorId != userInfo.id
       )
         Toast.show({
           type: 'success',
@@ -80,8 +82,7 @@ function Notify() {
     let isRender = true;
 
     const fetch = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'Noftication/current')
+      await NotifyService.getAllNotify(jwtToken)
         .then(res => {
           res.data.result.sort(
             (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)

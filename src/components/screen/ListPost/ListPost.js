@@ -20,38 +20,32 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/ListPost/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
-import { Card } from 'react-native-elements';
+import { getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
 import PostCard from '../../common/PostCard';
-import Button from 'components/common/Button';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { api } from 'constants/route';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { v4 as uuidv4 } from 'uuid';
-import storage from '@react-native-firebase/storage';
-import Toast from 'react-native-toast-message';
-import { getAPI } from '../../../apis/instance';
+
 import { actionTypes, update } from 'actions/UserActions';
+import UserService from 'controllers/UserService';
+import PostService from 'controllers/PostService';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
 function ListPost() {
-  const { colors } = useTheme();
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const dispatch = useDispatch();
 
-  const user = useSelector(getUser);
   const navigation = useNavigation();
   const route = useRoute();
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post);
   };
   const [isLoading, setIsLoading] = useState(true);
-  const curUser = useSelector(getUser);
   const [data, setData] = useState([]);
   const [posts, setPosts] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,19 +59,18 @@ function ListPost() {
   const [filterTime, setFilterTime] = useState();
   const [filterVote, setFilterVote] = useState();
   const [filterComment, setFilterComment] = useState();
-  const [amountField, setAmoutField] = useState(0);
+  const [amountField, setAmountField] = useState(0);
   const [fieldPickers, setFieldPickers] = useState([]);
 
   React.useEffect(() => {
     console.log('dispatch update user');
-    dispatch(update(user.jwtToken));
+    dispatch(update(jwtToken));
   }, []);
 
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/field/all')
+      await UserService.getAllField(jwtToken)
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {
@@ -98,11 +91,9 @@ function ListPost() {
     setRefreshing(true);
     setIsEnd(false);
     const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/current')
+      await UserService.getCurrentUser(jwtToken)
         .then(async response => {
-          await getAPI(curUser.jwtToken)
-            .get(api + `Post/post/save?skip=0&count=5`, { skip: 0, count: 5 })
+          await PostService.getSavedPost(jwtToken, {skip: 0, count: 5})
             .then(res => {
               res.data.result.forEach(item => {
                 response.data.result.post_saved.forEach(i => {
@@ -138,11 +129,9 @@ function ListPost() {
   useEffect(() => {
     let isRender = true;
     const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/current')
+      await UserService.getCurrentUser(jwtToken)
         .then(async resUser => {
-          await getAPI(curUser.jwtToken)
-            .get(api + `Post/post/save?skip=0&count=5`, { skip: 0, count: 5 })
+          await PostService.getSavedPost(jwtToken, {skip: 0, count: 5})
             .then(async resPost => {
               resPost.data.result.forEach(item => {
                 resUser.data.result.post_saved.forEach(i => {
@@ -167,72 +156,72 @@ function ListPost() {
                 setIsLoading(false);
 
                 setSkip(5);
-                if (route.params?.title) {
-                  let list = [];
+                // if (route.params?.title) {
+                //   let list = [];
 
-                  let promises = route.params.listImg.map(async image => {
-                    const uri = image.path;
-                    const filename = uuidv4();
-                    const uploadUri =
-                      Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-                    const task = storage()
-                      .ref('post/' + curUser.id + '/' + filename)
-                      .putFile(uploadUri);
-                    // set progress state
-                    task.on('state_changed', snapshot => {});
-                    try {
-                      await task.then(async response => {
-                        await storage()
-                          .ref(response.metadata.fullPath)
-                          .getDownloadURL()
-                          .then(url => {
-                            list = [
-                              ...list,
-                              {
-                                discription: image.discription,
-                                image_hash: url,
-                              },
-                            ];
-                          });
-                      });
-                    } catch (e) {
-                      console.error(e);
-                    }
-                  });
-                  Promise.all(promises).then(async () => {
-                    await getAPI(curUser.jwtToken)
-                      .post(api + 'Post/add', {
-                        title: route.params.title,
-                        string_contents: [
-                          { content_type: 0, content: route.params.content },
-                        ],
-                        image_contents: list,
-                        fields: route.params.fields,
-                      })
-                      .then(response1 => {
-                        Toast.show({
-                          type: 'success',
-                          position: 'top',
-                          text1: 'Đăng bài thành công.',
-                          visibilityTime: 2000,
-                        });
-                        let tmp = response1.data.result.post;
-                        tmp.vote = 0;
-                        response.data.result.post_upvote.forEach(i => {
-                          if (i == tmp.oid) {
-                            item.vote = 1;
-                          }
-                        });
-                        response.data.result.post_downvote.forEach(i => {
-                          if (i == tmp.oid) {
-                            item.vote = -1;
-                          }
-                        });
-                        if (isRender) setPosts([tmp, ...res.data.result]);
-                      })
-                      .catch(error => console.log(error));
-                  });
-                }
+                //   let promises = route.params.listImg.map(async image => {
+                //     const uri = image.path;
+                //     const filename = uuidv4();
+                //     const uploadUri =
+                //       Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+                //     const task = storage()
+                //       .ref('post/' + userInfo.id + '/' + filename)
+                //       .putFile(uploadUri);
+                //     // set progress state
+                //     task.on('state_changed', snapshot => {});
+                //     try {
+                //       await task.then(async response => {
+                //         await storage()
+                //           .ref(response.metadata.fullPath)
+                //           .getDownloadURL()
+                //           .then(url => {
+                //             list = [
+                //               ...list,
+                //               {
+                //                 discription: image.discription,
+                //                 image_hash: url,
+                //               },
+                //             ];
+                //           });
+                //       });
+                //     } catch (e) {
+                //       console.error(e);
+                //     }
+                //   });
+                //   Promise.all(promises).then(async () => {
+                //     await getAPI(jwtToken)
+                //       .post(api + 'Post/add', {
+                //         title: route.params.title,
+                //         string_contents: [
+                //           { content_type: 0, content: route.params.content },
+                //         ],
+                //         image_contents: list,
+                //         fields: route.params.fields,
+                //       })
+                //       .then(response1 => {
+                //         Toast.show({
+                //           type: 'success',
+                //           position: 'top',
+                //           text1: 'Đăng bài thành công.',
+                //           visibilityTime: 2000,
+                //         });
+                //         let tmp = response1.data.result.post;
+                //         tmp.vote = 0;
+                //         response.data.result.post_upvote.forEach(i => {
+                //           if (i == tmp.oid) {
+                //             item.vote = 1;
+                //           }
+                //         });
+                //         response.data.result.post_downvote.forEach(i => {
+                //           if (i == tmp.oid) {
+                //             item.vote = -1;
+                //           }
+                //         });
+                //         if (isRender) setPosts([tmp, ...res.data.result]);
+                //       })
+                //       .catch(error => console.log(error));
+                //   });
+                // }
               }
             })
             .catch(error => console.log(error));
@@ -244,17 +233,14 @@ function ListPost() {
     return () => {
       isRender = false;
     };
-  }, [route.params?.title]);
+  }, []);
 
+  
+// }, [route.params?.title]);
   const fetchData = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(api + 'User/current')
+    await UserService.getCurrentUser(jwtToken)
       .then(async resUser => {
-        await getAPI(curUser.jwtToken)
-          .get(api + `Post/post/save?skip=${skip}&count=5`, {
-            skip: skip,
-            count: 5,
-          })
+        await PostService(jwtToken, {skip: skip, count: 5})
           .then(res => {
             res.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
@@ -327,7 +313,7 @@ function ListPost() {
           >
             <Image
               style={styles.imgAvatar}
-              source={{ uri: curUser.avatar.image_hash }}
+              source={{ uri: userInfo.avatar }}
             />
           </TouchableOpacity>
         </View>

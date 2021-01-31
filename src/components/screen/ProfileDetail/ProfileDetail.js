@@ -22,13 +22,13 @@ import { color } from 'react-native-reanimated';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
-import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import ImagePicker from 'react-native-image-crop-picker';
 import navigationConstants from 'constants/navigation';
 import moment from 'moment';
+import UserService from 'controllers/UserService';
 const user = {
   name: 'Nguyễn Văn Nam',
   follower: 20,
@@ -85,8 +85,7 @@ function ProfileDetail({ userId }) {
     }
     let isOut = false;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/get/' + route.params.data.oid)
+      await UserService.getUserById(curUser.jwtToken, route.params.data.oid)
         .then(response => {
           if (!isOut) {
            // setData(response.data.result);

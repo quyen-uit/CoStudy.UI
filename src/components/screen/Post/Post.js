@@ -38,7 +38,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import CommentCard from 'components/common/CommentCard';
 import { useRoute } from '@react-navigation/native';
-import { getUser } from 'selectors/UserSelectors';
+import { getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -47,9 +47,10 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 import { api } from 'constants/route';
-import { getAPI } from '../../../apis/instance';
 import ImageView from 'react-native-image-viewing';
 import { ImageComponent } from 'react-native';
+import CommentService from 'controllers/CommentService';
+import PostService from 'controllers/PostService';
 
 const tmpPost = {
   id: '1',
@@ -99,15 +100,14 @@ const list = [
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Post(props) {
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
+ 
   const navigation = useNavigation();
-  const [isVote, setIsVote] = useState(false);
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const [showOption, setShowOption] = useState(true);
   const route = useRoute();
   const [post, setPost] = useState(route.params.post);
-  const [author, setAuthor] = useState([]);
-  const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [upvote, setUpvote] = useState(route.params.upvote);
@@ -151,12 +151,7 @@ function Post(props) {
     setIsLoading(true);
     let isOut = false;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'Comment/get/post?PostId=' + post.oid + '&Skip=0&Count=5', {
-          PostId: post.oid,
-          Skip: 0,
-          Count: 5,
-        })
+      await CommentService.getCommentByPostId(jwtToken, {oid: post.oid, skip: 0, count: 5})
         .then(response => {
            if (!isOut) {
             setIsLoading(false);
@@ -179,12 +174,7 @@ function Post(props) {
   }, []);
 
   const fetchMore = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(api + 'Comment/get/post?PostId=' + post.oid + '&Skip=0&Count=5', {
-        PostId: post.oid,
-        Skip: 0,
-        Count: 5,
-      })
+    await CommentService.getCommentByPostId(jwtToken, {oid: post.oid, skip: skip, count: 5})
       .then(response => {
         if (response.data.result.length > 0) {
           setSkip(skip + 5);
@@ -203,8 +193,7 @@ function Post(props) {
   const onSaved = async () => {
     setIsSaving(true);
     if (saved) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'Post/post/save/' + post.oid, { id: post.oid })
+      await PostService.savePost(post.oid)
         .then(response => {
           setIsSaving(false);
           setSaved(false);
@@ -215,8 +204,7 @@ function Post(props) {
           setIsSaving(false);
         });
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'Post/post/save/' + post.oid, { id: post.oid })
+      await PostService.savePost(post.oid)
         .then(response => {
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
@@ -240,8 +228,7 @@ function Post(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid })
+    await PostService.upvote(post.oid)
       .then(
         response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),
         1000
@@ -259,8 +246,7 @@ function Post(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid })
+    await PostService.downvote(post.oid)
       .then(
         response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),
         1000
@@ -303,8 +289,8 @@ function Post(props) {
       return;
     }
     const tmp = {
-      author_avatar: curUser.avatar.image_hash,
-      author_name: curUser.first_name + curUser.last_name,
+      author_avatar: userInfo.avatar,
+      author_name: userInfo.first_name + userInfo.last_name,
       content: comment,
       created_date: new Date(),
       downvote_count: 0,
@@ -349,12 +335,7 @@ function Post(props) {
       }
     }
 
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/add', {
-        content: comment,
-        image_hash: img,
-        post_id: post.oid,
-      })
+    await CommentService.createComment(jwtToken, {comment: comment, img: img, oid: post.oid})
       .then(response => {
         setImgComment('');
         setComment('');

@@ -15,35 +15,22 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Follower/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+
+import { getUser, getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
-import { api } from 'constants/route';
 import moment from 'moment';
-import { getAPI } from '../../../apis/instance';
+import FollowService from 'controllers/FollowService';
+import UserService from 'controllers/UserService';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
-const list = [
-  {
-    id: '1',
-    author: 'Nguyễn Văn Nam',
-    info: 'Đại học Công nghệ thông tin',
-    status: 0,
-  },
-  {
-    id: '2',
-    author: 'Nguyễn Văn Ba',
-    info: 'Đại học Công nghệ thông tin',
-    status: 1,
-  },
-];
+
 function UserCard({ item }) {
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const [loading, setLoading] = useState(false);
-  const curUser = useSelector(getUser);
   const [following, setFollowing] = useState(item.following);
   const navigation = useNavigation();
   const onCallback = React.useCallback(value => {
@@ -52,18 +39,15 @@ function UserCard({ item }) {
   const onFollow = async () => {
     setLoading(true);
     if (following) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following/remove?followingId=' + item.from_id, {
-          followingId: item.from_id,
-        })
+      // ??
+      await FollowService.unfollow(jwtToken, {from_id: item.from_id})
         .then(res => {
           setLoading(false);
           setFollowing(false);
         })
         .catch(error => console.log(error));
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following', { followers: [item.from_id] })
+      await FollowService.follow(jwtToken, item.from_id)
         .then(res => {
           setLoading(false);
           setFollowing(true);
@@ -102,7 +86,7 @@ function UserCard({ item }) {
               </Text>
             </View>
           </View>
-          {item.from_id != curUser.oid ? (
+          {item.from_id !=  userInfo.id ? (
             <View style={{ alignSelf: 'center', width: 96 }}>
               {loading ? (
                 <ActivityIndicator
@@ -140,32 +124,24 @@ function UserCard({ item }) {
   );
 }
 function Follower() {
-  const { colors } = useTheme();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [listMes, setListMes] = useState([]);
+  // const { colors } = useTheme();
+  // const [modalVisible, setModalVisible] = useState(false);
+  // const [listMes, setListMes] = useState([]);
   const [list, setList] = useState([]);
-  const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(true);
   const route = useRoute();
 
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(
-          api + 'User/follower?UserId=' + route.params.id + '&Skip=0&Count=99'
-        )
+      await FollowService.getFollowerByUserId(jwtToken, {id: route.params.id, skip: 0, count: 99})
         .then(async res => {
-          await getAPI(curUser.jwtToken)
-            .get(
-              api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99'
-            )
+          await FollowService.getFollowingByUserId(jwtToken, {id: userInfo.id, skip: 0, count: 99})
             .then(following => {
               if (!isOut) {
                 console.log(res.data.result);
                 let promises = res.data.result.map(async er => {
-                  await getAPI(curUser.jwtToken)
-                    .get(api + 'User/get/' + er.from_id)
+                  await UserService.getUserById(jwtToken, er.from_id)
                     .then(user => {
                       er.full_name = user.data.result.first_name + ' ' + user.data.result.last_name;
                       er.avatar = user.data.result.avatar.image_hash;

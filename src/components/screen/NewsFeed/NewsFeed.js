@@ -15,24 +15,20 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/NewsFeed/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
-import { Card } from 'react-native-elements';
+import { getBasicInfo, getJwtToken , getUser} from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
 import PostCard from '../../common/PostCard';
-import Button from 'components/common/Button';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { api } from 'constants/route';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
-import { getAPI } from '../../../apis/instance';
 import { actionTypes, update } from 'actions/UserActions';
 import ImageView from 'react-native-image-viewing';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
+import UserService from 'controllers/UserService';
+import PostService from 'controllers/PostService';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -40,21 +36,21 @@ const deviceHeight = Dimensions.get('window').height;
 function NewsFeed() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
-
-  const user = useSelector(getUser);
   const navigation = useNavigation();
   const route = useRoute();
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post);
   };
   const [isLoading, setIsLoading] = useState(true);
-  const curUser = useSelector(getUser);
+  const userInfo = useSelector(getBasicInfo);
+  const jwtToken = useSelector(getJwtToken);
+
   const [data, setData] = useState([]);
   const [posts, setPosts] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
-
+ 
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
@@ -77,17 +73,15 @@ function NewsFeed() {
   });
   React.useEffect(() => {
     console.log('dispatch update user');
-    dispatch(update(user.jwtToken));
+    dispatch(update(jwtToken));
   }, []);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setIsEnd(false);
     const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/current')
+      await UserService.getCurrentUser(jwtToken)
         .then(async response => {
-          await getAPI(curUser.jwtToken)
-            .get(api + `Post/timeline/skip/0/count/5`)
+          await PostService.getTimeline(jwtToken, 0, 5)
             .then(res => {
               res.data.result.forEach(item => {
                 response.data.result.post_saved.forEach(i => {
@@ -123,11 +117,9 @@ function NewsFeed() {
   useEffect(() => {
     let isRender = true;
     const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/current')
+      await UserService.getCurrentUser(jwtToken)
         .then(async resUser => {
-          await getAPI(curUser.jwtToken)
-            .get(api + `Post/timeline/skip/0/count/5`)
+          await PostService.getTimeline(jwtToken, 0, 5)
             .then(async resPost => {
               resPost.data.result.forEach(item => {
                 resUser.data.result.post_saved.forEach(i => {
@@ -161,7 +153,7 @@ function NewsFeed() {
                     const uploadUri =
                       Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
                     const task = storage()
-                      .ref('post/' + curUser.id + '/' + filename)
+                      .ref('post/' + userInfo.id + '/' + filename)
                       .putFile(uploadUri);
                     // set progress state
                     task.on('state_changed', snapshot => {});
@@ -185,15 +177,13 @@ function NewsFeed() {
                     }
                   });
                   Promise.all(promises).then(async () => {
-                    await getAPI(curUser.jwtToken)
-                      .post(api + 'Post/add', {
-                        title: route.params.title,
-                        string_contents: [
-                          { content_type: 0, content: route.params.content },
-                        ],
-                        image_contents: list,
-                        fields: route.params.fields,
-                      })
+                    await PostService.createPost(jwtToken, 
+                        {
+                          title: route.param.title, 
+                          content: route.params.content,
+                          list: list,
+                          fields: route.params.fields,
+                        })
                       .then(response1 => {
                         Toast.show({
                           type: 'success',
@@ -224,11 +214,9 @@ function NewsFeed() {
   }, [route.params?.title]);
 
   const fetchData = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(api + 'User/current')
+    await UserService.getCurrentUser(jwtToken)
       .then(async resUser => {
-        await getAPI(curUser.jwtToken)
-          .get(api + `Post/timeline/skip/${skip}/count/5`)
+        await PostService.getTimeline(jwtToken, skip, 5)
           .then(res => {
             res.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
@@ -289,7 +277,7 @@ function NewsFeed() {
           >
             <Image
               style={styles.imgAvatar}
-              source={{ uri: curUser.avatar.image_hash }}
+              source={{ uri: userInfo.avatar }}
             />
           </TouchableOpacity>
         </View>

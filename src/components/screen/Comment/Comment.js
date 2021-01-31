@@ -18,9 +18,7 @@ import {
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Comment/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { color } from 'react-native-reanimated';
+
 import {
   main_2nd_color,
   main_color,
@@ -32,80 +30,25 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import ReplyCard from 'components/common/ReplyCard';
-import { getAPI } from '../../../apis/instance';
 import moment from 'moment';
-import ImagePicker from 'react-native-image-crop-picker';
-import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
-import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
-import { getUser } from 'selectors/UserSelectors';
+import { getBasicInfo, getJwtToken, getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
-import { api } from '../../../constants/route';
 import navigationConstants from 'constants/navigation';
+import CommentService from 'controllers/CommentService';
+import UserService from 'controllers/UserService';
 
-const tmpComment = {
-  id: '1',
-  title: 'Đây là title 1',
-  author: 'Nguyễn Văn Nam',
-  content:
-    'Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé. Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé',
-  createdDate: '10 phut truoc',
-};
-const list = [
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content Đây là content Đây làaaaaa content Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '1',
-  },
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '2',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '3',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '4',
-  },
-];
-const mainComment = {
-  author: 'Võ Thanh Tâm',
-  content: 'Đây là child content Đây là child content Đây là child content',
-  createdDate: '10 phut truoc',
-  amountVote: 10,
-  amountComment: 20,
-};
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Comment(props) {
   const route = useRoute();
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
-  const [isVote, setIsVote] = useState(false);
+  const userInfo = useSelector(getBasicInfo);
+  const jwtToken = useSelector(getJwtToken);
+
+
   const [showOption, setShowOption] = useState(true);
   const [data, setData] = useState(route.params.comment);
   const [isLoading, setIsLoading] = useState(false);
-  const curUser = useSelector(getUser);
   const [replies, setReplies] = useState([]);
 
   //comment
@@ -142,16 +85,11 @@ function Comment(props) {
     setIsLoading(true);
     let isOut = false;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'Comment/get/replies/' + data.oid + '?skip=0&count=100', {
-          skip: 0,
-          count: 100,
-        })
+      await CommentService.getAllReply(jwtToken, {oid: data.oid, skip: 0, count: 100})
         .then(async response => {
           if (!isOut) {
             const a = response.data.result.map(async i => {
-              await getAPI(curUser.jwtToken)
-                .get(api + 'User/get/' + i.author_id)
+              await UserService.getUserById(i.author_id)
                 .then(user => {
                   i.avatar = user.data.result.avatar.image_hash;
                   i.name =
@@ -178,18 +116,18 @@ function Comment(props) {
 
   const fetchMore = async () => {
     return;
-    await getAPI(curUser.jwtToken)
-      .get(api + 'Comment/get/' + post.oid + '/skip/' + skip + '/count/5')
-      .then(response => {
-        if (response.data.result.length > 0) {
-          setSkip(skip + 5);
-          response.data.result.forEach(i => (i.opacity = 1));
+    // await getAPI(jwtToken)
+    //   .get(api + 'Comment/get/' + post.oid + '/skip/' + skip + '/count/5')
+    //   .then(response => {
+    //     if (response.data.result.length > 0) {
+    //       setSkip(skip + 5);
+    //       response.data.result.forEach(i => (i.opacity = 1));
 
-          setComments(comments.concat(response.data.result));
-        }
-        setIsEnd(false);
-      })
-      .catch(error => console.log(error));
+    //       setComments(comments.concat(response.data.result));
+    //     }
+    //     setIsEnd(false);
+    //   })
+    //   .catch(error => console.log(error));
   };
   const onUpvote = async () => {
     if (vote == 1) {
@@ -203,8 +141,7 @@ function Comment(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/upvote/' + data.oid)
+    await CommentService.upVoteComment(jwtToken,data.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
       .catch(err => console.log(err));
   };
@@ -220,8 +157,7 @@ function Comment(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/downvote/' + data.oid)
+    await CommentService.downVoteComment(jwtToken, data.oid)
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
       .catch(err => console.log(err));
   };
@@ -235,24 +171,20 @@ function Comment(props) {
     setSending(true);
     const tmp = {
       content: comment,
-      author_id: curUser.oid,
+      author_id: userInfo.id,
       status: 0,
       created_date: new Date(),
       modified_date: new Date(),
       upvote_count: 0,
       downvote_count: 0,
-      avatar: curUser.avatar.image_hash,
-      name: curUser.first_name + curUser.last_name,
+      avatar: userInfo.avatar,
+      name: userInfo.first_name + userInfo.last_name,
       vote: 0,
       opacity: 0.5,
     };
     setReplies(replies.concat(tmp));
     ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/reply', {
-        content: comment,
-        parent_id: data.oid,
-      })
+    await CommentService.createReply(jwtToken, {comment: comment, oid: data.oid})
       .then(response => {
         setComment('');
         tmp.opacity = 1;

@@ -15,35 +15,21 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Following/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
-import { getAPI } from '../../../apis/instance';
-import { api } from 'constants/route';
 import moment from 'moment';
+import FollowService from 'controllers/FollowService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
-const list = [
-  {
-    id: '1',
-    author: 'Nguyễn Văn Nam',
-    info: 'Đại học Công nghệ thông tin',
-    status: 0,
-  },
-  {
-    id: '2',
-    author: 'Nguyễn Văn Ba',
-    info: 'Đại học Công nghệ thông tin',
-    status: 1,
-  },
-];
+ 
 function UserCard({ item }) {
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const [following, setFollowing] = useState(true);
   const [loading, setLoading] = useState(false);
-  const curUser = useSelector(getUser);
   const navigation = useNavigation();
   const onCallback = React.useCallback(value => {
     setFollowing(value);
@@ -51,8 +37,7 @@ function UserCard({ item }) {
   useEffect(() => {
     let isRender = true;
     const fetch = async () =>
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/follower?UserId=' + curUser.oid + '&Skip=0&Count=99')
+      await FollowService.getFollowerByUserId(jwtToken, {id: route.params.id, skip: 0, count: 99})
         .then(res => {
           res.data.result.forEach(i => {
             if (item.toId == i.toId) if (isRender) setFollowing(true);
@@ -67,18 +52,14 @@ function UserCard({ item }) {
   const onFollow = async () => {
     setLoading(true);
     if (following) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following/remove?followingId=' + item.toId, {
-          followingId: item.toId,
-        })
+      await FollowService.unfollow(jwtToken, {from_id: item.toId})
         .then(res => {
           setLoading(false);
           setFollowing(false);
         })
         .catch(error => console.log(error));
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following', { followers: [item.toId] })
+      await FollowService.follow(jwtToken, item.toId)
         .then(res => {
           setLoading(false);
           setFollowing(true);
@@ -114,7 +95,7 @@ function UserCard({ item }) {
               </Text>
             </View>
           </View>
-          {item.toId != curUser.oid ? (
+          {item.toId != userInfo.id ? (
             <View style={{ alignSelf: 'center', width: 96 }}>
               {loading ? (
                 <ActivityIndicator
@@ -156,16 +137,12 @@ function Following() {
   const [modalVisible, setModalVisible] = useState(false);
   const [listMes, setListMes] = useState([]);
   const [list, setList] = useState([]);
-  const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(true);
   const route = useRoute();
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(
-          api + 'User/following?UserId=' + route.params.id + '&Skip=0&Count=99'
-        )
+      await FollowService.getFollowingByUserId(jwtToken, {id: route.params.id, skip: 0, count: 99})
         .then(res => {
           if (!isOut) {
             setList(res.data.result);

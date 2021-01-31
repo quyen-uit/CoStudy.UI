@@ -17,7 +17,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import Modal, {
   ModalContent,
   BottomModal,
@@ -46,7 +46,7 @@ function PostCard(props) {
   const navigation = useNavigation();
   const [author, setAuthor] = useState();
 
-  const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
 
@@ -66,9 +66,7 @@ function PostCard(props) {
     setDownvote(post.downvote);
     setVote(post.vote)
    },[post.comments_countd])
-  const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-  };
+
   useEffect(() => {
     const fetchData = async () => {};
     fetchData();
@@ -100,8 +98,7 @@ function PostCard(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await axios
-      .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid }, config)
+    await PostService.upvote(jwtToken, post.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
   };
   const onDownvote = async () => {
@@ -116,8 +113,7 @@ function PostCard(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await axios
-      .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid }, config)
+    await PostService.downvote(jwtToken, post.oid)
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
   };
   const GoToProfile = () => {

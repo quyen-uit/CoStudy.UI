@@ -15,29 +15,22 @@ import {
   TextInput,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { logout } from 'actions/UserActions';
-import Button from 'components/common/Button';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { color } from 'react-native-reanimated';
+ 
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import PostCard from '../../common/PostCard';
-import axios from 'axios';
-import { api } from 'constants/route';
-import { getUser } from 'selectors/UserSelectors';
+ 
+import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
-import ImagePicker from 'react-native-image-crop-picker';
-import moment from 'moment';
+ import moment from 'moment';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import navigationConstants from 'constants/navigation';
-import { getAPI } from '../../../apis/instance';
-
+ 
 import Modal, {
   ModalContent,
   BottomModal,
   SlideAnimation,
 } from 'react-native-modals';
+import UserService from 'controllers/UserService';
 const user = {
   name: 'Nguyễn Văn Nam',
   follower: 20,
@@ -83,7 +76,7 @@ function ProfileEdit({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
-  const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
   const [firstname, setFirstname] = useState(route.params.data.first_name);
   const [lastname, setLastname] = useState(route.params.data.last_name);
   const [city, setCity] = useState(route.params.data.address.city);
@@ -125,8 +118,7 @@ function ProfileEdit({ userId }) {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/field/all')
+      await UserService.getAllField(jwtToken)
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {

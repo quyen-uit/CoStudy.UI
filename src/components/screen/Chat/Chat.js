@@ -5,38 +5,28 @@ import {
   Text,
   View,
   FlatList,
-  Pressable,
-  TouchableHighlight,
   RefreshControl,
-  TouchableOpacity,
   ToastAndroid,
-  Dimensions,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import styles from 'components/screen/Chat/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import ChatCard from '../../common/ChatCard';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
 import { touch_color, main_color } from 'constants/colorCommon';
-import { api } from 'constants/route';
-import moment from 'moment';
-import { getAPI } from '../../../apis/instance';
 import messaging from '@react-native-firebase/messaging';
 import Toast from 'react-native-toast-message';
-import { actionTypes, increaseChat, setChat } from 'actions/ChatAction';
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+import { setChat } from 'actions/ChatAction';
+import ChatService from 'controllers/ChatService';
+import UserService from 'controllers/UserService';
 
 function Chat() {
+  const userInfo = useSelector(getBasicInfo);
+  const jwtToken = useSelector(getJwtToken);
+
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [listMes, setListMes] = useState([]);
-  const curUser = useSelector(getUser);
   const [refreshing, setRefreshing] = useState(false);
 
   const onCallback = React.useCallback(conversation => {
@@ -50,8 +40,7 @@ function Chat() {
     let tmp = listMes.filter(i => i.id !== id);
     ToastAndroid.show('Đang xóa...', 1000)
     setListMes([...tmp]);
-    await getAPI(curUser.jwtToken)
-      .delete(api + 'Message/conversation/' + id)
+    await ChatService.deleteConversation(id)
       .then(res =>
         setTimeout(
           () => ToastAndroid.show('Đã xóa cuộc trò chuyện này.', 1000),
@@ -67,16 +56,14 @@ function Chat() {
 
     setRefreshing(true);
      const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-      .get(api + 'Message/conversation/current')
+      await ChatService.getCurrentConversation(jwtToken)
       .then(async res => {
         res.data.result.conversations.forEach(async item => {
           if (item.item2.conversation_id != null) {
             const obj = {};
 
-            if (item.item1.participants[0] == curUser.oid) {
-              await getAPI(curUser.jwtToken)
-                .get(api + 'User/get/' + item.item1.participants[1])
+            if (item.item1.participants[0] == userInfo.id) {
+              await UserService.getUserById(item.item1.participants[1])
                 .then(user => {
                   obj.name =
                     user.data.result.first_name +
@@ -85,8 +72,7 @@ function Chat() {
                   obj.avatar = user.data.result.avatar.image_hash;
                 });
             } else {
-              await getAPI(curUser.jwtToken)
-                .get(api + 'User/get/' + item.item1.participants[0])
+              await UserService.getUserById(item.item1.participants[0])
                 .then(user => {
                   obj.name =
                     user.data.result.first_name +
@@ -96,7 +82,7 @@ function Chat() {
                 });
             }
 
-            if (item.item2.sender_id == curUser.oid) {
+            if (item.item2.sender_id == userInfo.id) {
               if (item.item2.media_content == null)
                 obj.content = 'Bạn: ' + item.item2.string_content;
               else obj.content = 'Bạn: Ảnh';
@@ -156,7 +142,8 @@ function Chat() {
       // test
 
        console.log(res);
-
+          if(listMes.length < 1)
+          return;
       let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
       let tmp = listMes.filter(i => i.id !== res.ConversationId);
 
@@ -171,7 +158,7 @@ function Chat() {
         },
         ...tmp,
       ]);
-      if (res.SenderId == curUser.oid) return;
+      if (res.SenderId == userInfo.id) return;
       Toast.show({
         type: 'success',
         position: 'top',
@@ -187,16 +174,14 @@ function Chat() {
     let isRender = true;
     let temp = [];
     const fetch = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'Message/conversation/current')
+      await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
           res.data.result.conversations.forEach(async item => {
             if (item.item2.conversation_id != null) {
               const obj = {};
 
-              if (item.item1.participants[0] == curUser.oid) {
-                await getAPI(curUser.jwtToken)
-                  .get(api + 'User/get/' + item.item1.participants[1])
+              if (item.item1.participants[0] == userInfo.id) {
+                await UserService.getUserById(jwtToken, item.item1.participants[1])
                   .then(user => {
                     obj.name =
                       user.data.result.first_name +
@@ -205,9 +190,8 @@ function Chat() {
                     obj.avatar = user.data.result.avatar.image_hash;
                   });
               } else {
-                await getAPI(curUser.jwtToken)
-                  .get(api + 'User/get/' + item.item1.participants[0])
-                  .then(user => {
+                await UserService.getUserById(jwtToken,item.item1.participants[0])
+                .then(user => {
                     obj.name =
                       user.data.result.first_name +
                       ' ' +
@@ -216,7 +200,7 @@ function Chat() {
                   });
               }
 
-              if (item.item2.sender_id == curUser.oid) {
+              if (item.item2.sender_id == userInfo.id) {
                 if (item.item2.media_content == null)
                   obj.content = 'Bạn: ' + item.item2.string_content;
                 else obj.content = 'Bạn: Ảnh';

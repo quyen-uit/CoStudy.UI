@@ -20,10 +20,8 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from './styles';
-import strings from 'localization';
-import { getAPI } from '../../../apis/instance';
-import { api } from 'constants/route';
-import { getUser } from 'selectors/UserSelectors';
+
+import { getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import { main_color, main_2nd_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { TextInput } from 'react-native-gesture-handler';
@@ -38,10 +36,15 @@ import Modal, {
   SlideAnimation,
 } from 'react-native-modals';
 import navigationConstants from 'constants/navigation';
+import UserService from 'controllers/UserService';
+import PostService from 'controllers/PostService';
+import FollowService from 'controllers/FollowService';
 
 function UserCard({ item }) {
   const [loading, setLoading] = useState(false);
-  const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const [following, setFollowing] = useState(item.following);
   const onCallback = React.useCallback(value => {
     setFollowing(value);
@@ -51,18 +54,14 @@ function UserCard({ item }) {
   const onFollow = async () => {
     setLoading(true);
     if (following) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/follower/remove?followingId=' + item.oid, {
-          followingId: item.oid,
-        })
+      await FollowService.unfollower(jwtToken, item.oid)
         .then(res => {
           setLoading(false);
           setFollowing(false);
         })
         .catch(error => console.log(error));
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following', { followers: [item.oid] })
+      await FollowService.follow(jwtToken, item.oid)
         .then(res => {
           setLoading(false);
           setFollowing(true);
@@ -101,7 +100,7 @@ function UserCard({ item }) {
               <Text style={styles.txtContent}>{item.address.city}</Text>
             </View>
           </View>
-          {item.oid == curUser.oid ? null : (
+          {item.oid == userInfo.id ? null : (
             <View style={{ alignSelf: 'center', width: 96 }}>
               {loading ? (
                 <ActivityIndicator
@@ -141,7 +140,9 @@ function UserCard({ item }) {
 
 function Search() {
   const { colors } = useTheme();
-  const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const navigation = useNavigation();
   const [isFirst, setIsFirst] = useState(true);
 
@@ -188,8 +189,7 @@ function Search() {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/field/all')
+      await UserService.getAllField(jwtToken)
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {
@@ -286,10 +286,10 @@ function Search() {
   //     });
 
   //     const fetchData1 = async () => {
-  //       await getAPI(curUser.jwtToken)
+  //       await getAPI(jwtToken)
   //         .get(api + 'User/current')
   //         .then(async response => {
-  //           await getAPI(curUser.jwtToken)
+  //           await getAPI(jwtToken)
   //             .post(api + `Post/post/filter`, {
   //               skip: 0,
   //               count: 3,
@@ -334,18 +334,18 @@ function Search() {
   //     });
 
   //     const fetchData1 = async () => {
-  //       await getAPI(curUser.jwtToken)
+  //       await getAPI(jwtToken)
   //         .post(api + 'User/user/filter', {
   //           keyword: keyword,
   //           skip: 0,
   //           count: 99,
   //         })
   //         .then(async res => {
-  //           await getAPI(curUser.jwtToken)
+  //           await getAPI(jwtToken)
   //             .get(
   //               api +
   //                 'User/following?UserId=' +
-  //                 curUser.oid +
+  //                 userInfo.id +
   //                 '&Skip=0&Count=99'
   //             )
   //             .then(following => {
@@ -379,15 +379,9 @@ function Search() {
       fieldPickers.forEach(item => {
         if (item.isPick) tmp.push(item);
       });
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/current')
+      await UserService.getCurrentUser(jwtToken)
         .then(async response => {
-          await getAPI(curUser.jwtToken)
-            .post(api + `Post/post/filter`, {
-              skip: 0,
-              count: 3,
-              keyword: search,
-            })
+          await PostService.filterPost(jwtToken, {skip: 0, count: 3, search: search})
             .then(async res => {
               res.data.result.forEach(item => {
                 response.data.result.post_saved.forEach(i => {
@@ -420,17 +414,9 @@ function Search() {
       fieldPickers.forEach(item => {
         if (item.isPick) tmp.push(item);
       });
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/user/filter', {
-          keyword: search,
-          skip: 0,
-          count: 99,
-        })
+      await UserService.filterUser(jwtToken, {skip: 0, count: 99, search: search})
         .then(async res => {
-          await getAPI(curUser.jwtToken)
-            .get(
-              api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99'
-            )
+          await FollowService.getFollowingByUserId(jwtToken, {skip: 0, count: 99,id: userInfo.id})
             .then(following => {
               res.data.result.forEach(er => {
                 er.following = false;
@@ -447,15 +433,9 @@ function Search() {
   };
   const fetchMore = async () => {
     if (isEnd == true) return;
-    await getAPI(curUser.jwtToken)
-      .get(api + 'User/current')
+    await UserService.getCurrentUser(jwtToken)
       .then(async response => {
-        await getAPI(curUser.jwtToken)
-          .post(api + `Post/post/filter`, {
-            skip: skip,
-            count: 3,
-            keyword: keyword,
-          })
+        await PostService.filterPost(jwtToken,{skip: skip, count: 3, search: search})
           .then(async res => {
             res.data.result.forEach(item => {
               item.vote = 0;

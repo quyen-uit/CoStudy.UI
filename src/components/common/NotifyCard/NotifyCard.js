@@ -16,11 +16,9 @@ import {
   touch_color,
 } from '../../../constants/colorCommon';
 import NotifyOptionModal from 'components/modal/NotifyOptionModal/NotifyOptionModal';
-import { useNavigation } from '@react-navigation/native';
-import { api } from 'constants/route';
+ 
 import moment from 'moment';
-import { getAPI } from '../../../apis/instance';
-import messaging from '@react-native-firebase/messaging';
+ 
 import {
   Modal,
   ModalFooter,
