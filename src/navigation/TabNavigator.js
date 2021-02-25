@@ -172,7 +172,7 @@ function NotifyNavigator() {
               <TouchableHighlight
                 style={styles.btnRight}
                 underlayColor={touch_color}
-                onPress={() => alert('search is clicked')}
+                onPress={() =>  navigation.navigate(navigationConstants.pickField)}
               >
                 <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
               </TouchableHighlight>

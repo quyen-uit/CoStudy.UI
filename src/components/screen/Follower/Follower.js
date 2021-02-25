@@ -29,7 +29,7 @@ const deviceHeight = Dimensions.get('window').height;
 function UserCard({ item }) {
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
-
+  const route = useRoute();
   const [loading, setLoading] = useState(false);
   const [following, setFollowing] = useState(item.following);
   const navigation = useNavigation();
@@ -130,6 +130,7 @@ function Follower() {
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const route = useRoute();
+  const jwtToken = useSelector(getJwtToken);
 
   useEffect(() => {
     let isOut = false;

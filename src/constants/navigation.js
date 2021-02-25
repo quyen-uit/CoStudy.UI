@@ -22,7 +22,9 @@ const navigationConstants = {
   follower: 'Người theo dõi',
   following: 'Đang theo dõi',
   profileEdit: 'Chỉnh sửa thông tin',
-  search: 'Tìm kiếm'
+  search: 'Tìm kiếm',
+  pickField: 'Chọn lĩnh vực',
+  listField: 'Lĩnh vực'
 
 };
 

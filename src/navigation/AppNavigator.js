@@ -40,6 +40,8 @@ import Follower from 'components/screen/Follower';
 import Following from 'components/screen/Following';
 
 import Search from 'components/screen/Search';
+import ListField from 'components/screen/ListField';
+import PickField from 'components/screen/PickField';
 const Stack = createStackNavigator();
 
 const {
@@ -55,6 +57,8 @@ const {
   profileEdit,
   follower,
   create,
+  listField,
+  pickField,
 } = navigationConstants;
 
 function AppNavigator() {
@@ -69,6 +73,36 @@ function AppNavigator() {
         component={DrawerNavigator}
         options={{
           headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name={listField}
+        component={ListField}
+        options={{
+          title: listField,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+        }}
+      />
+      <Stack.Screen
+        name={pickField}
+        component={PickField}
+        options={{
+          title: pickField,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
         }}
       />
       <Stack.Screen
@@ -252,27 +286,27 @@ function AppNavigator() {
         }}
       />
       <Stack.Screen
-      name={following}
-      component={Following}
-      options={{
-        title: following,
-        headerStyle: {
-          backgroundColor: main_color,
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          alignSelf: 'center',
-        },
+        name={following}
+        component={Following}
+        options={{
+          title: following,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
 
-        headerRight: () => (
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => alert('search is clicked')}>
-              <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-            </TouchableOpacity>
-          </View>
-        ),
-      }}
-    />
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
       <Stack.Screen
         name={create}
         component={Create}

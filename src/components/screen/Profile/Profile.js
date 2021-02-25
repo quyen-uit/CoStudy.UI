@@ -19,7 +19,16 @@ import styles from 'components/screen/Profile/styles';
 import TextStyles from 'helpers/TextStyles';
 import strings from 'localization';
 import { color } from 'react-native-reanimated';
-import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
+import {
+  badge_level1,
+  badge_level2,
+  badge_level3,
+  badge_level4,
+  badge_level5,
+  main_2nd_color,
+  main_color,
+  touch_color,
+} from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
 import { api } from 'constants/route';
@@ -60,10 +69,7 @@ function GroupInfor(props) {
 function GroupOption(props) {
   return (
     <View style={styles.flex1}>
-      <TouchableHighlight
-        underlayColor={touch_color}
-        
-      >
+      <TouchableHighlight underlayColor={touch_color}>
         <View style={styles.btnOption}>
           <Icon name={props.icon} size={22} color={main_color} />
           <Text style={styles.txtOption}>{props.option}</Text>
@@ -81,7 +87,20 @@ const user = {
   specialized: 'Ngành kỹ thuật phần mềm',
   graduation: 'Đã tốt nghiệp',
 };
-
+const fields = [
+  {
+    id: 1,
+    name: 'Cơ sở dữ liệu',
+    level: 3,
+    badge: require('../../../assets/level3.png'),
+  },
+  {
+    id: 2,
+    name: 'Giải tích',
+    level: 5,
+    badge: require('../../../assets/level5.png'),
+  },
+];
 function Profile({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -106,7 +125,7 @@ function Profile({ userId }) {
   const onFollow = async () => {
     setLoading(true);
     if (isFollowing) {
-      await FollowService.unfollow(curUser.jwtToken, {from_id: data.oid})
+      await FollowService.unfollow(curUser.jwtToken, { from_id: data.oid })
         .then(res => {
           setLoading(false);
           setIsFollowing(false);
@@ -120,7 +139,7 @@ function Profile({ userId }) {
           setIsFollowing(true);
           route.params.callback(true);
         })
-        .catch(error =>console.log(error));
+        .catch(error => console.log(error));
     }
   };
   useEffect(() => {
@@ -129,20 +148,22 @@ function Profile({ userId }) {
       ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
       if (route.params.update) {
         const postAPI = async () => {
-          await UserService.updateUser(curUser.jwtToken, route.params.data)             
+          await UserService.updateUser(curUser.jwtToken, route.params.data)
             .then(res => {
               setData(res.data.result);
               setIsLoading(false);
               dispatch(update(curUser.jwtToken));
             })
             .catch(error => console.log(error));
-           await   UserService.updateFieldOfUser(curUser.jwtToken, {fields: route.params.data.fields })
-            .catch(error => console.log(error));
+          await UserService.updateFieldOfUser(curUser.jwtToken, {
+            fields: route.params.data.fields,
+          }).catch(error => console.log(error));
         };
         postAPI();
       }
-    } else console.log('update cc');
-  }, [route.params?.update,route.params?.data]);
+    }
+    // else console.log('update cc');
+  }, [route.params?.update, route.params?.data]);
   useEffect(() => {
     let isRender = true;
     let url = 'User/get/' + curUser.oid;
@@ -159,7 +180,11 @@ function Profile({ userId }) {
           setData(resUser.data.result);
           setAvatar(resUser.data.result.avatar.image_hash);
           if (route.params?.id) {
-            await FollowService.getFollowingByUserId(curUser.jwtToken, {id: curUser.oid, skip: 0, count: 99})
+            await FollowService.getFollowingByUserId(curUser.jwtToken, {
+              id: curUser.oid,
+              skip: 0,
+              count: 99,
+            })
               .then(res => {
                 res.data.result.forEach(i => {
                   if (resUser.data.result.oid == i.toId)
@@ -172,7 +197,11 @@ function Profile({ userId }) {
               })
               .catch(error => console.log(error));
           }
-          await PostService.getPostByUserId(curUser.jwtToken, {oid: resUser.data.result.oid, skip: 0, count: 5})
+          await PostService.getPostByUserId(curUser.jwtToken, {
+            oid: resUser.data.result.oid,
+            skip: 0,
+            count: 5,
+          })
             .then(async resPost => {
               resPost.data.result.forEach(item => {
                 resUser.data.result.post_saved.forEach(i => {
@@ -211,9 +240,13 @@ function Profile({ userId }) {
   }, [route.params?.id]);
 
   const fetchMore = async () => {
-    await UserService.getUserById(curUser.jwtToken, data.oid )
+    await UserService.getUserById(curUser.jwtToken, data.oid)
       .then(async resUser => {
-        await PostService.getPostByUserId(curUser.jwtToken, {oid: resUser.data.result.oid, skip: skip, count: 5})
+        await PostService.getPostByUserId(curUser.jwtToken, {
+          oid: resUser.data.result.oid,
+          skip: skip,
+          count: 5,
+        })
           .then(async resPost => {
             resPost.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
@@ -246,6 +279,21 @@ function Profile({ userId }) {
 
   const renderItem = ({ item }) => {
     return <PostCard post={item} />;
+  };
+  const renderBadge = item => {
+    return (
+      <View
+        style={{
+          borderColor: item.color,
+          ...styles.badgeContainer,
+        }}
+      >
+        <Image style={{ width: 20, height: 24 }} source={item.badge} />
+        <Text style={{ color: item.color, ...styles.badgeText }}>
+          {item.name}
+        </Text>
+      </View>
+    );
   };
   const pickImage = () => {
     ImagePicker.openPicker({
@@ -325,7 +373,7 @@ function Profile({ userId }) {
               .getDownloadURL()
               .then(async url => {
                 setAvatar(url);
-                await UserService.updateAvatar(curUser.jwtToken, url) 
+                await UserService.updateAvatar(curUser.jwtToken, url)
                   .then(response => {
                     Toast.show({
                       type: 'success',
@@ -335,7 +383,7 @@ function Profile({ userId }) {
                     });
                     dispatch(update(curUser.jwtToken));
                   })
-                  .catch(error =>console.log(error));
+                  .catch(error => console.log(error));
               });
           });
         } catch (e) {
@@ -376,15 +424,16 @@ function Profile({ userId }) {
     });
   };
   const goToConversation = async () => {
-    await ChatService.createConversation(curUser.jwtToken, data.oid)
-      .then(res => {
-        console.log(res.data.result.oid)
+    await ChatService.createConversation(curUser.jwtToken, data.oid).then(
+      res => {
+        console.log(res.data.result.oid);
         navigation.navigate(navigationConstants.conversation, {
           id: res.data.result.oid,
           avatar: data.avatar.image_hash,
-          name: data.first_name + ' ' + data.last_name
+          name: data.first_name + ' ' + data.last_name,
         });
-      });
+      }
+    );
   };
   return (
     <View style={{ flex: 1 }}>
@@ -485,13 +534,58 @@ function Profile({ userId }) {
                       />
                     </TouchableOpacity>
                   </View>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      marginLeft: 16,
+                    }}
+                  >
+                    {fields.map((item, index) => (
+                      <TouchableOpacity
+                        onPress={() =>
+                          navigation.navigate(navigationConstants.listField)
+                        }
+                        key={index}
+                      >
+                        {item.level == 1
+                          ? renderBadge({
+                              name: item.name,
+                              badge: item.badge,
+                              color: badge_level1,
+                            })
+                          : item.level == 2
+                          ? renderBadge({
+                              name: item.name,
+                              badge: item.badge,
+                              color: badge_level2,
+                            })
+                          : item.level == 3
+                          ? renderBadge({
+                              name: item.name,
+                              badge: item.badge,
+                              color: badge_level3,
+                            })
+                          : item.level == 4
+                          ? renderBadge({
+                              name: item.name,
+                              badge: item.badge,
+                              color: badge_level4,
+                            })
+                          : renderBadge({
+                              name: item.name,
+                              badge: item.badge,
+                              color: badge_level5,
+                            })}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                   <GroupInfor name={user.school} icon={'school'} />
                   <GroupInfor name={user.specialized} icon={'user-cog'} />
                   <GroupInfor name={user.graduation} icon={'graduation-cap'} />
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate(navigationConstants.profileDetail, {
-                        data: data
+                        data: data,
                       })
                     }
                   >

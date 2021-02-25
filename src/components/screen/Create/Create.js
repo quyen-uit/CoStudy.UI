@@ -87,7 +87,6 @@ function Create() {
         .then(response => {
           if (isRender) {
             setData(response.data.result);
-            setIsLoading(false);
           }
         })
         .catch(error => console.log(error));

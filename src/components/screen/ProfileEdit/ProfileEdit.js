@@ -85,7 +85,6 @@ function ProfileEdit({ userId }) {
   const [phone, setPhone] = useState(route.params.data.phone_number);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [fields, setFields] = useState(route.params.data.fortes);
-  console.log(fields)
   const [fieldPickers, setFieldPickers] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -130,7 +129,7 @@ function ProfileEdit({ userId }) {
             setFieldPickers(response.data.result);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
