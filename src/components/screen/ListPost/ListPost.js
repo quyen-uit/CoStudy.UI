@@ -30,6 +30,7 @@ import ImageView from 'react-native-image-viewing';
 import { actionTypes, update } from 'actions/UserActions';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -60,8 +61,6 @@ function ListPost() {
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
 
-  // show modal
-  const [modalVisible, setModalVisible] = useState(false);
   // 0 main , 1 field, 2 time, 3 vote
   const [modalOrder, setModalOrder] = useState(0);
   const [filterTime, setFilterTime] = useState();
@@ -252,8 +251,9 @@ function ListPost() {
               setPosts(posts.concat(res.data.result));
 
               setSkip(skip + 5);
+              setIsEnd(false);
             }
-            setIsEnd(false);
+            // setIsEnd(false);
           })
           .catch(error => console.log(error));
       })
@@ -280,8 +280,21 @@ function ListPost() {
     });
     setFieldPickers(fieldPickers.filter(item => item));
   };
+
+ //modal
+ const [modalVisible, setModalVisible] = useState(false);
+ const [idModal, setIdModal] = useState();
+ const [savedModal, setSavedModal] = useState();
+ const onModal = React.useCallback((value, id, saved) => {
+   setModalVisible(value);
+   setIdModal(id);
+   setSavedModal(saved);
+ });
+ const onVisibleCallBack = React.useCallback(value => {
+   setModalVisible(value);
+ });
   const renderItem = ({ item }) => {
-    return <PostCard onViewImage={onViewImage} post={item} />;
+    return <PostCard onViewImage={onViewImage} post={item}  onModal={onModal}/>;
   };
   return (
     <View>
@@ -349,7 +362,7 @@ function ListPost() {
                 await fetchData();
               }
             }}
-            onEndReachedThreshold={0.7}
+            onEndReachedThreshold={0.1}
             renderItem={item => renderItem(item)}
             keyExtractor={(item, index) => index.toString()}
             refreshControl={
@@ -397,522 +410,23 @@ function ListPost() {
           ) : null}
         </SafeAreaView>
       )}
-      <BottomModal
+     <PostOptionModal
         visible={modalVisible}
-        swipeDirection={['up', 'down']} // can be string or an array
-        swipeThreshold={100} // default 100
-        useNativeDriver={true}
-        modalTitle={
-          <View
-            style={{
-              justifyContent: 'space-between',
-              backgroundColor: main_color,
-              flexDirection: 'row',
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-            }}
-          >
-            {modalOrder == 0 ? (
-              <Text style={styles.md_txtHeader}>Lọc bài viết</Text>
-            ) : (
-              <TouchableOpacity
-                style={{ marginLeft: 4, alignSelf: 'center' }}
-                onPress={() => setModalOrder(0)}
-              >
-                <Icon name={'arrow-left'} size={16} color={'#fff'} />
-              </TouchableOpacity>
-            )}
-            {modalOrder == 0 ? (
-              <TouchableOpacity onPress={() => reset()}>
-                <Text style={styles.md_txtHeader}>Đặt lại</Text>
-              </TouchableOpacity>
-            ) : modalOrder == 1 ? (
-              <Text style={styles.md_txtHeader}>Lĩnh vực</Text>
-            ) : modalOrder == 2 ? (
-              <Text style={styles.md_txtHeader}>Thời gian</Text>
-            ) : modalOrder == 3 ? (
-              <Text style={styles.md_txtHeader}>Lượt upvote</Text>
-            ) : (
-              <Text style={styles.md_txtHeader}>Lượt comment</Text>
-            )}
-          </View>
-        }
-        modalAnimation={
-          new SlideAnimation({
-            initialValue: 0, // optional
-            slideFrom: 'bottom', // optional
-            useNativeDriver: true, // optional
-          })
-        }
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
         onHardwareBackPress={() => {
           setModalVisible(false);
-          setAmoutField(
-            fieldPickers.filter(item => item.isPick == true).length
-          );
           return true;
         }}
         onTouchOutside={() => {
           setModalVisible(false);
-          setAmoutField(
-            fieldPickers.filter(item => item.isPick == true).length
-          );
         }}
-        onSwipeOut={event => {
-          setModalVisible(false);
-          setAmoutField(
-            fieldPickers.filter(item => item.isPick == true).length
-          );
-        }}
-      >
-        {modalOrder == 0 ? (
-          <ModalContent style={{ marginHorizontal: -16 }}>
-            <View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(1)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Lĩnh vực</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {fieldPickers.filter(i => i.isPick == true).length}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.fieldPicked}>
-                    {fieldPickers.map((item, index) =>
-                      item.isPick ? (
-                        <TouchableOpacity
-                          key={index}
-                          onPress={() => {
-                            item.isPick = false;
-
-                            setFieldPickers(fieldPickers.filter(item => item));
-                          }}
-                        >
-                          <View style={styles.btnTag}>
-                            <Text style={styles.txtTag}>{item.value}</Text>
-                          </View>
-                        </TouchableOpacity>
-                      ) : null
-                    )}
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(2)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Thời gian</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterTime == 1
-                          ? 'Mới nhât'
-                          : filterTime == 0
-                          ? 'Cũ nhất'
-                          : 'Chưa chọn'}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(3)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Số lượt vote</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterVote == 1
-                          ? 'Giảm dần'
-                          : filterVote == 0
-                          ? 'Tăng dần'
-                          : 'Chưa chọn'}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(3)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Số lượt trả lời</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterVote == 1
-                          ? 'Giảm dần'
-                          : filterVote == 0
-                          ? 'Tăng dần'
-                          : 'Chưa chọn'}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setModalVisible(false);
-                }}
-              >
-                <View
-                  style={{
-                    justifyContent: 'center',
-                    backgroundColor: main_color,
-                    marginHorizontal: 16,
-                    marginBottom: -8,
-                    alignItems: 'center',
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    marginTop: 8,
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
-                  >
-                    Hiển thị kết quả
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </ModalContent>
-        ) : modalOrder == 1 ? (
-          <ModalContent style={{ marginHorizontal: -16 }}>
-            <View>
-              <View
-                style={{ flexWrap: 'wrap', flexDirection: 'row', padding: 8 }}
-              >
-                {fieldPickers.map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => {
-                      item.isPick = item.isPick ? false : true;
-
-                      setFieldPickers(fieldPickers.filter(item => item));
-                    }}
-                  >
-                    <View
-                      style={{
-                        backgroundColor: item.isPick ? main_2nd_color : '#ccc',
-                        padding: 8,
-                        borderRadius: 100,
-                        margin: 8,
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: item.isPick ? '#fff' : main_2nd_color,
-                          fontSize: 16,
-                        }}
-                      >
-                        {item.value}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  setModalOrder(0);
-                }}
-              >
-                <View
-                  style={{
-                    justifyContent: 'center',
-                    backgroundColor: main_color,
-                    marginHorizontal: 16,
-                    marginBottom: -8,
-                    alignItems: 'center',
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
-                  >
-                    Xác nhận
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </ModalContent>
-        ) : modalOrder == 2 ? (
-          <ModalContent>
-            <View>
-              <View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setFilterTime(1);
-                    setModalOrder(0);
-                  }}
-                >
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Bài đăng mới nhất</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'dot-circle'}
-                        size={24}
-                        color={filterTime == 1 ? main_color : '#ccc'}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setFilterTime(0);
-                    setModalOrder(0);
-                  }}
-                >
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Bài đăng cũ nhất</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'dot-circle'}
-                        size={24}
-                        color={filterTime == 0 ? main_color : '#ccc'}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setModalOrder(0);
-                }}
-              >
-                <View
-                  style={{
-                    justifyContent: 'center',
-                    backgroundColor: main_color,
-                    marginHorizontal: 16,
-                    marginBottom: -8,
-                    alignItems: 'center',
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    marginTop: 8,
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
-                  >
-                    Xác nhận
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </ModalContent>
-        ) : modalOrder == 3 ? (
-          <ModalContent>
-            <View>
-              <View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setFilterVote(1);
-                    setModalOrder(0);
-                  }}
-                >
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Số upvote giảm dần</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'dot-circle'}
-                        size={24}
-                        color={filterVote == 1 ? main_color : '#ccc'}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setFilterVote(0);
-                    setModalOrder(0);
-                  }}
-                >
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Số upvote tăng dần</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'dot-circle'}
-                        size={24}
-                        color={filterVote == 0 ? main_color : '#ccc'}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setModalOrder(0);
-                }}
-              >
-                <View
-                  style={{
-                    justifyContent: 'center',
-                    backgroundColor: main_color,
-                    marginHorizontal: 16,
-                    marginBottom: -8,
-                    alignItems: 'center',
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    marginTop: 8,
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
-                  >
-                    Xác nhận
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </ModalContent>
-        ) : modalOrder == 4 ? (
-          <ModalContent>
-            <View>
-              <View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setFilterComment(1);
-                    setModalOrder(0);
-                  }}
-                >
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>
-                        Số comment giảm dần
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'dot-circle'}
-                        size={24}
-                        color={filterComment == 1 ? main_color : '#ccc'}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setFilterComment(0);
-                    setModalOrder(0);
-                  }}
-                >
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>
-                        Số comment tăng dần
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'dot-circle'}
-                        size={24}
-                        color={filterComment == 0 ? main_color : '#ccc'}
-                      />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setModalOrder(0);
-                }}
-              >
-                <View
-                  style={{
-                    justifyContent: 'center',
-                    backgroundColor: main_color,
-                    marginHorizontal: 16,
-                    marginBottom: -8,
-                    alignItems: 'center',
-                    paddingVertical: 8,
-                    borderRadius: 8,
-                    marginTop: 8,
-                  }}
-                >
-                  <Text
-                    style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
-                  >
-                    Xác nhận
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          </ModalContent>
-        ) : null}
-      </BottomModal>
-    </View>
+        saved={savedModal}
+        id={idModal}
+        onVisible={onVisibleCallBack}
+      />
+      </View>
   );
 }
 

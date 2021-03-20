@@ -43,7 +43,6 @@ export const login = (email, password) => async dispatch => {
     await axios
       .post(api + `Accounts/login`, { email: email, password: password })
       .then(async res => {
-        console.log(res);
         await axios
           .get(api + 'User/current', {
             headers: { Authorization: `Bearer ${res.data.result.jwtToken}` },

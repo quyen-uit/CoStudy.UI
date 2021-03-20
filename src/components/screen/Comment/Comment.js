@@ -45,7 +45,6 @@ function Comment(props) {
   const userInfo = useSelector(getBasicInfo);
   const jwtToken = useSelector(getJwtToken);
 
-
   const [showOption, setShowOption] = useState(true);
   const [data, setData] = useState(route.params.comment);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +53,6 @@ function Comment(props) {
   //comment
   const [comment, setComment] = useState('');
   const [vote, setVote] = useState(route.params.vote);
-  console.log(route.params.vote);
   const [upvote, setUpvote] = useState(route.params.upvote);
   const [downvote, setDownvote] = useState(route.params.downvote);
   const [comment_count, setCommentCount] = useState(route.params.replies);
@@ -85,20 +83,18 @@ function Comment(props) {
     setIsLoading(true);
     let isOut = false;
     const fetchData = async () => {
-      await CommentService.getAllReply(jwtToken, {oid: data.oid, skip: 0, count: 100})
+      await CommentService.getAllReply(jwtToken, {
+        oid: data.oid,
+        skip: 0,
+        count: 20,
+      })
         .then(async response => {
           if (!isOut) {
             const a = response.data.result.map(async i => {
-              await UserService.getUserById(i.author_id)
-                .then(user => {
-                  i.avatar = user.data.result.avatar.image_hash;
-                  i.name =
-                    user.data.result.first_name + ' ' + user.data.result.last_name;
-                  i.opacity = 1;
-                  if (i.is_vote_by_current) i.vote = 1;
-                  else if (i.is_downvote_by_current) i.vote = -1;
-                  else i.vote = 0;
-                });
+              i.opacity = 1;
+              if (i.is_vote_by_current) i.vote = 1;
+              else if (i.is_downvote_by_current) i.vote = -1;
+              else i.vote = 0;
             });
             Promise.all(a).then(() => {
               setIsLoading(false);
@@ -141,7 +137,7 @@ function Comment(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await CommentService.upVoteComment(jwtToken,data.oid)
+    await CommentService.upVoteComment(jwtToken, data.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
       .catch(err => console.log(err));
   };
@@ -177,17 +173,21 @@ function Comment(props) {
       modified_date: new Date(),
       upvote_count: 0,
       downvote_count: 0,
-      avatar: userInfo.avatar,
-      name: userInfo.first_name + userInfo.last_name,
+      authorAvatar: userInfo.avatar,
+      authorName: userInfo.first_name + userInfo.last_name,
       vote: 0,
       opacity: 0.5,
     };
     setReplies(replies.concat(tmp));
     ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
-    await CommentService.createReply(jwtToken, {comment: comment, oid: data.oid})
+    await CommentService.createReply(jwtToken, {
+      comment: comment,
+      oid: data.oid,
+    })
       .then(response => {
         setComment('');
         tmp.opacity = 1;
+        tmp.oid = response.data.result.oid;
         setReplies(replies.concat(tmp));
         setSending(false);
 
@@ -218,7 +218,7 @@ function Comment(props) {
               await fetchMore();
             }
           }}
-          onEndReachedThreshold={0.5}
+          onEndReachedThreshold={0.1}
           renderItem={item => renderItem(item)}
           keyExtractor={(item, index) => index.toString()}
           ListHeaderComponent={() => (
@@ -305,12 +305,10 @@ function Comment(props) {
 
                   <View style={styles.flex1}>
                     <Pressable
-                      
                       style={({ pressed }) => [
                         { backgroundColor: pressed ? touch_color : '#fff' },
                         styles.btnVote,
                       ]}
-                      
                     >
                       <Text style={styles.txtVoteNumber}>{comment_count}</Text>
                       <FontAwesome5

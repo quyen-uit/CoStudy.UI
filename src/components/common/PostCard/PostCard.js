@@ -53,7 +53,7 @@ function PostCard(props) {
   // like, comment
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
-  const [comment, setComment] = useState(post.comments_countd);
+  const [comment, setComment] = useState(post.comments_count);
 
   const [vote, setVote] = useState(post.vote);
   const onUpvoteCallback = useCallback(value => setUpvote(value));
@@ -61,11 +61,11 @@ function PostCard(props) {
   const onCommentCallback = useCallback(value => setComment(value));
   const onVoteCallback = useCallback(value => setVote(value));
   useEffect(()=>{
-    setComment(post.comments_countd);
+    setComment(post.comments_count);
     setUpvote(post.upvote);
     setDownvote(post.downvote);
     setVote(post.vote)
-   },[post.comments_countd])
+   },[post.comments_count])
 
   useEffect(() => {
     const fetchData = async () => {};
@@ -119,6 +119,7 @@ function PostCard(props) {
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: post.author_id });
   };
+ 
   return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight

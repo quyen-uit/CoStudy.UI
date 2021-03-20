@@ -36,10 +36,10 @@ class ChatService {
     return await getAPI(jwtToken)
     .post(api + 'Message/message/add', {
       conversation_id: params.conversation_id,
-      image: {
+      image: [{
         image_url: params.url,
         image_hash: params.url,
-      },
+      },]
     })
   }
 
@@ -47,11 +47,11 @@ class ChatService {
     return await getAPI(jwtToken)
     .get(
       api +
-        'Message/message/get/conversation/' +
+        'Message/message/get/conversation?ConversationId=' +
         params.conversation_id +
-        '/skip/' +
+        '&Skip=' +
         params.skip +
-        '/count/' +
+        '&Count=' +
         params.count
     )
   }

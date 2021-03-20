@@ -139,6 +139,8 @@ function Follower() {
         .then(async res => {
           await FollowService.getFollowingByUserId(jwtToken, {id: userInfo.id, skip: 0, count: 99})
             .then(following => {
+              alert()
+
               if (!isOut) {
                 console.log(res.data.result);
                 let promises = res.data.result.map(async er => {

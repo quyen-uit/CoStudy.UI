@@ -151,7 +151,7 @@ function CommentCard(props) {
       });
     }
   };
-  console.log(comment);
+
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: comment.author_id });
   };

@@ -29,7 +29,6 @@ import ImageView from 'react-native-image-viewing';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
-import { Alert } from 'react-native';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -64,7 +63,7 @@ function NewsFeed() {
   const [idModal, setIdModal] = useState();
   const [savedModal, setSavedModal] = useState();
   const onModal = React.useCallback((value, id, saved) => {
-    setModalVisible(value);
+     setModalVisible(value);
     setIdModal(id);
     setSavedModal(saved);
   });

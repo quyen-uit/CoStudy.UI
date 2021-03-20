@@ -23,7 +23,6 @@ const PostOptionModal = ({ ...rest }) => {
   const curUser = useSelector(getUser);
   const [saved, setSaved] = useState(rest.saved);
   const [isSaving, setIsSaving] = useState(false);
-
   const onSaved = async () => {
     rest.onVisible(false);
     setIsSaving(true);

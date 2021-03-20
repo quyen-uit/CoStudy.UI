@@ -59,11 +59,11 @@ function Chat() {
       await ChatService.getCurrentConversation(jwtToken)
       .then(async res => {
         res.data.result.conversations.forEach(async item => {
-          if (item.messages.conversation_id != null) {
+          if (item.conversation.oid != null) {
             const obj = {};
 
             if (item.conversation.participants[0].member_id == userInfo.id) {
-              await UserService.getUserById(item.conversation.participants[1].member_id)
+              await UserService.getUserById(jwtToken,item.conversation.participants[1].member_id)
                 .then(user => {
                   obj.name =
                     user.data.result.first_name +
@@ -72,7 +72,7 @@ function Chat() {
                   obj.avatar = user.data.result.avatar.image_hash;
                 });
             } else {
-              await UserService.getUserById(item.conversation.participants[0].member_id)
+              await UserService.getUserById(jwtToken,item.conversation.participants[0].member_id)
                 .then(user => {
                   obj.name =
                     user.data.result.first_name +
@@ -97,7 +97,7 @@ function Chat() {
               avatar: obj.avatar,
               content:
                 obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
-              id: item.messages.conversation_id,
+              id: item.conversation.oid,
               isUnread: false,
             });
             //console.log('1');
@@ -212,7 +212,7 @@ function Chat() {
                 avatar: obj.avatar,
                 content:
                   obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
-                id: item.messages.conversation_id,
+                id: item.conversation.oid,
                 isUnread: false,
               });
               //console.log('1');

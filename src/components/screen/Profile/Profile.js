@@ -259,8 +259,10 @@ function Profile({ userId }) {
             if (resPost.data.result.length > 0) {
               setSkip(skip + 5);
               setPosts(posts.concat(resPost.data.result));
+              setIsEnd(false);
             }
-            setIsEnd(false);
+            // setIsEnd(false);
+
           })
           .catch(error => console.log(error));
       })
@@ -437,7 +439,7 @@ function Profile({ userId }) {
                 await fetchMore();
               }
             }}
-            onEndReachedThreshold={0.5}
+            onEndReachedThreshold={0.1}
             showsVerticalScrollIndicator={false}
             data={posts}
             renderItem={item => renderItem(item)}

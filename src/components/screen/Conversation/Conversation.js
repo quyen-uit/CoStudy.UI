@@ -62,7 +62,7 @@ function RightMessage({ item, onViewImage,onDelete }) {
   const onDelete1 = React.useCallback(value => {
     setVisible(true);
   });
-  return (
+   return (
     <TouchableOpacity onLongPress={()=>setModalVisible(true)} onPress={() => setShowTime(!showTime)}>
       <View style={styles.containerRightMessage}>
         <View
@@ -88,13 +88,13 @@ function RightMessage({ item, onViewImage,onDelete }) {
         </View>
 
         <View>
-          {item.media_content != null ? (
+          {item.media_content.length > 0 ? (
             <TouchableOpacity
-              onPress={() => onViewImage(true, item.media_content.image_hash)}
+              onPress={() => onViewImage(true, item.media_content[0].image_hash)}
             >
               <Image
                 style={{ width: 200, height: 300, marginRight: 8 }}
-                source={{ uri: item.media_content.image_hash }}
+                source={{ uri: item.media_content[0].image_hash }}
               />
             </TouchableOpacity>
           ) : (
@@ -310,9 +310,9 @@ function Conversation(props) {
     const fetchData = async () => {
       await ChatService.getAllMessage(jwtToken, {conversation_id: conversation_id, skip: skip, count: 15})
         .then(response => {
-          response.data.result.messages.forEach(i => (i.sending = false));
+          response.data.result.forEach(i => (i.sending = false));
           if (isRender) {
-            setListMes(response.data.result.messages);
+            setListMes(response.data.result);
             setIsLoading(false);
             setSkip(skip + 10);
           }
@@ -330,7 +330,7 @@ function Conversation(props) {
     const tmp = {
       id: '',
       sender_id: userInfo.id,
-      media_content: null,
+      media_content: [],
       string_content: message,
 
       created_date: new Date(),
@@ -402,7 +402,7 @@ function Conversation(props) {
         const tmp = {
           id: '',
           sender_id: userInfo.id,
-          media_content: { image_hash: image.path },
+          media_content: [{ image_hash: image.path }],
 
           created_date: new Date(),
           modified_date: new Date(),
@@ -440,7 +440,7 @@ function Conversation(props) {
                       const tmp = {
                         id: '',
                         sender_id: userInfo.id,
-                        media_content: { image_hash: image.path },
+                        media_content: [{ image_hash: image.path }],
 
                         created_date: new Date(),
                         modified_date: new Date(),
@@ -477,7 +477,7 @@ function Conversation(props) {
         const tmp = {
           id: '',
           sender_id: userInfo.id,
-          media_content: { image_hash: image.path },
+          media_content: [{ image_hash: image.path }],
 
           created_date: new Date(),
           modified_date: new Date(),
@@ -515,7 +515,7 @@ function Conversation(props) {
                       const tmp = {
                         id: '',
                         sender_id: userInfo.id,
-                        media_content: { image_hash: image.path },
+                        media_content: [{ image_hash: image.path }],
 
                         created_date: new Date(),
                         modified_date: new Date(),
@@ -540,8 +540,8 @@ function Conversation(props) {
   const fetchData = async () => {
     await ChatService.getAllMessage(jwtToken, {conversation_id: conversation_id, skip: skip, count: 15})
       .then(response => {
-        response.data.result.messages.forEach(i => (i.sending = false));
-        setListMes([...listMes, ...response.data.result.messages]);
+        response.data.result.forEach(i => (i.sending = false));
+        setListMes([...listMes, ...response.data.result]);
         setSkip(skip + 10);
         setIsEnd(false);
       })

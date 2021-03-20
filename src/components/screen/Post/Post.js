@@ -339,8 +339,8 @@ function Post(props) {
       .then(response => {
         setImgComment('');
         setComment('');
-        response.data.result.comment.opacity = 1;
-        setComments(comments.concat(response.data.result.comment));
+        response.data.result.opacity = 1;
+        setComments(comments.concat(response.data.result));
         setSending(false);
         setCommentCount(commentCount + 1);
         route.params.onComment(commentCount + 1);
@@ -542,7 +542,7 @@ function Post(props) {
                       <FontAwesome5
                         name={'comment-alt'}
                         size={22}
-                        color={main_color}
+                        color={main_2nd_color}
                       />
                     </Pressable>
                   </View>

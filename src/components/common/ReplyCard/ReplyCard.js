@@ -36,28 +36,10 @@ import navigationConstants from 'constants/navigation';
 import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
 import { getAPI } from '../../../apis/instance';
 
-const tmpComment = {
-  id: '1',
-  title: 'Đây là title 1',
-  author: 'Nguyễn Văn Nam',
-  content:
-    'Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé. Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé',
-  createdDate: '10 phut truoc',
-};
-
-const comment = {
-  author: 'Võ Thanh Tâm',
-  content: 'Đây là child content Đây là child content Đây là child content',
-  createdDate: '10 phut truoc',
-  amountVote: 10,
-  amountComment: 20,
-};
- 
 
 function ReplyCard(props) {
   const curUser = useSelector(getUser);
 
-  const post = tmpComment;
   const navigation = useNavigation();
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -80,7 +62,6 @@ function ReplyCard(props) {
   const GoToComment = () => {
     
   };
-  console.log(comment);
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: comment.author_id });
   };
@@ -121,14 +102,13 @@ function ReplyCard(props) {
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
       .catch(err => console.log(err));
   };
-
   return (
     <View>
       <View style={styles.containerComment}>
         <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
             style={styles.imgAvatar}
-            source={{ uri: comment.avatar }}
+            source={{ uri: comment.authorAvatar }}
           />
         </TouchableOpacity>
         <View style={styles.shrink1}>
@@ -139,7 +119,7 @@ function ReplyCard(props) {
             onLongPress={() => setModalVisible(true)}
           >
             <View>
-              <Text style={styles.txtAuthor}>{comment.name}</Text>
+              <Text style={styles.txtAuthor}>{comment.authorName}</Text>
               <Text style={styles.txtContent}>{comment.content}</Text>
               <View style={styles.footer}>
                 <View style={styles.containerCreatedTime}>
@@ -165,16 +145,6 @@ function ReplyCard(props) {
                   </Text>
                 </View>
                 <View style={styles.row}>
-                  <View style={styles.rowFlexStart}>
-                    <Text style={styles.txtVoteNumber}>{comment_count}</Text>
-                    <TouchableOpacity>
-                      <FontAwesome5
-                        name={'comment'}
-                        size={18}
-                        color={main_2nd_color}
-                      />
-                    </TouchableOpacity>
-                  </View>
                   <View style={styles.rowFlexStart}>
                     <Text style={styles.txtVoteNumber}>{downvote}</Text>
                     <TouchableOpacity onPress={() => onDownvote()}>
