@@ -31,42 +31,7 @@ import Modal, {
   SlideAnimation,
 } from 'react-native-modals';
 import UserService from 'controllers/UserService';
-const user = {
-  name: 'Nguyễn Văn Nam',
-  follower: 20,
-  following: 21,
-  amountPost: 10,
-  school: 'Đại học Công nghệ thông tin - ĐHQG TPHCM',
-  specialized: 'Ngành kỹ thuật phần mềm',
-  graduation: 'Đã tốt nghiệp',
-};
 
-const list = [
-  {
-    id: '1',
-    title: 'Đây là title 1',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    id: '2',
-    title: 'Đây là title',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    title: 'Đây là title 2',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-    id: '3',
-  },
-];
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -84,7 +49,7 @@ function ProfileEdit({ userId }) {
   const [dob, setDOB] = useState(route.params.data.date_of_birth);
   const [phone, setPhone] = useState(route.params.data.phone_number);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [fields, setFields] = useState(route.params.data.fortes);
+  const [fields, setFields] = useState(route.params.data.fields);
   const [fieldPickers, setFieldPickers] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -109,7 +74,7 @@ function ProfileEdit({ userId }) {
         date_of_birth: dob,
         address: { district: district, city: city },
         phone_number: phone,
-        fields: temp
+        //fields: temp
       },
     });
   };
@@ -119,6 +84,8 @@ function ProfileEdit({ userId }) {
     const fetchData = async () => {
       await UserService.getAllField(jwtToken)
         .then(response => {
+          console.log(response.data.result);
+
           if (isRender) {
             response.data.result.forEach(element => {
               element.isPick = false;

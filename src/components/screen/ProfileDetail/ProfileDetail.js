@@ -14,57 +14,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { logout } from 'actions/UserActions';
-import Button from 'components/common/Button';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { color } from 'react-native-reanimated';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
-import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
-import ImagePicker from 'react-native-image-crop-picker';
 import navigationConstants from 'constants/navigation';
 import moment from 'moment';
 import UserService from 'controllers/UserService';
-const user = {
-  name: 'Nguyễn Văn Nam',
-  follower: 20,
-  following: 21,
-  amountPost: 10,
-  school: 'Đại học Công nghệ thông tin - ĐHQG TPHCM',
-  specialized: 'Ngành kỹ thuật phần mềm',
-  graduation: 'Đã tốt nghiệp',
-};
 
-const list = [
-  {
-    id: '1',
-    title: 'Đây là title 1',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    id: '2',
-    title: 'Đây là title',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    title: 'Đây là title 2',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-    id: '3',
-  },
-];
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -88,9 +46,9 @@ function ProfileDetail({ userId }) {
       await UserService.getUserById(curUser.jwtToken, route.params.data.oid)
         .then(response => {
           if (!isOut) {
-           // setData(response.data.result);
+            // setData(response.data.result);
             setAvatar(response.data.result.avatar.image_hash);
-            setFields(response.data.result.fortes);
+            setFields(response.data.result.fields);
             setIsLoading(false);
           }
         })
@@ -174,7 +132,16 @@ function ProfileDetail({ userId }) {
                 </View>
               </TouchableOpacity>
             ) : null}
-
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: 'bold',
+                marginTop: 12,
+                alignSelf: 'center',
+              }}
+            >
+              {data ? data.first_name : null} {data ? data.last_name : null}
+            </Text>
             <View style={styles.containerAmount}>
               <GroupAmount amount={data.post_count} title={'Bài đăng'} />
               <GroupAmount amount={data.followers} title={'Người theo dõi'} />
@@ -217,7 +184,7 @@ function ProfileDetail({ userId }) {
                 marginRight: 12,
               }}
             >
-              <Icon name={'city'} size={20} color={main_color} />
+              <Icon name={'icons'} size={20} color={main_color} />
             </View>
             <View>
               <Text style={{ color: '#ccc', fontSize: 13 }}>Lĩnh vực</Text>
@@ -288,7 +255,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginHorizontal: 8,
     marginBottom: 8,
-    marginTop: 80,
+    marginTop: 8  ,
   },
   txtAmount: {
     color: main_2nd_color,

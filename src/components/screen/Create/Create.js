@@ -108,9 +108,9 @@ function Create() {
     };
   }, []);
 
-  React.useEffect(() => {
-    console.log(listImg.length);
-  }, [listImg]);
+  // React.useEffect(() => {
+  //   console.log(listImg.length);
+  // }, [listImg]);
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 800,
@@ -173,7 +173,7 @@ function Create() {
     //   const task = storage()
     //     .ref('post/' + curUser.id + '/' + filename)
     //     .putFile(uploadUri);
-    //   // set progress state
+    //   // set progress statec
     //   task.on('state_changed', snapshot => {});
     //   try {
     //     await task.then(async response => {
@@ -236,7 +236,7 @@ function Create() {
               {data ? data.first_name : null} {data ? data.last_name : null}
             </Text>
           </View>
-          <View style={styles.picker}>
+          {/* <View style={styles.picker}>
             <Picker
               dropdownIconColor={'#ffffff'}
               itemStyle={{ fontSize: 12 }}
@@ -251,7 +251,7 @@ function Create() {
               <Picker.Item label="Công khai" value="public" />
               <Picker.Item label="Riêng tư" value="private" />
             </Picker>
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.title}>

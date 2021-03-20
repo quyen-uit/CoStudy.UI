@@ -13,12 +13,7 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
-import { logout } from 'actions/UserActions';
-import Button from 'components/common/Button';
 import styles from 'components/screen/Profile/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { color } from 'react-native-reanimated';
 import {
   badge_level1,
   badge_level2,
@@ -44,6 +39,7 @@ import FollowService from 'controllers/FollowService';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
 import ChatService from 'controllers/ChatService';
+import ImageView from 'react-native-image-viewing';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -111,6 +107,14 @@ function Profile({ userId }) {
   const curUser = useSelector(getUser);
   const [data, setData] = useState(curUser);
 
+ ///image view
+  const [imgView, setImgView] = useState();
+  const [visible, setIsVisible] = useState(false);
+  const onViewImage = React.useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
+
   const [avatar, setAvatar] = useState('');
   const [bg, setBg] = useState();
   const [chosing, setChosing] = useState(false);
@@ -155,9 +159,9 @@ function Profile({ userId }) {
               dispatch(update(curUser.jwtToken));
             })
             .catch(error => console.log(error));
-          await UserService.updateFieldOfUser(curUser.jwtToken, {
-            fields: route.params.data.fields,
-          }).catch(error => console.log(error));
+          // await UserService.updateFieldOfUser(curUser.jwtToken, {
+          //   fields: route.params.data.fields,
+          // }).catch(error => console.log(error));
         };
         postAPI();
       }
@@ -209,17 +213,10 @@ function Profile({ userId }) {
                     item.saved = true;
                   } else item.saved = false;
                 });
+                // set vote
                 item.vote = 0;
-                resUser.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                resUser.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+                if (item.is_downvote_by_current) item.vote = -1;
+                else if (item.is_vote_by_current) item.vote = 1;
               });
               if (isRender) {
                 setPosts(resPost.data.result);
@@ -254,17 +251,10 @@ function Profile({ userId }) {
                   item.saved = true;
                 } else item.saved = false;
               });
+              // set vote
               item.vote = 0;
-              resUser.data.result.post_upvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = 1;
-                }
-              });
-              resUser.data.result.post_downvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = -1;
-                }
-              });
+              if (item.is_downvote_by_current) item.vote = -1;
+              else if (item.is_vote_by_current) item.vote = 1;
             });
             if (resPost.data.result.length > 0) {
               setSkip(skip + 5);
@@ -278,7 +268,7 @@ function Profile({ userId }) {
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard post={item} />;
+    return <PostCard  onViewImage={onViewImage} post={item} />;
   };
   const renderBadge = item => {
     return (
@@ -696,6 +686,12 @@ function Profile({ userId }) {
           />
         </SafeAreaView>
       </View>
+      <ImageView
+          images={[{ uri: imgView }]}
+          imageIndex={0}
+          visible={visible}
+          onRequestClose={() => setIsVisible(false)}
+        />
       {isLoading ? (
         <View
           style={{

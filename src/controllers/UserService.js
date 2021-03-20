@@ -27,7 +27,7 @@ class UserService {
 
     static async updateUser(jwtToken, params){
       return await getAPI(jwtToken)
-            .put(api + 'User/update', params.data)
+            .put(api + 'User/update', params)
     }
 
     static async updateFieldOfUser(jwtToken, params){

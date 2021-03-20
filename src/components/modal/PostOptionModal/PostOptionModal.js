@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { ToastAndroid, Text, View, TouchableHighlight } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { main_color } from 'constants/colorCommon';
-import { api } from 'constants/route';
-import { getAPI } from '../../../apis/instance';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 // import Modal from 'react-native-modal';
@@ -13,6 +11,7 @@ import Modal, {
   SlideAnimation,
 } from 'react-native-modals';
 import styles from './styles';
+import PostService from 'controllers/PostService';
 
 // const chat = {
 //   title: 'Đây là title',
@@ -29,8 +28,7 @@ const PostOptionModal = ({ ...rest }) => {
     rest.onVisible(false);
     setIsSaving(true);
     if (saved) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'Post/post/save/' + rest.id, { id: rest.id })
+      await PostService.savePost(curUser.jwtToken, rest.id)
         .then(response => {
           setSaved(false);
           setIsSaving(false);
@@ -42,8 +40,7 @@ const PostOptionModal = ({ ...rest }) => {
           setIsSaving(false);
         });
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'Post/post/save/' + rest.id, { id: rest.id })
+      await PostService.savePost(curUser.jwtToken, rest.id)
         .then(response => {
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);

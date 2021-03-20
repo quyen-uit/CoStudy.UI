@@ -15,8 +15,8 @@ import { Card } from 'react-native-elements';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
-import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import PostService from 'controllers/PostService';
+
 import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import Modal, {
   ModalContent,
@@ -212,7 +212,7 @@ function PostCard(props) {
             </TouchableOpacity>
           ) : null}
 
-          <View style={styles.containerTag}>
+          {post.fields ? (<View style={styles.containerTag}>
             <ScrollView
               horizontal={true}
               showsHorizontalScrollIndicator={false}
@@ -228,7 +228,7 @@ function PostCard(props) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          </View>
+          </View>):null}
         </View>
       </TouchableHighlight>
       <View style={styles.footer}>

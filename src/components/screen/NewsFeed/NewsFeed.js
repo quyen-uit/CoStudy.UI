@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/NewsFeed/styles';
-import { getBasicInfo, getJwtToken , getUser} from 'selectors/UserSelectors';
+import { getBasicInfo, getJwtToken, getUser } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
 import PostCard from '../../common/PostCard';
@@ -29,6 +29,7 @@ import ImageView from 'react-native-image-viewing';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
+import { Alert } from 'react-native';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -50,7 +51,7 @@ function NewsFeed() {
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
- 
+
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
@@ -67,12 +68,10 @@ function NewsFeed() {
     setIdModal(id);
     setSavedModal(saved);
   });
-  const onVisibleCallBack = React.useCallback((value) => {
+  const onVisibleCallBack = React.useCallback(value => {
     setModalVisible(value);
-    
   });
   React.useEffect(() => {
-    console.log('dispatch update user');
     dispatch(update(jwtToken));
   }, []);
   const onRefresh = React.useCallback(() => {
@@ -89,17 +88,10 @@ function NewsFeed() {
                     item.saved = true;
                   } else item.saved = false;
                 });
+                // set vote
                 item.vote = 0;
-                response.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                response.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+                if (item.is_downvote_by_current) item.vote = -1;
+                else if (item.is_vote_by_current) item.vote = 1;
               });
 
               setPosts(res.data.result);
@@ -127,26 +119,17 @@ function NewsFeed() {
                     item.saved = true;
                   } else item.saved = false;
                 });
+                // set vote
                 item.vote = 0;
-                resUser.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                resUser.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+                if (item.is_downvote_by_current) item.vote = -1;
+                else if (item.is_vote_by_current) item.vote = 1;
               });
               if (isRender) {
                 setPosts(resPost.data.result);
                 setIsLoading(false);
-
                 setSkip(5);
                 if (route.params?.title) {
                   let list = [];
-
                   let promises = route.params.listImg.map(async image => {
                     const uri = image.path;
                     const filename = uuidv4();
@@ -176,14 +159,14 @@ function NewsFeed() {
                       console.error(e);
                     }
                   });
+
                   Promise.all(promises).then(async () => {
-                    await PostService.createPost(jwtToken, 
-                        {
-                          title: route.param.title, 
-                          content: route.params.content,
-                          list: list,
-                          fields: route.params.fields,
-                        })
+                    await PostService.createPost(jwtToken, {
+                      title: route.params.title,
+                      content: route.params.content,
+                      list: list,
+                      fields: route.params.fields,
+                    })
                       .then(response1 => {
                         Toast.show({
                           type: 'success',
@@ -224,25 +207,30 @@ function NewsFeed() {
                   item.saved = true;
                 } else item.saved = false;
               });
+              // set vote
               item.vote = 0;
-              resUser.data.result.post_upvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = 1;
-                }
-              });
-              resUser.data.result.post_downvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = -1;
-                }
-              });
+              if (item.is_downvote_by_current) item.vote = -1;
+              else if (item.is_vote_by_current) item.vote = 1;
+
+              // resUser.data.result.post_upvote.forEach(i => {
+              //   if (i == item.oid) {
+              //     item.vote = 1;
+              //   }
+              // });
+              // resUser.data.result.post_downvote.forEach(i => {
+              //   if (i == item.oid) {
+              //     item.vote = -1;
+              //   }
+              // });
             });
             if (isEnd == false) return;
             if (res.data.result.length > 0) {
               setPosts(posts.concat(res.data.result));
 
               setSkip(skip + 5);
+              setIsEnd(false);
             }
-            setIsEnd(false);
+             
           })
           .catch(error => console.log(error));
       })
@@ -260,7 +248,7 @@ function NewsFeed() {
   const renderItem = ({ item }) => {
     return <PostCard post={item} onViewImage={onViewImage} onModal={onModal} />;
   };
-   return (
+  return (
     <View>
       <View
         style={{
@@ -275,10 +263,7 @@ function NewsFeed() {
           <TouchableOpacity
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
           >
-            <Image
-              style={styles.imgAvatar}
-              source={{ uri: userInfo.avatar }}
-            />
+            <Image style={styles.imgAvatar} source={{ uri: userInfo.avatar }} />
           </TouchableOpacity>
         </View>
         <View>
@@ -309,7 +294,7 @@ function NewsFeed() {
               await fetchData();
             }
           }}
-          onEndReachedThreshold={0.7}
+          onEndReachedThreshold={0.1}
           renderItem={item => renderItem(item)}
           keyExtractor={(item, index) => index.toString()}
           refreshControl={

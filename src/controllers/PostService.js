@@ -13,43 +13,45 @@ class PostService {
     // }
 
     static async getTimeline(jwtToken, skip, count) {
-      return await getAPI(jwtToken).get(api + `Post/timeline/skip/${skip}/count/${count}`);
+      // return await getAPI(jwtToken).post(api + `Post/timeline/skip/${skip}/count/${count}`);
+      return await getAPI(jwtToken).post(api + `Post/timeline`, { skip: skip, count: count});
     }
 
     static async getSavedPost(jwtToken, params) {
       return await getAPI(jwtToken)
-      .get(api + `Post/post/save?skip=${params.skip}&count=${params.count}`, { skip: params.skip, count: params.count })
+      .get(api + `Post/save?skip=${params.skip}&count=${params.count}`)
     }
 
     static async getPostByUserId(jwtToken, params){
       return getAPI(jwtToken)
-            .get(
-              api +
-                'Post/get/user/' +
-                params.oid +
-                '/skip/' +
-                params.skip +
-                '/count/' + params.count
+            .post(
+              api +'Post/user',
+              {
+                skip: params.skip,
+                count: params.count,
+                user_id: params.oid
+              }
             )
     }
 
     static async savePost(jwtToken, oid){
       return await getAPI(jwtToken)
-      .post(api + 'Post/post/save/' +  oid, { id:  oid })
+      .post(api + 'Post/save/' +  oid, { id:  oid })
     }
 
     static async upvote(jwtToken, oid){
       return await getAPI(jwtToken)
-      .post(api + 'Post/post/upvote/' + oid, { id: oid })
+      .post(api + 'Post/upvote/' + oid, { id: oid })
     }
 
     static async downvote(jwtToken, oid){
       return await getAPI(jwtToken)
-      .post(api + 'Post/post/downvote/' + oid, { id: oid })
+      .post(api + 'Post/downvote/' + oid, { id: oid })
     }
     static async createPost(jwtToken, post) {
+      console.log(post);
       return await getAPI(jwtToken)
-      .post(api + 'Post/add', {
+      .post(api + 'Post', {
         title: post.title,
         string_contents: [
           { content_type: 0, content: post.content },
@@ -61,7 +63,7 @@ class PostService {
 
     static async filterPost(jwtToken, params){
       return await getAPI(jwtToken)
-      .post(api + `Post/post/filter`, {
+      .post(api + `Post/filter`, {
         skip: params.skip,
         count: params.count,
         keyword: params.search,

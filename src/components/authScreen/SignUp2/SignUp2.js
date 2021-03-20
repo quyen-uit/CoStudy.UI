@@ -28,6 +28,8 @@ import { hint_color, main_2nd_color, main_color } from 'constants/colorCommon';
 import axios from 'axios';
 import { api } from 'constants/route';
 import navigationConstants from 'constants/navigation';
+import Geolocation from 'react-native-geolocation-service';
+
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function SignUp2() {
@@ -48,42 +50,78 @@ function SignUp2() {
     if (phone == '') {
       Alert.alert('Thông báo', 'Vui lòng nhập số điện thoại.');
       return;
-    } else  if (email == '') {
+    } else if (email == '') {
       Alert.alert('Thông báo', 'Vui lòng nhập email.');
       return;
-    } else  if (password.length < 6 || password2.length < 6) {
+    } else if (password.length < 6 || password2.length < 6) {
       Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu ít nhất 6 kí tự.');
       return;
-    } 
-    else if (password != password2)
-    {
+    } else if (password != password2) {
       Alert.alert('Thông báo', 'Mật khẩu không trùng khớp, vui lòng nhập lại');
       return;
     }
     setIsLoading(true);
-     
-    await axios
-      .post(api + 'User/register', {
-        first_name: data.first,
-        last_name: data.last,
-        date_of_birth: data.dob,
-        address: { city: data.city, district: data.district },
-        email: email,
-        phone_number: phone,
-        password: password,
-        confirmPassword: password,
-        accept_term: true,
-        title: 'title'
-      })
-      .then(res => {
-       
-        setIsLoading(false);
-        navigation.navigate(navigationConstants.verifyEmail, {email: email, password: password});
-      })
-      .catch(err => {
-        setIsLoading(false);
-        Alert.alert('Đăng kí không thành công', err.message);
-      });
+         await axios
+          .post(api + 'User/register', {
+            first_name: data.first,
+            last_name: data.last,
+            date_of_birth: data.dob,
+            address: { city: data.city, district: data.district, latitude: '1', longtitude: '1', detail: "" },
+            email: email,
+            phone_number: phone,
+            password: password,
+            confirmPassword: password,
+            accept_term: true,
+            title: 'title',
+          })
+          .then(res => {
+            setIsLoading(false);
+            navigation.navigate(navigationConstants.verifyEmail, {
+              email: email,
+              password: password,
+            });
+          })
+          .catch(err => {
+            setIsLoading(false);
+            Alert.alert('Đăng kí không thành công', err.message);
+          });
+    // if (hasLocationPermission) {
+    //   Geolocation.getCurrentPosition(
+    //       async (location) => {
+    //         console.log(location);
+    //         await axios
+    //       .post(api + 'User/register', {
+    //         first_name: data.first,
+    //         last_name: data.last,
+    //         date_of_birth: data.dob,
+    //         address: { city: data.city, district: data.district, latitude: location.latitude, longtitude: location.longitude },
+    //         email: email,
+    //         phone_number: phone,
+    //         password: password,
+    //         confirmPassword: password,
+    //         accept_term: true,
+    //         title: 'title',
+    //       })
+    //       .then(res => {
+    //         setIsLoading(false);
+    //         navigation.navigate(navigationConstants.verifyEmail, {
+    //           email: email,
+    //           password: password,
+    //         });
+    //       })
+    //       .catch(err => {
+    //         setIsLoading(false);
+    //         Alert.alert('Đăng kí không thành công', err.message);
+    //       });
+    //       },
+    //       (error) => {
+    //         See error code charts below.
+    //         console.log(error.code, error.message);
+    //       },
+    //       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    //   );
+    // }
+    
   };
   return (
     <ScrollView
@@ -118,18 +156,16 @@ function SignUp2() {
             value={password}
             icon={'unlock-alt'}
             secureTextEntry={true}
-
           />
           <TextField
-          accessibilityHint={strings.lastName}
-          accessibilityLabel={strings.lastName}
-          onChangeText={setPassword2}
-          placeholder={'Nhập lại mật khẩu'}
-          value={password2}
-          icon={'unlock'}
-          secureTextEntry={true}
-
-        />
+            accessibilityHint={strings.lastName}
+            accessibilityLabel={strings.lastName}
+            onChangeText={setPassword2}
+            placeholder={'Nhập lại mật khẩu'}
+            value={password2}
+            icon={'unlock'}
+            secureTextEntry={true}
+          />
           <TouchableOpacity
             style={styles.btnSignUp}
             onPress={() => handleSubmit()}

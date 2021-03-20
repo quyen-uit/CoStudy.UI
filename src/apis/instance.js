@@ -30,7 +30,7 @@ export const getAPI = jwtToken => {
        
       const originalRequest = config;
 
-      if (status === 400) {
+      if (status === 401) {
         if (!isRefreshing) {
           isRefreshing = true;
           

@@ -193,7 +193,7 @@ function Post(props) {
   const onSaved = async () => {
     setIsSaving(true);
     if (saved) {
-      await PostService.savePost(post.oid)
+      await PostService.savePost(userInfo.jwtToken,post.oid)
         .then(response => {
           setIsSaving(false);
           setSaved(false);
@@ -204,7 +204,7 @@ function Post(props) {
           setIsSaving(false);
         });
     } else {
-      await PostService.savePost(post.oid)
+      await PostService.savePost(userInfo.jwtToken,post.oid)
         .then(response => {
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
@@ -500,7 +500,7 @@ function Post(props) {
                 </View>
 
                 <View style={styles.containerTag}>
-                  {post.fields.map((item, index) => (
+                  {post.fields ? post.fields.map((item, index) => (
                     <TouchableOpacity
                       key={index}
                       
@@ -509,7 +509,7 @@ function Post(props) {
                         <Text style={styles.txtTag}>{item.value}</Text>
                       </View>
                     </TouchableOpacity>
-                  ))}
+                  )):null}
                 </View>
 
                 <View style={styles.footer}>

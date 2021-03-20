@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: main_color,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   otherContainer: {
     flexDirection: 'row',
@@ -17,12 +17,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  footer: {
-  },
+  footer: {},
   imgLogo: {
     marginLeft: -8,
     marginTop: -40,
-    marginBottom: 20
+    marginBottom: 20,
   },
   btnLogin: {
     borderRadius: 32,
@@ -47,7 +46,7 @@ const styles = StyleSheet.create({
   txtFooter: {
     fontSize: 14,
     color: '#fff',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
 });
 

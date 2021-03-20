@@ -6,6 +6,7 @@ import SignUp2 from 'components/authScreen/SignUp2';
 
 import navigationConstants from 'constants/navigation';
 import Verification from 'components/authScreen/Verification';
+import PickField from 'components/screen/PickField';
 
 const Stack = createStackNavigator();
 

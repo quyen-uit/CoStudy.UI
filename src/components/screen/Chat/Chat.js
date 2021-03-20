@@ -59,11 +59,11 @@ function Chat() {
       await ChatService.getCurrentConversation(jwtToken)
       .then(async res => {
         res.data.result.conversations.forEach(async item => {
-          if (item.item2.conversation_id != null) {
+          if (item.messages.conversation_id != null) {
             const obj = {};
 
-            if (item.item1.participants[0] == userInfo.id) {
-              await UserService.getUserById(item.item1.participants[1])
+            if (item.conversation.participants[0].member_id == userInfo.id) {
+              await UserService.getUserById(item.conversation.participants[1].member_id)
                 .then(user => {
                   obj.name =
                     user.data.result.first_name +
@@ -72,7 +72,7 @@ function Chat() {
                   obj.avatar = user.data.result.avatar.image_hash;
                 });
             } else {
-              await UserService.getUserById(item.item1.participants[0])
+              await UserService.getUserById(item.conversation.participants[0].member_id)
                 .then(user => {
                   obj.name =
                     user.data.result.first_name +
@@ -82,22 +82,22 @@ function Chat() {
                 });
             }
 
-            if (item.item2.sender_id == userInfo.id) {
-              if (item.item2.media_content == null)
-                obj.content = 'Bạn: ' + item.item2.string_content;
+            if (item.messages.sender_id == userInfo.id) {
+              if (item.messages.media_content == null)
+                obj.content = 'Bạn: ' + item.messages.string_content;
               else obj.content = 'Bạn: Ảnh';
             } else {
-              if (item.item2.media_content == null)
-                obj.content = item.item2.string_content;
+              if (item.messages.media_content == null)
+                obj.content = item.messages.string_content;
               else obj.content = 'Ảnh';
             }
             temp.push({
               name: obj.name,
-              modified_date: item.item2.modified_date,
+              modified_date: item.messages.modified_date,
               avatar: obj.avatar,
               content:
                 obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
-              id: item.item2.conversation_id,
+              id: item.messages.conversation_id,
               isUnread: false,
             });
             //console.log('1');
@@ -140,8 +140,6 @@ function Chat() {
         ).message
       );
       // test
-
-       console.log(res);
           if(listMes.length < 1)
           return;
       let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
@@ -177,11 +175,10 @@ function Chat() {
       await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
           res.data.result.conversations.forEach(async item => {
-            if (item.item2.conversation_id != null) {
+             if (item.conversation.oid != null) {
               const obj = {};
-
-              if (item.item1.participants[0] == userInfo.id) {
-                await UserService.getUserById(jwtToken, item.item1.participants[1])
+              if (item.conversation.participants[0].member_id == userInfo.id) {
+                await UserService.getUserById(jwtToken, item.conversation.participants[1].member_id)
                   .then(user => {
                     obj.name =
                       user.data.result.first_name +
@@ -190,7 +187,7 @@ function Chat() {
                     obj.avatar = user.data.result.avatar.image_hash;
                   });
               } else {
-                await UserService.getUserById(jwtToken,item.item1.participants[0])
+                await UserService.getUserById(jwtToken,item.conversation.participants[0].member_id)
                 .then(user => {
                     obj.name =
                       user.data.result.first_name +
@@ -200,22 +197,22 @@ function Chat() {
                   });
               }
 
-              if (item.item2.sender_id == userInfo.id) {
-                if (item.item2.media_content == null)
-                  obj.content = 'Bạn: ' + item.item2.string_content;
+              if (item.messages.sender_id == userInfo.id) {
+                if (item.messages.media_content == null)
+                  obj.content = 'Bạn: ' + item.messages.string_content;
                 else obj.content = 'Bạn: Ảnh';
               } else {
-                if (item.item2.media_content == null)
-                  obj.content = item.item2.string_content;
+                if (item.messages.media_content == null)
+                  obj.content = item.messages.string_content;
                 else obj.content = 'Ảnh';
               }
               temp.push({
                 name: obj.name,
-                modified_date: item.item2.modified_date,
+                modified_date: item.messages.modified_date,
                 avatar: obj.avatar,
                 content:
                   obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
-                id: item.item2.conversation_id,
+                id: item.messages.conversation_id,
                 isUnread: false,
               });
               //console.log('1');

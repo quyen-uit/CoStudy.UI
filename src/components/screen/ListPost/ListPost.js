@@ -26,7 +26,7 @@ import { main_color, touch_color } from 'constants/colorCommon';
 import PostCard from '../../common/PostCard';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-
+import ImageView from 'react-native-image-viewing';
 import { actionTypes, update } from 'actions/UserActions';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
@@ -39,8 +39,16 @@ function ListPost() {
   const userInfo = useSelector(getBasicInfo);
 
   const dispatch = useDispatch();
-
-  const navigation = useNavigation();
+  
+ ///image view
+ const [imgView, setImgView] = useState();
+ const [visible, setIsVisible] = useState(false);
+ const onViewImage = React.useCallback((value, uri) => {
+   setIsVisible(true);
+   setImgView(uri);
+ });
+ 
+ const navigation = useNavigation();
   const route = useRoute();
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post);
@@ -101,17 +109,10 @@ function ListPost() {
                     item.saved = true;
                   } else item.saved = false;
                 });
-                item.vote = 0;
-                response.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                response.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+                 // set vote
+                 item.vote = 0;
+                 if (item.is_downvote_by_current) item.vote = -1;
+                 else if (item.is_vote_by_current) item.vote = 1;
               });
 
               setPosts(res.data.result);
@@ -139,17 +140,10 @@ function ListPost() {
                     item.saved = true;
                   } else item.saved = false;
                 });
-                item.vote = 0;
-                resUser.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                resUser.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+                 // set vote
+                 item.vote = 0;
+                 if (item.is_downvote_by_current) item.vote = -1;
+                 else if (item.is_vote_by_current) item.vote = 1;
               });
               if (isRender) {
                 setPosts(resPost.data.result);
@@ -248,17 +242,10 @@ function ListPost() {
                   item.saved = true;
                 } else item.saved = false;
               });
-              item.vote = 0;
-              resUser.data.result.post_upvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = 1;
-                }
-              });
-              resUser.data.result.post_downvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = -1;
-                }
-              });
+               // set vote
+               item.vote = 0;
+               if (item.is_downvote_by_current) item.vote = -1;
+               else if (item.is_vote_by_current) item.vote = 1;
             });
             if (isEnd == false) return;
             if (res.data.result.length > 0) {
@@ -294,7 +281,7 @@ function ListPost() {
     setFieldPickers(fieldPickers.filter(item => item));
   };
   const renderItem = ({ item }) => {
-    return <PostCard post={item} />;
+    return <PostCard onViewImage={onViewImage} post={item} />;
   };
   return (
     <View>
@@ -383,6 +370,12 @@ function ListPost() {
                 <View style={{ margin: 4 }}></View>
               )
             }
+          />
+          <ImageView
+          images={[{ uri: imgView }]}
+          imageIndex={0}
+          visible={visible}
+          onRequestClose={() => setIsVisible(false)}
           />
           {isLoading ? (
             <View
