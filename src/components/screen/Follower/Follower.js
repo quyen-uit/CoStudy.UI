@@ -40,7 +40,7 @@ function UserCard({ item }) {
     setLoading(true);
     if (following) {
       // ??
-      await FollowService.unfollow(jwtToken, {from_id: item.from_id})
+      await FollowService.unfollow(jwtToken, { from_id: item.from_id })
         .then(res => {
           setLoading(false);
           setFollowing(false);
@@ -58,23 +58,24 @@ function UserCard({ item }) {
   return (
     <Card containerStyle={styles.cardContainer}>
       <TouchableHighlight
-        onPress={() =>
-          navigation.push(navigationConstants.profile, {
-            id: item.from_id,
-            callback: onCallback,
-          })
-        }
         underlayColor={touch_color}
         style={styles.card}
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.push(navigationConstants.profile, {
+                  id: item.from_id,
+                  callback: onCallback,
+                })
+              }
+            >
               <Image
                 style={styles.imgAvatar}
                 source={
-                  item.avatar
-                    ? { uri: item.avatar }
+                  item.from_avatar
+                    ? { uri: item.from_avatar }
                     : require('../../../assets/avatar.jpeg')
                 }
               />
@@ -86,7 +87,7 @@ function UserCard({ item }) {
               </Text>
             </View>
           </View>
-          {item.from_id !=  userInfo.id ? (
+          {item.from_id != userInfo.id ? (
             <View style={{ alignSelf: 'center', width: 96 }}>
               {loading ? (
                 <ActivityIndicator
@@ -97,7 +98,7 @@ function UserCard({ item }) {
               ) : (
                 <TouchableOpacity
                   style={{
-                    backgroundColor: following ?  '#ccc' : main_color,
+                    backgroundColor: following ? '#ccc' : main_color,
                     padding: 4,
                     paddingHorizontal: 8,
                     borderRadius: 8,
@@ -108,7 +109,7 @@ function UserCard({ item }) {
                 >
                   <Text
                     style={{
-                      color: following ?  main_color : 'white',
+                      color: following ? main_color : 'white',
                       alignSelf: 'center',
                     }}
                   >
@@ -131,36 +132,36 @@ function Follower() {
   const [isLoading, setIsLoading] = useState(true);
   const route = useRoute();
   const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
 
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
-      await FollowService.getFollowerByUserId(jwtToken, {id: route.params.id, skip: 0, count: 99})
+      await FollowService.getFollowerByUserId(jwtToken, {
+        id: route.params.id,
+        skip: 0,
+        count: 99,
+      })
         .then(async res => {
-          await FollowService.getFollowingByUserId(jwtToken, {id: userInfo.id, skip: 0, count: 99})
-            .then(following => {
-              alert()
-
-              if (!isOut) {
-                console.log(res.data.result);
-                let promises = res.data.result.map(async er => {
-                  await UserService.getUserById(jwtToken, er.from_id)
-                    .then(user => {
-                      er.full_name = user.data.result.first_name + ' ' + user.data.result.last_name;
-                      er.avatar = user.data.result.avatar.image_hash;
-                    })
-                    .catch(er => alert(er));
-                  er.following = false;
-                  following.data.result.forEach(ing => {
-                    if (er.from_id == ing.toId) er.following = true;
-                  });
+          await FollowService.getFollowingByUserId(jwtToken, {
+            id: userInfo.id,
+            skip: 0,
+            count: 99,
+          }).then(following => {
+            if (!isOut) {
+              let promises = res.data.result.map(async er => {
+                er.full_name = er.from_name;
+                er.following = false;
+                following.data.result.forEach(ing => {
+                  if (er.from_id == ing.to_id) er.following = true;
                 });
-                Promise.all(promises).then(() => {
-                  setIsLoading(false);
-                  setList(res.data.result);
-                });
-              }
-            });
+              });
+              Promise.all(promises).then(() => {
+                setIsLoading(false);
+                setList(res.data.result);
+              });
+            }
+          });
         })
         .catch(error => console.log(error));
     };

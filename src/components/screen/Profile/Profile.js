@@ -107,7 +107,7 @@ function Profile({ userId }) {
   const curUser = useSelector(getUser);
   const [data, setData] = useState(curUser);
 
- ///image view
+  ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
   const onViewImage = React.useCallback((value, uri) => {
@@ -191,7 +191,7 @@ function Profile({ userId }) {
             })
               .then(res => {
                 res.data.result.forEach(i => {
-                  if (resUser.data.result.oid == i.toId)
+                  if (resUser.data.result.oid == i.to_id)
                     if (isRender) {
                       setIsFollowing(true);
                     }
@@ -262,7 +262,6 @@ function Profile({ userId }) {
               setIsEnd(false);
             }
             // setIsEnd(false);
-
           })
           .catch(error => console.log(error));
       })
@@ -270,7 +269,7 @@ function Profile({ userId }) {
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard  onViewImage={onViewImage} post={item} />;
+    return <PostCard onViewImage={onViewImage} post={item} />;
   };
   const renderBadge = item => {
     return (
@@ -418,7 +417,6 @@ function Profile({ userId }) {
   const goToConversation = async () => {
     await ChatService.createConversation(curUser.jwtToken, data.oid).then(
       res => {
-        console.log(res.data.result.oid);
         navigation.navigate(navigationConstants.conversation, {
           id: res.data.result.oid,
           avatar: data.avatar.image_hash,
@@ -491,11 +489,12 @@ function Profile({ userId }) {
                   <View style={styles.containerAmount}>
                     <View style={styles.flex1}>
                       <GroupAmount
-                        amount={
-                          typeof data.posts === 'undefined'
-                            ? 0
-                            : data.post_count
-                        }
+                        // amount={
+                        //   typeof data.posts === 'undefined'
+                        //     ? 0
+                        //     : data.post_count
+                        // }
+                        amount={data.post_count}
                         title={'Bài đăng'}
                       />
                     </View>
@@ -597,7 +596,7 @@ function Profile({ userId }) {
                           />
                         </View>
                       ) : (
-                        <TouchableHighlight
+                        <TouchableOpacity
                           style={
                             isFollowing ? styles.btnUnFollow : styles.btnFollow
                           }
@@ -615,15 +614,15 @@ function Profile({ userId }) {
                           >
                             {isFollowing ? 'Hủy theo dõi' : 'Theo dõi'}
                           </Text>
-                        </TouchableHighlight>
+                        </TouchableOpacity>
                       )}
-                      <TouchableHighlight
+                      <TouchableOpacity
                         style={styles.btnFollow}
                         underlayColor={touch_color}
                         onPress={() => goToConversation()}
                       >
                         <Text style={styles.txtFollow}>Nhắn tin</Text>
-                      </TouchableHighlight>
+                      </TouchableOpacity>
                     </View>
                   )}
                 </View>
@@ -689,11 +688,11 @@ function Profile({ userId }) {
         </SafeAreaView>
       </View>
       <ImageView
-          images={[{ uri: imgView }]}
-          imageIndex={0}
-          visible={visible}
-          onRequestClose={() => setIsVisible(false)}
-        />
+        images={[{ uri: imgView }]}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
+      />
       {isLoading ? (
         <View
           style={{

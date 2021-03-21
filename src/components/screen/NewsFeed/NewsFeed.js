@@ -173,7 +173,7 @@ function NewsFeed() {
                           text1: 'Đăng bài thành công.',
                           visibilityTime: 2000,
                         });
-                        let tmp = response1.data.result.post;
+                        let tmp = response1.data.result;
                         tmp.vote = 0;
                         tmp.saved = false;
 

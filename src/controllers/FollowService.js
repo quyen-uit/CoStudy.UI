@@ -40,7 +40,7 @@ class FollowService {
 
     static async unfollower(jwtToken, oid){
       return await getAPI(jwtToken)
-      .post(api + 'User/follower/remove?followingId=' + oid, {
+      .post(api + 'User/following/remove?followingId=' + oid, {
         followingId: oid,
       })
     }

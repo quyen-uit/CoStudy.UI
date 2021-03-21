@@ -553,7 +553,6 @@ function Conversation(props) {
         <FlatList
           style={{ marginBottom: 64 }}
           onEndReached={() => {
-            console.log('end');
             if (isEnd) return;
             if (listMes.length > 14) {
               setIsEnd(true);

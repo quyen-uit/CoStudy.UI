@@ -83,7 +83,14 @@ function UserCard({ item }) {
       >
         <View style={styles.headerCard}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.push(navigationConstants.profile, {
+                  id: item.oid,
+                  callback: onCallback,
+                 })
+              }
+            >
               <Image
                 style={styles.imgAvatar}
                 source={
@@ -244,12 +251,12 @@ function Search() {
     //   if(filterComment == 0)
     //   order = 0;
     //   else order = 1;}
-    
+
     if (filterComment == 0) {
       let tmpList = posts.sort(
-        (d1, d2) =>  d1.comments_countd - d2.comments_countd
+        (d1, d2) => d1.comments_countd - d2.comments_countd
       );
-      
+
       if (tmpList.length > 0) {
         setPosts([]);
         setPosts([...tmpList]);
@@ -260,15 +267,11 @@ function Search() {
       );
       if (tmpList.length > 0) setPosts([...tmpList]);
     }
-     if (filterVote == 1) {
-      let tmpList = posts.sort(
-        (d1, d2) =>  d1.vote - d2.vote
-      );
+    if (filterVote == 1) {
+      let tmpList = posts.sort((d1, d2) => d1.vote - d2.vote);
       if (tmpList.length > 0) setPosts([...tmpList]);
     } else if (filterVote == 0) {
-      let tmpList = posts.sort(
-        (d1, d2) => d2.vote - d1.vote
-      );
+      let tmpList = posts.sort((d1, d2) => d2.vote - d1.vote);
       if (tmpList.length > 0) setPosts([...tmpList]);
     }
   }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
@@ -353,7 +356,7 @@ function Search() {
   //                 res.data.result.forEach(er => {
   //                   er.following = false;
   //                   following.data.result.forEach(ing => {
-  //                     if (er.oid == ing.toId) er.following = true;
+  //                     if (er.oid == ing.to_id) er.following = true;
   //                   });
   //                 });
   //                 setIsLoading(false);
@@ -372,7 +375,6 @@ function Search() {
   // }, [keyword]);
 
   const onSearch = async () => {
-    console.log(search);
     if (isPostSearch) {
       setIsLoading(true);
       const tmp = [];
@@ -381,7 +383,11 @@ function Search() {
       });
       await UserService.getCurrentUser(jwtToken)
         .then(async response => {
-          await PostService.filterPost(jwtToken, {skip: 0, count: 3, search: search})
+          await PostService.filterPost(jwtToken, {
+            skip: 0,
+            count: 3,
+            search: search,
+          })
             .then(async res => {
               res.data.result.forEach(item => {
                 response.data.result.post_saved.forEach(i => {
@@ -414,19 +420,26 @@ function Search() {
       fieldPickers.forEach(item => {
         if (item.isPick) tmp.push(item);
       });
-      await UserService.filterUser(jwtToken, {skip: 0, count: 99, search: search})
+      await UserService.filterUser(jwtToken, {
+        skip: 0,
+        count: 99,
+        search: search,
+      })
         .then(async res => {
-          await FollowService.getFollowingByUserId(jwtToken, {skip: 0, count: 99,id: userInfo.id})
-            .then(following => {
-              res.data.result.forEach(er => {
-                er.following = false;
-                following.data.result.forEach(ing => {
-                  if (er.oid == ing.toId) er.following = true;
-                });
+          await FollowService.getFollowingByUserId(jwtToken, {
+            skip: 0,
+            count: 99,
+            id: userInfo.id,
+          }).then(following => {
+            res.data.result.forEach(er => {
+              er.following = false;
+              following.data.result.forEach(ing => {
+                if (er.oid == ing.to_id) er.following = true;
               });
-              setIsLoading(false);
-              setUsers(res.data.result);
             });
+            setIsLoading(false);
+            setUsers(res.data.result);
+          });
         })
         .catch(error => console.log(error));
     }
@@ -435,7 +448,11 @@ function Search() {
     if (isEnd == true) return;
     await UserService.getCurrentUser(jwtToken)
       .then(async response => {
-        await PostService.filterPost(jwtToken,{skip: skip, count: 3, search: search})
+        await PostService.filterPost(jwtToken, {
+          skip: skip,
+          count: 3,
+          search: search,
+        })
           .then(async res => {
             res.data.result.forEach(item => {
               item.vote = 0;
@@ -911,7 +928,7 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterTime(0);
-                     setFilterVote(-1);
+                    setFilterVote(-1);
                     setFilterComment(-1);
                     setModalOrder(0);
                   }}
@@ -970,7 +987,7 @@ function Search() {
                   onPress={() => {
                     setFilterVote(1);
                     setFilterTime(-1);
-                     setFilterComment(-1);
+                    setFilterComment(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -997,9 +1014,9 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterVote(0);
-                    
+
                     setFilterTime(-1);
-                     setFilterComment(-1);
+                    setFilterComment(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -1056,9 +1073,9 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterComment(1);
-                    
+
                     setFilterTime(-1);
-                     setFilterVote(-1);
+                    setFilterVote(-1);
                     setModalOrder(0);
                   }}
                 >
@@ -1087,9 +1104,9 @@ function Search() {
                 <TouchableOpacity
                   onPress={() => {
                     setFilterComment(0);
-                    
+
                     setFilterTime(-1);
-                     setFilterVote(-1);
+                    setFilterVote(-1);
                     setModalOrder(0);
                   }}
                 >

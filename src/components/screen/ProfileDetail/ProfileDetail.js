@@ -131,7 +131,15 @@ function ProfileDetail({ userId }) {
                   <Icon name={'edit'} size={30} />
                 </View>
               </TouchableOpacity>
-            ) : null}
+            ) : (
+              <View
+                style={{
+                  alignSelf: 'flex-end',
+                  marginRight: 12,
+                  marginTop: 48,
+                }}
+              ></View>
+            )}
             <Text
               style={{
                 fontSize: 24,
@@ -255,7 +263,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginHorizontal: 8,
     marginBottom: 8,
-    marginTop: 8  ,
+    marginTop: 8,
   },
   txtAmount: {
     color: main_2nd_color,

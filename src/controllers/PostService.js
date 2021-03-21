@@ -49,7 +49,6 @@ class PostService {
       .post(api + 'Post/downvote/' + oid, { id: oid })
     }
     static async createPost(jwtToken, post) {
-      console.log(post);
       return await getAPI(jwtToken)
       .post(api + 'Post', {
         title: post.title,

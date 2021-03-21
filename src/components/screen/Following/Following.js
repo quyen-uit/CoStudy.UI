@@ -23,7 +23,7 @@ import moment from 'moment';
 import FollowService from 'controllers/FollowService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
- 
+
 function UserCard({ item }) {
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
@@ -37,10 +37,14 @@ function UserCard({ item }) {
   useEffect(() => {
     let isRender = true;
     const fetch = async () =>
-      await FollowService.getFollowerByUserId(jwtToken, {id: route.params.id, skip: 0, count: 99})
+      await FollowService.getFollowerByUserId(jwtToken, {
+        id: route.params.id,
+        skip: 0,
+        count: 99,
+      })
         .then(res => {
           res.data.result.forEach(i => {
-            if (item.toId == i.toId) if (isRender) setFollowing(true);
+            if (item.to_id == i.to_id) if (isRender) setFollowing(true);
           });
         })
         .catch(error => console.log(error));
@@ -52,14 +56,14 @@ function UserCard({ item }) {
   const onFollow = async () => {
     setLoading(true);
     if (following) {
-      await FollowService.unfollow(jwtToken, {from_id: item.toId})
+      await FollowService.unfollow(jwtToken, { from_id: item.to_id })
         .then(res => {
           setLoading(false);
           setFollowing(false);
         })
         .catch(error => console.log(error));
     } else {
-      await FollowService.follow(jwtToken, item.toId)
+      await FollowService.follow(jwtToken, item.to_id)
         .then(res => {
           setLoading(false);
           setFollowing(true);
@@ -73,29 +77,39 @@ function UserCard({ item }) {
         underlayColor={touch_color}
         style={styles.card}
         onPress={() =>
-          navigation.push(navigationConstants.profile, { id: item.toId, callback: onCallback })
+          navigation.navigate(navigationConstants.profile, {
+            id: item.to_id,
+            callback: onCallback,
+          })
         }
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.push(navigationConstants.profile, {
+                  id: item.to_id,
+                  callback: onCallback,
+                })
+              }
+            >
               <Image
                 style={styles.imgAvatar}
                 source={
-                  item.avatar
-                    ? { uri: item.avatar }
+                  item.to_avatar
+                    ? { uri: item.to_avatar }
                     : require('../../../assets/avatar.jpeg')
                 }
               />
             </TouchableOpacity>
             <View style={{ flexShrink: 1 }}>
-              <Text style={styles.txtAuthor}>{item.full_name}</Text>
+              <Text style={styles.txtAuthor}>{item.to_name}</Text>
               <Text style={styles.txtContent}>
                 Đã theo dõi từ {moment(item.follow_date).format('DD-MM-YYYY')}
               </Text>
             </View>
           </View>
-          {item.toId != userInfo.id ? (
+          {item.to_id != userInfo.id ? (
             <View style={{ alignSelf: 'center', width: 96 }}>
               {loading ? (
                 <ActivityIndicator
@@ -106,7 +120,7 @@ function UserCard({ item }) {
               ) : (
                 <TouchableOpacity
                   style={{
-                    backgroundColor: following ?  '#ccc': main_color,
+                    backgroundColor: following ? '#ccc' : main_color,
                     padding: 4,
                     paddingHorizontal: 8,
                     borderRadius: 8,
@@ -117,7 +131,7 @@ function UserCard({ item }) {
                 >
                   <Text
                     style={{
-                      color: following ?  main_color : 'white' ,
+                      color: following ? main_color : 'white',
                       alignSelf: 'center',
                     }}
                   >
@@ -139,12 +153,16 @@ function Following() {
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const jwtToken = useSelector(getJwtToken);
-  
   const route = useRoute();
+
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
-      await FollowService.getFollowingByUserId(jwtToken, {id: route.params.id, skip: 0, count: 99})
+      await FollowService.getFollowingByUserId(jwtToken, {
+        id: route.params.id,
+        skip: 0,
+        count: 99,
+      })
         .then(res => {
           if (!isOut) {
             setList(res.data.result);
