@@ -17,16 +17,21 @@ import styles from './styles';
 //   latestTime: '10 phut truoc',
 // }
 function CommentOptionModal({ ...rest }) {
-
+  const onEdit = () => {
+    rest.onVisible(false);
+    rest.onEdit(true, rest.id);
+  };
   return (
     <BottomModal
       {...rest}
       swipeDirection={['down']} // can be string or an array
       swipeThreshold={100} // default 100
       useNativeDriver={true}
-      modalAnimation={new SlideAnimation({
-        slideFrom: 'bottom',
-      })}
+      modalAnimation={
+        new SlideAnimation({
+          slideFrom: 'bottom',
+        })
+      }
       modalTitle={
         <Icon
           name={'chevron-down'}
@@ -55,10 +60,10 @@ function CommentOptionModal({ ...rest }) {
             <Text style={styles.txtOption}>Trả lời</Text>
           </View>
         </TouchableHighlight>
-        <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+        <TouchableHighlight underlayColor={'#000'} onPress={() => onEdit()}>
           <View style={styles.optionContainer}>
             <Icon name={'eye'} color={main_color} size={24} />
-            <Text style={styles.txtOption}>Sao chép</Text>
+            <Text style={styles.txtOption}>Sửa bình luận</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight

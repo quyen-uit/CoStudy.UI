@@ -640,7 +640,9 @@ function Profile({ userId }) {
                     </View>
                     <TouchableHighlight
                       onPress={() =>
-                        navigation.navigate(navigationConstants.create)
+                        navigation.navigate(navigationConstants.create, {
+                          isEdit: false,
+                        })
                       }
                       underlayColor={touch_color}
                       style={styles.btnBoxNew}

@@ -1,5 +1,5 @@
 import { useTheme, useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Image,
   Text,
@@ -51,56 +51,12 @@ import ImageView from 'react-native-image-viewing';
 import { ImageComponent } from 'react-native';
 import CommentService from 'controllers/CommentService';
 import PostService from 'controllers/PostService';
-
-const tmpPost = {
-  id: '1',
-  title: 'Đây là title 1',
-  author: 'Nguyễn Văn Nam',
-  content:
-    'Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé. Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé',
-  createdDate: '10 phut truoc',
-};
-const list = [
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content Đây là content Đây làaaaaa content Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '1',
-  },
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '2',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '3',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '4',
-  },
-];
+import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
+import { update } from 'actions/UserActions';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Post(props) {
- 
   const navigation = useNavigation();
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
@@ -124,24 +80,60 @@ function Post(props) {
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
   const [sending, setSending] = useState(false);
+
+  const resetComment = () => {
+    setComment('');
+    setImgComment('');
+    setIsEdit(false);
+  };
   const renderItem = ({ item }) => {
     return (
       <View style={{ opacity: item.opacity }}>
-        <CommentCard comment={item} isInPost={true} onViewImage={onViewImage} />
+        <CommentCard
+          comment={item}
+          isInPost={true}
+          onViewImage={onViewImage}
+          onCommentModal={onCommentModal}
+        />
       </View>
     );
   };
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
-  const onViewImage = React.useCallback((value, uri) => {
+
+  //modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [idModal, setIdModal] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
+
+  const onCommentModal = useCallback((value, id) => {
+    setModalVisible(value);
+    setIdModal(id);
+  });
+  const onVisibleCallBack = useCallback(value => {
+    setModalVisible(value);
+  });
+  const onEditCallBack = useCallback((isEdit, id) => {
+    setIsEdit(isEdit);
+
+    let cmt = comments.filter(x => x.oid == id);
+
+    setComment(cmt[0].content);
+    if (cmt[0].image != '')
+      setImgComment({ path: cmt[0].image, isEdit: false });
+    else setImgComment('');
+  });
+  const onViewImage = useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
   });
+
   useEffect(() => {
     route.params.onUpvote(upvote);
     route.params.onVote(vote);
   }, [upvote]);
+
   useEffect(() => {
     route.params.onDownvote(downvote);
     route.params.onVote(vote);
@@ -151,9 +143,13 @@ function Post(props) {
     setIsLoading(true);
     let isOut = false;
     const fetchData = async () => {
-      await CommentService.getCommentByPostId(jwtToken, {oid: post.oid, skip: 0, count: 5})
+      await CommentService.getCommentByPostId(jwtToken, {
+        oid: post.oid,
+        skip: 0,
+        count: 5,
+      })
         .then(response => {
-           if (!isOut) {
+          if (!isOut) {
             setIsLoading(false);
             response.data.result.forEach(i => {
               i.opacity = 1;
@@ -174,7 +170,11 @@ function Post(props) {
   }, []);
 
   const fetchMore = async () => {
-    await CommentService.getCommentByPostId(jwtToken, {oid: post.oid, skip: skip, count: 5})
+    await CommentService.getCommentByPostId(jwtToken, {
+      oid: post.oid,
+      skip: skip,
+      count: 5,
+    })
       .then(response => {
         if (response.data.result.length > 0) {
           setSkip(skip + 5);
@@ -193,7 +193,7 @@ function Post(props) {
   const onSaved = async () => {
     setIsSaving(true);
     if (saved) {
-      await PostService.savePost(userInfo.jwtToken,post.oid)
+      await PostService.savePost(userInfo.jwtToken, post.oid)
         .then(response => {
           setIsSaving(false);
           setSaved(false);
@@ -204,7 +204,7 @@ function Post(props) {
           setIsSaving(false);
         });
     } else {
-      await PostService.savePost(userInfo.jwtToken,post.oid)
+      await PostService.savePost(userInfo.jwtToken, post.oid)
         .then(response => {
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
@@ -228,11 +228,10 @@ function Post(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await PostService.upvote(post.oid)
-      .then(
-        response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),
-        1000
-      );
+    await PostService.upvote(post.oid).then(
+      response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),
+      1000
+    );
   };
   const onDownvote = async () => {
     if (vote == -1) {
@@ -246,11 +245,10 @@ function Post(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await PostService.downvote(post.oid)
-      .then(
-        response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),
-        1000
-      );
+    await PostService.downvote(post.oid).then(
+      response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),
+      1000
+    );
   };
   const pickImage = () => {
     ImagePicker.openPicker({
@@ -262,6 +260,7 @@ function Post(props) {
       compressImageQuality: 1,
     }).then(async image => {
       if (image) {
+        image.isEdit = true;
         setImgComment(image);
       }
     });
@@ -276,16 +275,90 @@ function Post(props) {
       compressImageQuality: 1,
     }).then(async image => {
       if (image) {
+        image.isEdit = true;
         setImgComment(image);
       }
     });
   };
+
+  const updateComment = async () => {
+    let image = '';
+    let img = '';
+    comments.forEach(x => {
+      if (idModal == x.oid) {
+        x.opacity = 0.5;
+        x.content = comment;
+        x.image = imgComment.path;
+      }
+    });
+    setSending(true);
+    ToastAndroid.show('Đang cập nhật bình luận ...', ToastAndroid.SHORT);
+    if (imgComment.isEdit) {
+      if (imgComment) {
+        image = imgComment;
+        const uri = image.path;
+        const filename = uuidv4();
+        const uploadUri =
+          Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        const task = storage()
+          .ref('comment/' + post.oid + '/' + filename)
+          .putFile(uploadUri);
+        // set progress state
+        task.on('state_changed', snapshot => {
+          console.log('uploading avatar..');
+        });
+        try {
+          await task.then(async response => {
+            await storage()
+              .ref(response.metadata.fullPath)
+              .getDownloadURL()
+              .then(async url => {
+                img = url;
+              });
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    } else img = imgComment.path;
+    await CommentService.updateComment(jwtToken, {
+      comment: comment,
+      img: img,
+      oid: idModal,
+    })
+      .then(response => {
+        comments.forEach(x => {
+          x.opacity = 1;
+        });
+        
+        setImgComment('');
+        setComment('');
+        setIsEdit(false);
+
+        setSending(false);
+        
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: 'Bình luận đã được sửa',
+          visibilityTime: 2000,
+        });
+      })
+      .catch(error => {
+        setSending(false);
+        console.log(error);
+      });
+  };
   const postComment = async () => {
     Keyboard.dismiss();
-
     let img = '';
-    if (comment == '' && imgComment == '') {
+    let image = '';
+    if (comment == '') {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+      return;
+    }
+    if (isEdit) {
+      updateComment();
       return;
     }
     const tmp = {
@@ -335,7 +408,11 @@ function Post(props) {
       }
     }
 
-    await CommentService.createComment(jwtToken, {comment: comment, img: img, oid: post.oid})
+    await CommentService.createComment(jwtToken, {
+      comment: comment,
+      img: img,
+      oid: post.oid,
+    })
       .then(response => {
         setImgComment('');
         setComment('');
@@ -500,16 +577,15 @@ function Post(props) {
                 </View>
 
                 <View style={styles.containerTag}>
-                  {post.fields ? post.fields.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      
-                    >
-                      <View style={styles.btnTag}>
-                        <Text style={styles.txtTag}>{item.value}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  )):null}
+                  {post.fields
+                    ? post.fields.map((item, index) => (
+                        <TouchableOpacity key={index}>
+                          <View style={styles.btnTag}>
+                            <Text style={styles.txtTag}>{item.value}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    : null}
                 </View>
 
                 <View style={styles.footer}>
@@ -532,7 +608,6 @@ function Post(props) {
 
                   <View style={styles.flex1}>
                     <Pressable
-                     
                       style={({ pressed }) => [
                         { backgroundColor: pressed ? touch_color : '#fff' },
                         styles.btnVote,
@@ -591,7 +666,20 @@ function Post(props) {
           </View>
         ) : null}
       </SafeAreaView>
-
+      {isEdit ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: 10,
+            bottom: 60,
+            backgroundColor: '#fff',
+          }}
+        >
+          <TouchableOpacity onPress={() => resetComment()}>
+            <Text style={{ fontSize: 16 }}>Hủy sửa bình luận</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
       {imgComment != '' ? (
         <View style={{ position: 'absolute', right: 0, bottom: 60 }}>
           <Image
@@ -772,6 +860,22 @@ function Post(props) {
         imageIndex={0}
         visible={visible}
         onRequestClose={() => setIsVisible(false)}
+      />
+      <CommentOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        id={idModal}
+        onVisible={onVisibleCallBack}
+        onEdit={onEditCallBack}
       />
     </View>
   );

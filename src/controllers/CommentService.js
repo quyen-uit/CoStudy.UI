@@ -45,6 +45,14 @@ class CommentService {
         post_id:  params.oid,
       })
     }
+    static async updateComment(jwtToken, params) {
+      return await getAPI(jwtToken)
+      .put(api + 'Comment/comment/update', {
+        content: params.comment,
+        image_hash: params.img,
+        id:  params.oid,
+      })
+    }
   }
   
   export default CommentService;

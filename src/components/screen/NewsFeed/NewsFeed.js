@@ -60,10 +60,10 @@ function NewsFeed() {
   });
   //modal
   const [modalVisible, setModalVisible] = useState(false);
-  const [idModal, setIdModal] = useState();
+  const [idModal, setIdModal] = useState(null);
   const [savedModal, setSavedModal] = useState();
   const onModal = React.useCallback((value, id, saved) => {
-     setModalVisible(value);
+    setModalVisible(value);
     setIdModal(id);
     setSavedModal(saved);
   });
@@ -229,7 +229,6 @@ function NewsFeed() {
               setSkip(skip + 5);
               setIsEnd(false);
             }
-             
           })
           .catch(error => console.log(error));
       })

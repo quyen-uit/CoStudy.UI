@@ -33,7 +33,6 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import navigationConstants from 'constants/navigation';
-import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
 import CommentService from 'controllers/CommentService';
 
 const tmpComment = {
@@ -52,79 +51,14 @@ const comment = {
   amountVote: 10,
   amountComment: 20,
 };
-function ChildComment(props) {
-  const navigation = useNavigation();
-  const [modalVisible, setModalVisible] = useState(false);
-  return (
-    <View style={styles.containerComment}>
-      <TouchableOpacity onPress={() => alert('avatar is clicked')}>
-        <Image
-          style={styles.imgChildAvatar}
-          source={require('../../../assets/avatar.jpeg')}
-        />
-      </TouchableOpacity>
-      <TouchableHighlight
-        style={styles.btnChildComment}
-        underlayColor={touch_color}
-        onPress={() => alert('click')}
-        onLongPress={() => setModalVisible(true)}
-      >
-        <View>
-          <Text style={styles.txtChildAuthor}>{comment.author}</Text>
-          <Text style={styles.txtChildContent}>{comment.content}</Text>
-          <View style={styles.footer}>
-            <View style={styles.containerCreatedTime}>
-              <FontAwesome name={'circle'} size={6} color={active_color} />
-              <Text style={styles.txtChildCreateDate}>
-                {comment.createdDate}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row' }}>
-              <View style={styles.rowFlexStart}>
-                <Text style={styles.txtChildVoteNumber}>10</Text>
-                <TouchableOpacity>
-                  <FontAwesome5
-                    name={'thumbs-up'}
-                    size={14}
-                    color={main_color}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.rowFlexStart}>
-                <Text style={styles.txtChildVoteNumber}>11</Text>
-                <TouchableOpacity>
-                  <FontAwesome5 name={'comment'} size={14} color={main_color} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-      <CommentOptionModal
-        visible={modalVisible}
-        onSwipeOut={event => {
-          setModalVisible(false);
-        }}
-        onHardwareBackPress={() => {
-          setModalVisible(false);
-          return true;
-        }}
-        onTouchOutside={() => {
-          setModalVisible(false);
-        }}
-      />
-    </View>
-  );
-}
 
 function CommentCard(props) {
   const jwtToken = useSelector(getJwtToken);
 
   const navigation = useNavigation();
-
   const comment = props.comment;
   const isInPost = props.isInPost;
-  const [modalVisible, setModalVisible] = useState(false);
+
   // like, comment
   const [upvote, setUpvote] = useState(comment.upvote_count);
   const [downvote, setDownvote] = useState(comment.downvote_count);
@@ -134,7 +68,7 @@ function CommentCard(props) {
   const onUpvoteCallback = useCallback(value => setUpvote(value));
   const onDownvoteCallback = useCallback(value => setDownvote(value));
   const onCommentCallback = useCallback(value => setCommentCount(value));
-  const onVoteCallback = useCallback((value)=> setVote(value));
+  const onVoteCallback = useCallback(value => setVote(value));
 
   const GoToComment = () => {
     if (isInPost) {
@@ -147,7 +81,7 @@ function CommentCard(props) {
         downvote: downvote,
         replies: comment_count,
         vote: vote,
-        onVote: onVoteCallback
+        onVote: onVoteCallback,
       });
     }
   };
@@ -158,13 +92,12 @@ function CommentCard(props) {
 
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bình luận này.',1000)
+      ToastAndroid.show('Bạn đã upvote cho bình luận này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
       setUpvote(upvote + 1);
-    } else 
-    {
+    } else {
       setVote(1);
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
@@ -175,13 +108,12 @@ function CommentCard(props) {
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bình luận này.', 1000)
+      ToastAndroid.show('Bạn đã downvote cho bình luận này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
       setDownvote(downvote + 1);
-    } else 
-    {
+    } else {
       setVote(-1);
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
@@ -201,11 +133,12 @@ function CommentCard(props) {
           />
         </TouchableOpacity>
         <View style={styles.shrink1}>
-          <TouchableHighlight
+          <TouchableOpacity
+            delayLongPress={100}
             style={styles.btnBigComment}
             underlayColor={touch_color}
             onPress={() => GoToComment()}
-            onLongPress={() => setModalVisible(true)}
+            onLongPress={() => props.onCommentModal(true, comment.oid)}
           >
             <View>
               <Text style={styles.txtAuthor}>{comment.author_name}</Text>
@@ -261,15 +194,14 @@ function CommentCard(props) {
                         name={'thumbs-up'}
                         size={18}
                         color={vote == 1 ? main_color : '#ccc'}
-
                       />
                     </TouchableOpacity>
                   </View>
                 </View>
               </View>
             </View>
-          </TouchableHighlight>
-          {comment.image != '' ? (
+          </TouchableOpacity>
+          {comment.image != '' && comment.image != null ? (
             <TouchableOpacity
               onPress={() => props.onViewImage(true, comment.image)}
             >
@@ -287,19 +219,6 @@ function CommentCard(props) {
           ) : null}
         </View>
       </View>
-      <CommentOptionModal
-        visible={modalVisible}
-        onSwipeOut={event => {
-          setModalVisible(false);
-        }}
-        onHardwareBackPress={() => {
-          setModalVisible(false);
-          return true;
-        }}
-        onTouchOutside={() => {
-          setModalVisible(false);
-        }}
-      />
     </View>
   );
 }

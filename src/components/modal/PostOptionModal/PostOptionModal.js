@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToastAndroid, Text, View, TouchableHighlight } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { main_color } from 'constants/colorCommon';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 // import Modal from 'react-native-modal';
+import { useNavigation } from '@react-navigation/native';
 import Modal, {
   ModalContent,
   BottomModal,
@@ -12,6 +13,7 @@ import Modal, {
 } from 'react-native-modals';
 import styles from './styles';
 import PostService from 'controllers/PostService';
+import navigationConstants from 'constants/navigation';
 
 // const chat = {
 //   title: 'Đây là title',
@@ -19,10 +21,26 @@ import PostService from 'controllers/PostService';
 //   latestChat: 'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
 //   latestTime: '10 phut truoc',
 // }
+
 const PostOptionModal = ({ ...rest }) => {
   const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
   const [saved, setSaved] = useState(rest.saved);
   const [isSaving, setIsSaving] = useState(false);
+  const [isMe, setIsMe] = useState(false);
+
+  const navigation = useNavigation();
+  useEffect(() => {
+    if (rest.id != null) {
+      PostService.getPostById(curUser.jwtToken, rest.id)
+        .then(res => {
+          if (res.data.result.author_id == curUser.oid) setIsMe(true);
+        })
+        .catch(err => console.log(err));
+    }
+    return () => {};
+  }, [rest.id]);
+
   const onSaved = async () => {
     rest.onVisible(false);
     setIsSaving(true);
@@ -107,6 +125,27 @@ const PostOptionModal = ({ ...rest }) => {
             </Text>
           </View>
         </TouchableHighlight>
+        {isMe ? (
+          <TouchableHighlight
+            underlayColor={'#000'}
+            onPress={() => {
+              navigation.navigate(navigationConstants.create, {
+                postId: rest.id,
+                isEdit: true,
+              });
+            }}
+          >
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'flag'}
+                color={main_color}
+                size={24}
+                style={{ marginHorizontal: 2 }}
+              />
+              <Text style={styles.txtOption}>Sửa bài viết</Text>
+            </View>
+          </TouchableHighlight>
+        ) : null}
         <TouchableHighlight
           underlayColor={'#000'}
           onPress={() => {

@@ -172,7 +172,8 @@ function PostCard(props) {
                 activeOpacity={1}
                 underlayColor={touch_color}
                 style={styles.btn3Dot}
-                onPress={() => props.onModal(true, post.oid, post.saved)}
+                onPress={() => {
+                  props.onModal(true, post.oid, post.saved)}}
               >
                 <View style={styles.btnOption}>
                   <FontAwesome name={'ellipsis-v'} size={24} color="#c4c4c4" />

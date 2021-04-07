@@ -22,15 +22,50 @@ import { isLoadingSelector } from 'selectors/StatusSelectors';
 import navigationConstants from 'constants/navigation';
 import axios from 'axios';
 import Loading from 'components/common/Loading';
+
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+
+GoogleSignin.configure();
+
 function Login() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userInfo, setUserInfo] = useState({});
+
   const navigation = useNavigation();
   const isLoading = useSelector(state =>
     isLoadingSelector([actionTypes.LOGIN], state)
   );
+
+  // Somewhere in your code
+  const signIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfoGG = await GoogleSignin.signIn();
+      console.log(userInfoGG);
+      setUserInfo(userInfoGG);
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        alert('cancel');
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        alert('in progress');
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        alert('play services not available');
+        // play services not available or outdated
+      } else {
+        alert(error);
+        // some other error happened
+      }
+    }
+  };
 
   const errors = useSelector(
     state => errorsSelector([actionTypes.LOGIN], state),
@@ -38,13 +73,13 @@ function Login() {
   );
 
   const handleSubmit = () => {
-     if (email === '') Alert.alert('Thông báo', 'Vui lòng nhập email.');
+    if (email === '') Alert.alert('Thông báo', 'Vui lòng nhập email.');
     else if (password === '')
       Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
     else dispatch(login(email, password));
   };
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       {isLoading ? (
         <Loading />
       ) : (
@@ -88,13 +123,21 @@ function Login() {
               </TouchableOpacity>
             </View>
             <View>
+            <GoogleSigninButton
+                  style={{}}
+                  size={GoogleSigninButton.Size.Standard}
+                  color={GoogleSigninButton.Color.Dark}
+                  onPress={signIn}
+                  //disabled={this.state.isSigninInProgress}
+                />
               <View style={styles.otherContainer}>
-                <TouchableOpacity>
+                {/* <TouchableOpacity>
                   <Image source={require('../../../assets/fb.png')} />
-                </TouchableOpacity>
-                <TouchableOpacity>
+                </TouchableOpacity> */}
+                {/* <TouchableOpacity onPress={() => signIn()}>
                   <Image source={require('../../../assets/google.png')} />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
+                
               </View>
               <TouchableOpacity
                 onPress={() => navigation.navigate(navigationConstants.signup)}

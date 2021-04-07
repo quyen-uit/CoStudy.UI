@@ -12,6 +12,9 @@ class PostService {
     //   });
     // }
 
+    static async getPostById(jwtToken, id) {
+      return await getAPI(jwtToken).get(api+`Post/`+id);
+    }
     static async getTimeline(jwtToken, skip, count) {
       // return await getAPI(jwtToken).post(api + `Post/timeline/skip/${skip}/count/${count}`);
       return await getAPI(jwtToken).post(api + `Post/timeline`, { skip: skip, count: count});
@@ -56,10 +59,23 @@ class PostService {
           { content_type: 0, content: post.content },
         ],
         image_contents: post.list,
-        fields: post.fields,
+        //fields: post.fields,
       })
     }
 
+    static async updatePost(jwtToken, post) {
+      return await getAPI(jwtToken)
+      .put(api + 'Post/update', {
+        post_id: post.oid,
+        title: post.title,
+        string_contents: [
+          { content_type: 0, content: post.content },
+        ],
+        image_contents: post.list,
+        //fields: post.fields,
+      })
+    }
+    
     static async filterPost(jwtToken, params){
       return await getAPI(jwtToken)
       .post(api + `Post/filter`, {

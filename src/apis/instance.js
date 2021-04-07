@@ -30,11 +30,11 @@ export const getAPI = jwtToken => {
        
       const originalRequest = config;
 
-      if (status === 401) {
+      if (status === 400) {
         if (!isRefreshing) {
           isRefreshing = true;
           
-          await axios.post('https://costudy-api.azurewebsites.net/api/Accounts/refresh-token').then(response => {
+          await axios.post('http://192.168.36.2/api/Accounts/refresh-token').then(response => {
             console.log('bbb')  
             isRefreshing = false;
             store.dispatch(update(response.data.result.jwtToken));

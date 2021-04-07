@@ -2,8 +2,9 @@ import {
   useTheme,
   useNavigation,
   CommonActions,
+  useRoute,
 } from '@react-navigation/native';
-import React, { useLayoutEffect, useState, useEffect } from 'react';
+import React, { useLayoutEffect, useState, useEffect, useCallback } from 'react';
 import {
   Text,
   View,
@@ -28,6 +29,10 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
 import UserService from 'controllers/UserService';
+import PostService from 'controllers/PostService';
+import { v4 as uuidv4 } from 'uuid';
+import storage from '@react-native-firebase/storage';
+import Toast from 'react-native-toast-message';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -50,8 +55,15 @@ function Create() {
   const [modalVisible, setModalVisible] = useState(false);
   const [chosing, setChosing] = useState(false);
 
+  const userInfo = useSelector(getBasicInfo);
+
+  const route = useRoute();
+  const onUpvoteCallback = useCallback(value=> console.log('up vote'));
+  const onDownvoteCallback = useCallback(value => console.log('down vote'));
+  const onCommentCallback = useCallback(value=> console.log('comment'));
+  const onVoteCallback = useCallback(value=> console.log('vote'));
   const config = {
-    headers: { Authorization: `Bearer ${ jwtToken}` },
+    headers: { Authorization: `Bearer ${jwtToken}` },
   };
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -83,14 +95,34 @@ function Create() {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await UserService.getCurrentUser( jwtToken)
+      /// edit
+      //const editPost = route.params.post;
+      if (route.params.isEdit) {
+        await PostService.getPostById(jwtToken, route.params.postId)
+          .then(response => {
+            setTitle(response.data.result.title);
+            setContent(response.data.result.string_contents[0].content);
+            setListImg(
+              response.data.result.image_contents.map(item => ({
+                path: item.image_hash,
+                discription: item.discription,
+                isEdit: true,
+              }))
+            );
+          })
+          .catch(error => console.log(error));
+
+        //ssetListImg(); ///???
+      }
+      /// edit
+      await UserService.getCurrentUser(jwtToken)
         .then(response => {
           if (isRender) {
             setData(response.data.result);
           }
         })
         .catch(error => console.log(error));
-      await UserService.getAllField( jwtToken)
+      await UserService.getAllField(jwtToken)
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {
@@ -120,6 +152,7 @@ function Create() {
       compressImageQuality: 1,
     }).then(image => {
       if (image) {
+        image.isEdit = false;
         setListImg([...listImg, image]);
       }
     });
@@ -133,13 +166,15 @@ function Create() {
       compressImageQuality: 1,
     }).then(image => {
       if (image) {
+        image.isEdit = false;
         setListImg([...listImg, image]);
       }
     });
   };
+
   const upload = async () => {
     let temp = [];
-
+    setIsLoading(true);
     if (title == '') {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập tiêu đề');
       return;
@@ -148,6 +183,91 @@ function Create() {
       return;
     }
     ToastAndroid.show('Bài viết đang đăng...', ToastAndroid.SHORT);
+    let list = [];
+    // test edit
+    if (route.params.isEdit) {
+      let promises = listImg.map(async image => {
+        if (!image.isEdit) {
+          const uri = image.path;
+          const filename = uuidv4();
+          const uploadUri =
+            Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+          const task = storage()
+            .ref('post/' + userInfo.id + '/' + filename)
+            .putFile(uploadUri);
+          // set progress state
+          task.on('state_changed', snapshot => {});
+          try {
+            await task.then(async response => {
+              await storage()
+                .ref(response.metadata.fullPath)
+                .getDownloadURL()
+                .then(url => {
+                  list = [
+                    ...list,
+                    {
+                      discription: image.discription,
+                      image_hash: url,
+                    },
+                  ];
+                });
+            });
+          } catch (e) {
+            console.error(e);
+          }
+        } else {
+          list = [
+            ...list,
+            { discription: image.discription, image_hash: image.path },
+          ];
+        }
+      });
+      Promise.all(promises).then(async () => {
+        await PostService.updatePost(jwtToken, {
+          oid: route.params.postId,
+          title: title,
+          content: content,
+          list: list,
+          //fields: route.params.fields,
+        })
+          .then(response => {
+            Toast.show({
+              type: 'success',
+              position: 'top',
+              text1: 'Sửa bài thành công.',
+              visibilityTime: 2000,
+            });
+            // console.log(post);
+            // set vote
+            const vote = 0;
+            if (response.data.result.is_downvote_by_current) vote = -1;
+            else if (response.data.result.is_vote_by_current) vote = 1;
+            console.log(response.data.result);
+            navigation.replace(navigationConstants.post, {
+              post: response.data.result,
+              vote: vote,
+              upvote: response.data.result.upvote,
+              downvote: response.data.result.downvote,
+              commentCount: response.data.result.comments_count,
+              onUpvote: onUpvoteCallback,
+              onDownvote: onDownvoteCallback,
+              onComment: onCommentCallback,
+              onVote: onVoteCallback,
+            });
+          })
+          .catch(error => console.log(error));
+      });
+      // PostService.updatePost(jwtToken, {
+      //   oid: route.params.postId,
+      //   title: title,
+      //   content: content,
+      // })
+      //   .then(res => alert('updated'))
+      //   .catch(error => console.log(error));
+      return;
+    }
+    // test edit
+
     fieldPickers.forEach(item => {
       if (item.isPick == true) temp.push(item.oid);
     });
@@ -266,6 +386,7 @@ function Create() {
             }}
             multiline={true}
             onChangeText={text => setTitle(text)}
+            value={title}
             placeholder={'...'}
           />
         </View>
@@ -281,6 +402,7 @@ function Create() {
               }}
               onChangeText={text => setContent(text)}
               placeholder={'Nhập nội dung...'}
+              value={content}
             />
           </View>
           <View style={styles.listImage}>
@@ -371,7 +493,7 @@ function Create() {
           <TouchableHighlight
             underlayColor={touch_color}
             style={styles.btnInputOption}
-           >
+          >
             <View style={styles.flex}>
               <Icon name={'square-root-alt'} size={24} color={main_color} />
               <Text style={styles.txtField}>Công thức</Text>
