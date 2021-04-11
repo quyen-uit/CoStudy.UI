@@ -4,7 +4,12 @@ import {
   CommonActions,
   useRoute,
 } from '@react-navigation/native';
-import React, { useLayoutEffect, useState, useEffect, useCallback } from 'react';
+import React, {
+  useLayoutEffect,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import {
   Text,
   View,
@@ -23,13 +28,23 @@ import { useSelector } from 'react-redux';
 import styles from 'components/screen/Create/styles';
 import { getUser, getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
-import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
+import {
+  main_2nd_color,
+  main_color,
+  touch_color,
+  badge_level1,
+  badge_level2,
+  badge_level3,
+  badge_level4,
+  badge_level5,
+} from 'constants/colorCommon';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
+import LevelService from 'controllers/LevelService';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
@@ -41,6 +56,7 @@ import Modal, {
   BottomModal,
   SlideAnimation,
 } from 'react-native-modals';
+import Badge from 'components/common/Badge';
 
 function Create() {
   const jwtToken = useSelector(getJwtToken);
@@ -54,14 +70,16 @@ function Create() {
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [chosing, setChosing] = useState(false);
-
+  const [modalIndex, setModalIndex] = useState(0);
+  const [levelList, setLevelList] = useState([]);
+  const [currFieldId, setCurrFieldId] = useState('');
   const userInfo = useSelector(getBasicInfo);
 
   const route = useRoute();
-  const onUpvoteCallback = useCallback(value=> console.log('up vote'));
+  const onUpvoteCallback = useCallback(value => console.log('up vote'));
   const onDownvoteCallback = useCallback(value => console.log('down vote'));
-  const onCommentCallback = useCallback(value=> console.log('comment'));
-  const onVoteCallback = useCallback(value=> console.log('vote'));
+  const onCommentCallback = useCallback(value => console.log('comment'));
+  const onVoteCallback = useCallback(value => console.log('vote'));
   const config = {
     headers: { Authorization: `Bearer ${jwtToken}` },
   };
@@ -95,44 +113,63 @@ function Create() {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      /// edit
-      //const editPost = route.params.post;
-      if (route.params.isEdit) {
-        await PostService.getPostById(jwtToken, route.params.postId)
-          .then(response => {
-            setTitle(response.data.result.title);
-            setContent(response.data.result.string_contents[0].content);
-            setListImg(
-              response.data.result.image_contents.map(item => ({
-                path: item.image_hash,
-                discription: item.discription,
-                isEdit: true,
-              }))
-            );
-          })
-          .catch(error => console.log(error));
-
-        //ssetListImg(); ///???
-      }
-      /// edit
-      await UserService.getCurrentUser(jwtToken)
+      const getCurrUser = await UserService.getCurrentUser(jwtToken)
         .then(response => {
           if (isRender) {
             setData(response.data.result);
           }
         })
         .catch(error => console.log(error));
-      await UserService.getAllField(jwtToken)
-        .then(response => {
-          if (isRender) {
-            response.data.result.forEach(element => {
-              element.isPick = false;
-            });
-            setIsLoading(false);
-            setFieldPickers(response.data.result);
+      const getFields = await UserService.getAllField(jwtToken)
+        .then(async response => {
+          if (route.params.isEdit) {
+            await PostService.getPostById(jwtToken, route.params.postId)
+              .then(async resPost => {
+                setTitle(resPost.data.result.title);
+                setContent(resPost.data.result.string_contents[0].content);
+                response.data.result.forEach(element => {
+                  resPost.data.result.field.forEach(picked => {
+                    if (element.oid == picked.field_id) {
+                      element.isPick = true;
+                      element.level_id = picked.level_id;
+                    } else {
+                      element.isPick = false;
+                      element.level_id = '6031da2eba003751a1470d42';
+                      element.level_name = 'Level 1';
+                    }
+                  });
+                });
+                setFieldPickers(response.data.result);
+                setListImg(
+                  resPost.data.result.image_contents.map(item => ({
+                    path: item.image_hash,
+                    discription: item.discription,
+                    isEdit: true,
+                  }))
+                );
+              })
+              .catch(error => console.log(error));
+          } else {
+            if (isRender) {
+              response.data.result.forEach(element => {
+                element.isPick = false;
+                element.level_id = '6031da2eba003751a1470d42';
+                element.level_name = 'Level 1';
+              });
+              setFieldPickers(response.data.result);
+            }
           }
         })
         .catch(error => console.log(error));
+
+      const getLevels = await LevelService.getLevels(jwtToken, 0, 5)
+        .then(response => {
+          setLevelList(response.data.result);
+        })
+        .catch(error => console.log(error));
+      Promise.all([getCurrUser, getFields, getLevels]).then(() =>
+        setIsLoading(false)
+      );
     };
     fetchData();
     return () => {
@@ -173,7 +210,6 @@ function Create() {
   };
 
   const upload = async () => {
-    let temp = [];
     setIsLoading(true);
     if (title == '') {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập tiêu đề');
@@ -222,13 +258,18 @@ function Create() {
           ];
         }
       });
+      let tempFields = [];
+      fieldPickers.forEach(item => {
+        if (item.isPick == true)
+          tempFields.push({ field_id: item.oid, level_id: item.level_id });
+      });
       Promise.all(promises).then(async () => {
         await PostService.updatePost(jwtToken, {
           oid: route.params.postId,
           title: title,
           content: content,
           list: list,
-          //fields: route.params.fields,
+          fields: tempFields
         })
           .then(response => {
             Toast.show({
@@ -267,9 +308,10 @@ function Create() {
       return;
     }
     // test edit
-
+    let tempFields = [];
     fieldPickers.forEach(item => {
-      if (item.isPick == true) temp.push(item.oid);
+      if (item.isPick == true)
+        tempFields.push({ field_id: item.oid, level_id: item.level_id });
     });
     navigation.navigate(navigationConstants.tabNav, {
       screen: navigationConstants.newsfeed,
@@ -277,7 +319,7 @@ function Create() {
         title: title,
         content: content,
         listImg: listImg,
-        fields: temp,
+        fields: tempFields,
       },
     });
     // return;
@@ -467,14 +509,14 @@ function Create() {
                 key={index}
                 onPress={() => {
                   item.isPick = false;
-
+                  item.level_id = '6031da2eba003751a1470d42';
+                  item.level_name = 'Level 1';
                   setFieldPickers(fieldPickers.filter(item => item));
                 }}
               >
-                <View style={styles.btnTag}>
-                  <Text style={styles.txtTag}>{item.value}</Text>
-                  <Icon name={'times'} size={10} color={'#fff'} />
-                </View>
+                <Badge
+                  item={{ name: item.level_name, description: item.value }}
+                />
               </TouchableOpacity>
             ) : null
           )}
@@ -482,7 +524,11 @@ function Create() {
         <View style={styles.option}>
           <TouchableHighlight
             style={styles.btnInputOption}
-            onPress={() => setModalVisible(true)}
+            //onPress={() => setModalVisible(true)}
+            onPress={() => {
+              setModalVisible(true);
+              setModalIndex(1);
+            }}
             underlayColor={touch_color}
           >
             <View style={styles.flex}>
@@ -529,6 +575,7 @@ function Create() {
           />
         </View>
       ) : null}
+
       <BottomModal
         visible={modalVisible}
         swipeDirection={['up', 'down']} // can be string or an array
@@ -551,66 +598,128 @@ function Create() {
           setModalVisible(false);
         }}
       >
-        <ModalContent style={{ marginHorizontal: -16 }}>
-          <View>
-            <View
-              style={{ flexWrap: 'wrap', flexDirection: 'row', padding: 8 }}
-            >
-              {fieldPickers.map((item, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => {
-                    item.isPick = item.isPick ? false : true;
-
-                    setFieldPickers(fieldPickers.filter(item => item));
-                  }}
-                >
-                  <View
-                    style={{
-                      backgroundColor: item.isPick ? main_2nd_color : '#ccc',
-                      padding: 8,
-                      borderRadius: 100,
-                      margin: 8,
+        {modalIndex == 1 ? (
+          <ModalContent style={{ marginHorizontal: -16 }}>
+            <View>
+              <View
+                style={{ flexWrap: 'wrap', flexDirection: 'row', padding: 8 }}
+              >
+                {fieldPickers.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      item.isPick = item.isPick ? false : true;
+                      if (item.isPick) {
+                        setCurrFieldId(item.oid);
+                        setModalIndex(2);
+                      }
+                      setFieldPickers(fieldPickers.filter(item => item));
                     }}
                   >
-                    <Text
+                    <View
                       style={{
-                        color: item.isPick ? '#fff' : main_2nd_color,
-                        fontSize: 16,
+                        backgroundColor: item.isPick ? main_2nd_color : '#ccc',
+                        padding: 8,
+                        borderRadius: 100,
+                        margin: 8,
                       }}
                     >
-                      {item.value}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                setModalVisible(false);
-              }}
-            >
-              <View
-                style={{
-                  justifyContent: 'center',
-                  backgroundColor: main_color,
-                  marginHorizontal: 16,
-                  marginBottom: -8,
-                  alignItems: 'center',
-                  paddingVertical: 8,
-                  borderRadius: 8,
+                      <Text
+                        style={{
+                          color: item.isPick ? '#fff' : main_2nd_color,
+                          fontSize: 16,
+                        }}
+                      >
+                        {item.value}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible(false);
                 }}
               >
-                <Text
-                  style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    backgroundColor: main_color,
+                    marginHorizontal: 16,
+                    marginBottom: -8,
+                    alignItems: 'center',
+                    paddingVertical: 8,
+                    borderRadius: 8,
+                  }}
                 >
-                  Xác nhận
-                </Text>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: '#fff',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Xác nhận
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </ModalContent>
+        ) : modalIndex == 2 ? (
+          <ModalContent style={{ marginHorizontal: -16 }}>
+            <View>
+              <View
+                style={{ flexWrap: 'wrap', flexDirection: 'row', padding: 8 }}
+              >
+                {levelList.map((item, index) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      fieldPickers.forEach(field => {
+                        if (field.oid == currFieldId) {
+                          field.level_id = item.oid;
+                          field.level_name = item.name;
+                        }
+                        setModalIndex(1);
+                      });
+                    }}
+                    key={index}
+                  >
+                    <Badge item={item} />
+                  </TouchableOpacity>
+                ))}
               </View>
-            </TouchableOpacity>
-          </View>
-        </ModalContent>
+              <TouchableOpacity
+                onPress={() => {
+                  setModalVisible(false);
+                }}
+              >
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    backgroundColor: main_color,
+                    marginHorizontal: 16,
+                    marginBottom: -8,
+                    alignItems: 'center',
+                    paddingVertical: 8,
+                    borderRadius: 8,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color: '#fff',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Xác nhận
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </ModalContent>
+        ) : null}
       </BottomModal>
+
       {chosing ? (
         <View
           style={{

@@ -22,8 +22,16 @@ import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/ListField/styles';
 import { getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
-import { main_color, main_2nd_color, touch_color } from 'constants/colorCommon';
-import PostCard from '../../common/PostCard';
+import {
+  badge_level1,
+  badge_level2,
+  badge_level3,
+  badge_level4,
+  badge_level5,
+  main_2nd_color,
+  main_color,
+  touch_color,
+} from 'constants/colorCommon';import PostCard from '../../common/PostCard';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
@@ -47,15 +55,15 @@ const fields = [
   },
 ];
 function ListField() {
-  // const jwtToken = useSelector(getJwtToken);
+  const jwtToken = useSelector(getJwtToken);
   // const userInfo = useSelector(getBasicInfo);
 
   // const dispatch = useDispatch();
 
   const navigation = useNavigation();
-  // const route = useRoute();
+  const route = useRoute();
   const [isLoading, setIsLoading] = useState(true);
-  // const [fields, setFields] = useState([]);
+  const [fields, setFields] = useState([]);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
@@ -70,6 +78,34 @@ function ListField() {
       ),
     });
   }, [navigation]);
+  useEffect(() => {
+    const fetch = async () => {
+      await UserService.getFieldByUserId(jwtToken, route.params.userId)
+        .then(res => {
+          res.data.result.forEach(item => {
+            if (item.level_name == 'Level 1') {
+              item.color = badge_level1;
+              item.icon = require('../../../assets/level1.png');
+            } else if (item.level_name == 'Level 2') {
+              item.color = badge_level2;
+              item.icon = require('../../../assets/level2.png');
+            } else if (item.level_name == 'Level 3') {
+              item.color = badge_level3;
+              item.icon = require('../../../assets/level3.png');
+            } else if (item.level_name == 'Level 4') {
+              item.color = badge_level4;
+              item.icon = require('../../../assets/level4.png');
+            } else {
+              item.color = badge_level5;
+              item.icon = require('../../../assets/level5.png');
+            }
+          });
+          setFields(res.data.result);
+        })
+        .catch(err => console.log(err));
+    };
+    fetch();
+  }, []);
   const renderItem = ({ item, index }) => {
     return (
       <View
@@ -84,14 +120,10 @@ function ListField() {
           padding: 8,
         }}
       >
-        <Text style={{ fontSize: 16, color: main_color }}>
-          {index + 1}.{item.name}
+        <Text style={{ fontSize: 16, color: item.color }}>
+          {index + 1}. {item.field_name}
         </Text>
-        {item.level == 1 ? (
-          <Image source={require('../../../assets/level1.png')} />
-        ) : (
-          <Image source={require('../../../assets/level5.png')} />
-        )}
+        <Image source={item.icon} />
       </View>
     );
   };
@@ -102,7 +134,7 @@ function ListField() {
         flex: 1,
       }}
     >
-      {false ? (
+      {fields.length < 1 ? (
         <TouchableOpacity
           onPress={() => {
             onRefresh();
@@ -139,9 +171,11 @@ function ListField() {
               <Text
                 style={{ fontSize: 40, color: main_color, fontWeight: 'bold' }}
               >
-                10
+                {fields.length}
               </Text>
-              <Text style={{marginTop: -10, color:main_color}}>lĩnh vực</Text>
+              <Text style={{ marginTop: -10, color: main_color }}>
+                lĩnh vực
+              </Text>
             </View>
           </View>
           <FlatList

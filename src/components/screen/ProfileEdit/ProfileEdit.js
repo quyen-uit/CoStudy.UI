@@ -15,16 +15,16 @@ import {
   TextInput,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
- 
+
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
- 
+
 import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
- import moment from 'moment';
+import moment from 'moment';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import navigationConstants from 'constants/navigation';
- 
+
 import Modal, {
   ModalContent,
   BottomModal,
@@ -61,20 +61,19 @@ function ProfileEdit({ userId }) {
   const update = async () => {
     // update field ???
     let temp = [];
-    fieldPickers.forEach(i=>{
-      if(i.isPick)
-        temp.push(i.oid);
-    })
-    console.log(temp);
+    fieldPickers.forEach(i => {
+      if (i.isPick) temp.push(i.oid);
+    });
+    //console.log(temp);
     navigation.navigate(navigationConstants.profile, {
       update: true,
+      fields: temp,
       data: {
         first_name: firstname,
         last_name: lastname,
         date_of_birth: dob,
         address: { district: district, city: city },
         phone_number: phone,
-        //fields: temp
       },
     });
   };
@@ -84,13 +83,11 @@ function ProfileEdit({ userId }) {
     const fetchData = async () => {
       await UserService.getAllField(jwtToken)
         .then(response => {
-          console.log(response.data.result);
-
           if (isRender) {
             response.data.result.forEach(element => {
               element.isPick = false;
               fields.forEach(i => {
-                if (i.oid == element.oid) element.isPick = true;
+                if (i.field_id == element.oid) element.isPick = true;
               });
             });
             setFieldPickers(response.data.result);

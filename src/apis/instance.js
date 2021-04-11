@@ -2,7 +2,7 @@ import axios from 'axios';
 import { api } from '../constants/route';
 import { store } from '../store/index';
 import { actionTypes, update } from 'actions/UserActions';
-
+import { BackHandler } from "react-native";
 export const getAPI = jwtToken => {
   let isRefreshing = false;
   let refreshSubscribers = [];
@@ -27,19 +27,22 @@ export const getAPI = jwtToken => {
         config,
         response: { status },
       } = error;
-       
+
       const originalRequest = config;
 
       if (status === 400) {
         if (!isRefreshing) {
           isRefreshing = true;
-          
-          await axios.post('http://192.168.36.2/api/Accounts/refresh-token').then(response => {
-            console.log('bbb')  
-            isRefreshing = false;
-            store.dispatch(update(response.data.result.jwtToken));
-            onRrefreshed(jwtToken);
-          }).catch(err=>alert(err));
+
+          await axios
+            .post('http://192.168.36.2/api/Accounts/refresh-token')
+            .then(response => {
+              isRefreshing = false;
+              store.dispatch(update(response.data.result.jwtToken));
+              onRrefreshed(jwtToken);
+              BackHandler.exitApp();
+            })
+            .catch(err => console.log(err));
         }
 
         const retryOrigReq = new Promise((resolve, reject) => {

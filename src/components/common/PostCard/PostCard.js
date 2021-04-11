@@ -39,9 +39,10 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { api } from 'constants/route';
 import { RotationGestureHandler } from 'react-native-gesture-handler';
+import Badge from '../Badge';
 function PostCard(props) {
   const post = props.post;
-  const userId = props.userId;
+   const userId = props.userId;
   const [isVote, setIsVote] = useState(false);
   const navigation = useNavigation();
   const [author, setAuthor] = useState();
@@ -214,19 +215,16 @@ function PostCard(props) {
             </TouchableOpacity>
           ) : null}
 
-          {post.fields ? (<View style={styles.containerTag}>
+          {post.field ? (<View style={styles.containerTag}>
             <ScrollView
               horizontal={true}
               showsHorizontalScrollIndicator={false}
             >
-              {post.fields.map((item, index) => (
+              {post.field.map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  
-                >
-                  <View style={styles.btnTag}>
-                    <Text style={styles.txtTag}>{item.value}</Text>
-                  </View>
+                  >
+                  <Badge item={{name: item.level_name, description: item.field_name}}/>
                 </TouchableOpacity>
               ))}
             </ScrollView>

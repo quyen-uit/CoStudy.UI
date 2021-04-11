@@ -172,7 +172,9 @@ function NotifyNavigator() {
               <TouchableHighlight
                 style={styles.btnRight}
                 underlayColor={touch_color}
-                onPress={() =>  navigation.navigate(navigationConstants.pickField)}
+                onPress={() =>
+                  navigation.navigate(navigationConstants.pickField)
+                }
               >
                 <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
               </TouchableHighlight>
@@ -232,7 +234,6 @@ function TabNavigator() {
   const dispatch = useDispatch();
   const curUser = useSelector(getUser);
 
- 
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       if (
@@ -307,6 +308,7 @@ function TabNavigator() {
                 params: {},
               })
             );
+           // navigation.replace(navigationConstants.create, { isEdit: false });
           },
         }}
         options={navigation => ({

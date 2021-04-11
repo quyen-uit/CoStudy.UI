@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
+  ToastAndroid,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
@@ -47,9 +48,21 @@ function PickField() {
       headerRight: () => (
         <View style={{ marginRight: 16 }}>
           <TouchableOpacity
-            onPress={() => navigation.navigate(navigationConstants.pickField)}
+            onPress={async () => {
+              let temp = [];
+              fieldPickers.forEach(i => {
+                if (i.isPick) temp.push(i.oid);
+              });
+              console.log(temp);
+              await UserService.updateFieldOfUser(jwtToken, userInfo.id, temp)
+                .then(res => {
+                  ToastAndroid.show('Cập nhật thành công.', ToastAndroid.SHORT);
+                  navigation.goBack();
+                })
+                .catch(err => console.log(err));
+            }}
           >
-            <Text style={{ color: '#fff', fontSize: 16 }}>Sửa</Text>
+            <Text style={{ color: '#fff', fontSize: 16 }}>OK</Text>
           </TouchableOpacity>
         </View>
       ),
@@ -60,8 +73,8 @@ function PickField() {
     let isRender = true;
     let fields = [];
     const fetchData = async () => {
-      await UserService.getCurrentUser(jwtToken).then(user => {
-        fields = user.data.result.fortes;
+      await UserService.getFieldByUserId(jwtToken, userInfo.id).then(user => {
+        fields = user.data.result;
       });
       await UserService.getAllField(jwtToken)
         .then(response => {
@@ -69,7 +82,7 @@ function PickField() {
             response.data.result.forEach(async element => {
               element.isPick = false;
               fields.forEach(i => {
-                if (i.oid == element.oid) element.isPick = true;
+                if (i.field_id == element.oid) element.isPick = true;
               });
             });
             setIsLoading(false);
@@ -154,11 +167,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 100,
     margin: 8,
-    
+
     borderWidth: 1,
   },
   txtField: {
-    
     fontSize: 16,
   },
   notFound: {
@@ -167,5 +179,4 @@ const styles = StyleSheet.create({
     color: '#616161',
     marginTop: 200,
   },
-
 });

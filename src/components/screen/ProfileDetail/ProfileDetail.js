@@ -22,6 +22,7 @@ import { useSelector } from 'react-redux';
 import navigationConstants from 'constants/navigation';
 import moment from 'moment';
 import UserService from 'controllers/UserService';
+import Badge from 'components/common/Badge';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -46,7 +47,7 @@ function ProfileDetail({ userId }) {
       await UserService.getUserById(curUser.jwtToken, route.params.data.oid)
         .then(response => {
           if (!isOut) {
-            // setData(response.data.result);
+            setData(response.data.result);
             setAvatar(response.data.result.avatar.image_hash);
             setFields(response.data.result.fields);
             setIsLoading(false);
@@ -205,9 +206,12 @@ function ProfileDetail({ userId }) {
                       key={index}
                       onPress={() => alert('tag screen')}
                     >
-                      <View style={styles.btnTag}>
-                        <Text style={styles.txtTag}>{item.value}</Text>
-                      </View>
+                      <Badge
+                        item={{
+                          name: item.level_name,
+                          description: item.field_name,
+                        }}
+                      />
                     </TouchableOpacity>
                   ))
                 )}
@@ -314,7 +318,7 @@ const styles = StyleSheet.create({
   containerTag: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginBottom: 8,
+   // marginBottom: 8,
     flexWrap: 'wrap',
   },
   btnTag: {

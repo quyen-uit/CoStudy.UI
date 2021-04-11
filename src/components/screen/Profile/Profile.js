@@ -40,7 +40,7 @@ import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
 import ChatService from 'controllers/ChatService';
 import ImageView from 'react-native-image-viewing';
-
+import Badge from 'components/common/Badge';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function GroupAmount(props) {
@@ -147,25 +147,39 @@ function Profile({ userId }) {
     }
   };
   useEffect(() => {
-    if (route.params?.update) {
-      setIsLoading(true);
-      ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
-      if (route.params.update) {
-        const postAPI = async () => {
-          await UserService.updateUser(curUser.jwtToken, route.params.data)
+    const fetch = async () => {
+      if (route.params?.update) {
+        setIsLoading(true);
+        ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
+        if (route.params.update) {
+          const postAPI = await UserService.updateUser(
+            curUser.jwtToken,
+            route.params.data
+          )
             .then(res => {
               setData(res.data.result);
-              setIsLoading(false);
-              dispatch(update(curUser.jwtToken));
             })
             .catch(error => console.log(error));
           // await UserService.updateFieldOfUser(curUser.jwtToken, {
           //   fields: route.params.data.fields,
           // }).catch(error => console.log(error));
-        };
-        postAPI();
+          const updateField = await UserService.updateFieldOfUser(
+            curUser.jwtToken,
+            curUser.oid,
+            route.params.fields
+          )
+            .then(res => {
+              ToastAndroid.show('Cập nhật thành công.', ToastAndroid.SHORT);
+            })
+            .catch(err => console.log(err));
+          Promise.all([postAPI, updateField]).then(res => {
+            setIsLoading(false);
+            dispatch(update(curUser.jwtToken));
+          });
+        }
       }
-    }
+    };
+    fetch();
     // else console.log('update cc');
   }, [route.params?.update, route.params?.data]);
   useEffect(() => {
@@ -271,21 +285,21 @@ function Profile({ userId }) {
   const renderItem = ({ item }) => {
     return <PostCard onViewImage={onViewImage} post={item} />;
   };
-  const renderBadge = item => {
-    return (
-      <View
-        style={{
-          borderColor: item.color,
-          ...styles.badgeContainer,
-        }}
-      >
-        <Image style={{ width: 20, height: 24 }} source={item.badge} />
-        <Text style={{ color: item.color, ...styles.badgeText }}>
-          {item.name}
-        </Text>
-      </View>
-    );
-  };
+  // const renderBadge = item => {
+  //   return (
+  //     <View
+  //       style={{
+  //         borderColor: item.color,
+  //         ...styles.badgeContainer,
+  //       }}
+  //     >
+  //       <Image style={{ width: 20, height: 24 }} source={item.badge} />
+  //       <Text style={{ color: item.color, ...styles.badgeText }}>
+  //         {item.name}
+  //       </Text>
+  //     </View>
+  //   );
+  // };
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 300,
@@ -531,42 +545,21 @@ function Profile({ userId }) {
                       marginLeft: 16,
                     }}
                   >
-                    {fields.map((item, index) => (
+                    {data.fields.map((item, index) => (
                       <TouchableOpacity
                         onPress={() =>
-                          navigation.navigate(navigationConstants.listField)
+                          navigation.navigate(navigationConstants.listField, {
+                            userId: data.oid,
+                          })
                         }
                         key={index}
                       >
-                        {item.level == 1
-                          ? renderBadge({
-                              name: item.name,
-                              badge: item.badge,
-                              color: badge_level1,
-                            })
-                          : item.level == 2
-                          ? renderBadge({
-                              name: item.name,
-                              badge: item.badge,
-                              color: badge_level2,
-                            })
-                          : item.level == 3
-                          ? renderBadge({
-                              name: item.name,
-                              badge: item.badge,
-                              color: badge_level3,
-                            })
-                          : item.level == 4
-                          ? renderBadge({
-                              name: item.name,
-                              badge: item.badge,
-                              color: badge_level4,
-                            })
-                          : renderBadge({
-                              name: item.name,
-                              badge: item.badge,
-                              color: badge_level5,
-                            })}
+                        <Badge
+                          item={{
+                            name: item.level_name,
+                            description: item.field_name,
+                          }}
+                        />
                       </TouchableOpacity>
                     ))}
                   </View>

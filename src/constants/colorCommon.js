@@ -7,7 +7,7 @@ export const hint_color = '#9E9E9E';
 export const btn_not_selected = '#757575';
 export const btn_selected = '#2A8383';
 
-export const badge_level1 = '#FFA500';
+export const badge_level1 = '#FFB404';
 export const badge_level2 = '#71C6C6';
 export const badge_level3 = '#B08D57';
 export const badge_level4 = '#9E9A9A';

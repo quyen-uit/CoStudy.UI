@@ -53,6 +53,7 @@ import CommentService from 'controllers/CommentService';
 import PostService from 'controllers/PostService';
 import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
 import { update } from 'actions/UserActions';
+import Badge from 'components/common/Badge';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -330,13 +331,13 @@ function Post(props) {
         comments.forEach(x => {
           x.opacity = 1;
         });
-        
+
         setImgComment('');
         setComment('');
         setIsEdit(false);
 
         setSending(false);
-        
+
         Toast.show({
           type: 'success',
           position: 'top',
@@ -577,12 +578,15 @@ function Post(props) {
                 </View>
 
                 <View style={styles.containerTag}>
-                  {post.fields
-                    ? post.fields.map((item, index) => (
+                  {post.field
+                    ? post.field.map((item, index) => (
                         <TouchableOpacity key={index}>
-                          <View style={styles.btnTag}>
-                            <Text style={styles.txtTag}>{item.value}</Text>
-                          </View>
+                          <Badge
+                            item={{
+                              name: item.level_name,
+                              description: item.field_name,
+                            }}
+                          />
                         </TouchableOpacity>
                       ))
                     : null}
