@@ -35,7 +35,7 @@ export const getAPI = jwtToken => {
           isRefreshing = true;
 
           await axios
-            .post('http://192.168.36.2/api/Accounts/refresh-token')
+            .post('http://192.168.207.91:8015/api/Accounts/refresh-token')
             .then(response => {
               isRefreshing = false;
               store.dispatch(update(response.data.result.jwtToken));

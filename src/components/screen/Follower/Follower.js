@@ -60,12 +60,18 @@ function UserCard({ item }) {
       <TouchableHighlight
         underlayColor={touch_color}
         style={styles.card}
+        onPress={() =>
+          navigation.navigate(navigationConstants.profile, {
+            id: item.from_id,
+            callback: onCallback,
+          })
+        }
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
             <TouchableOpacity
               onPress={() =>
-                navigation.push(navigationConstants.profile, {
+                navigation.navigate(navigationConstants.profile, {
                   id: item.from_id,
                   callback: onCallback,
                 })

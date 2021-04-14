@@ -106,7 +106,8 @@ function Profile({ userId }) {
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
   const [data, setData] = useState(curUser);
-
+  //const [data,setData] = useState();
+  const [fields,setFields] = useState([]);
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
@@ -169,6 +170,7 @@ function Profile({ userId }) {
             route.params.fields
           )
             .then(res => {
+              setFields(res.data.result.fields);
               ToastAndroid.show('Cập nhật thành công.', ToastAndroid.SHORT);
             })
             .catch(err => console.log(err));
@@ -196,6 +198,7 @@ function Profile({ userId }) {
       await UserService.getUser(curUser.jwtToken, url)
         .then(async resUser => {
           setData(resUser.data.result);
+          setFields(resUser.data.result.fields);
           setAvatar(resUser.data.result.avatar.image_hash);
           if (route.params?.id) {
             await FollowService.getFollowingByUserId(curUser.jwtToken, {
@@ -543,9 +546,10 @@ function Profile({ userId }) {
                     style={{
                       flexDirection: 'row',
                       marginLeft: 16,
+                      flexWrap: 'wrap',
                     }}
                   >
-                    {data.fields.map((item, index) => (
+                    {fields.map((item, index) => (
                       <TouchableOpacity
                         onPress={() =>
                           navigation.navigate(navigationConstants.listField, {

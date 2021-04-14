@@ -2,6 +2,7 @@ import { useTheme, useNavigation } from '@react-navigation/native';
 import { Card } from 'react-native-elements';
 import moment from 'moment';
 import React, { useState, useEffect } from 'react';
+import DateRangePicker from '../../common/DateRangePicker';
 import {
   Text,
   FlatList,
@@ -88,7 +89,7 @@ function UserCard({ item }) {
                 navigation.push(navigationConstants.profile, {
                   id: item.oid,
                   callback: onCallback,
-                 })
+                })
               }
             >
               <Image
@@ -166,7 +167,11 @@ function Search() {
   const [fieldPickers, setFieldPickers] = useState([]);
   const [posts, setPosts] = useState([]);
   const [users, setUsers] = useState([]);
-
+  // date
+  const [rangeDate, setRangeDate] = useState({
+    startDate: '1/1/2020',
+    endDate: moment(moment.now()).format('DD/MM/YYYY'),
+  });
   // show modal
   const [modalVisible, setModalVisible] = useState(false);
   // 0 main , 1 field, 2 time, 3 vote
@@ -674,6 +679,8 @@ function Search() {
               </TouchableOpacity>
             ) : modalOrder == 1 ? (
               <Text style={styles.md_txtHeader}>Lĩnh vực</Text>
+            ) : modalOrder == 4 ? (
+              <Text style={styles.md_txtHeader}>Khoảng thời gian</Text>
             ) : modalOrder == 2 ? (
               <Text style={styles.md_txtHeader}>Thời gian</Text>
             ) : modalOrder == 3 ? (
@@ -697,9 +704,34 @@ function Search() {
           );
         }}
       >
+        {/* {<ModalContent style={{ marginHorizontal: -16 }}>
+            <DateRangePicker
+        initialRange={['2018-04-01', '2018-04-10']}
+        onSuccess={(s, e) => alert(s + '||' + e)}
+        theme={{ markColor: 'red', markTextColor: 'white' }}
+      /></ModalContent>} */}
         {modalOrder == 0 ? (
           <ModalContent style={{ marginHorizontal: -16 }}>
             <View>
+              <View>
+                <TouchableOpacity onPress={() => setModalOrder(4)}>
+                  <View style={styles.md_field}>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon
+                        name={'question-circle'}
+                        size={20}
+                        color={main_color}
+                      />
+                      <Text style={styles.md_txtfield}>Khoảng thời gian</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Text style={styles.md_txtchoose}>
+                        {rangeDate.startDate} - {rangeDate.endDate}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
               <View>
                 <TouchableOpacity onPress={() => setModalOrder(1)}>
                   <View style={styles.md_field}>
@@ -784,7 +816,7 @@ function Search() {
                 </TouchableOpacity>
               </View>
               <View>
-                <TouchableOpacity onPress={() => setModalOrder(4)}>
+                <TouchableOpacity onPress={() => setModalOrder(5)}>
                   <View style={styles.md_field}>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -1067,6 +1099,17 @@ function Search() {
             </View>
           </ModalContent>
         ) : modalOrder == 4 ? (
+          <ModalContent>
+            <DateRangePicker
+              initialRange={['2018-04-01', '2018-04-10']}
+              onSuccess={(s, e) => {
+                setModalOrder(0);
+                setRangeDate({ startDate: s, endDate: e });
+              }}
+              theme={{ markColor: 'red', markTextColor: 'white' }}
+            />
+          </ModalContent>
+        ) : modalOrder == 5 ? (
           <ModalContent>
             <View>
               <View>

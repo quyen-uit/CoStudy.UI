@@ -17,7 +17,7 @@ class ChatService {
   }
 
   static async getCurrentConversation(jwtToken) {
-    return await getAPI(jwtToken).get(api + 'Message/conversation/current');
+    return await getAPI(jwtToken).get(api + 'conversation/current');
   }
 
   static async deleteMessageById(jwtToken, id) {
@@ -27,7 +27,8 @@ class ChatService {
   static async createMessage(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'Message/message/add', {
       conversation_id: params.conversation_id,
-      content: params.message,
+      content: [params.message],
+      message_type: 0
     });
   }
 
@@ -40,9 +41,16 @@ class ChatService {
           image_hash: params.url,
         },
       ],
+      message_type: 1
     });
   }
-
+  static async createPostMessage(jwtToken, params) {
+    return await getAPI(jwtToken).post(api + 'Message/message/add', {
+      conversation_id: params.conversation_id,
+      postId: params.post_id,
+      message_type: 1
+    });
+  }
   static async getAllMessage(jwtToken, params) {
     return await getAPI(jwtToken).get(
       api +

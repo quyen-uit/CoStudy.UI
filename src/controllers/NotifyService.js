@@ -13,10 +13,14 @@ class NotifyService {
   // }
 
   static async getAllNotify(jwtToken, skip, count) {
-    return await getAPI(jwtToken).get(api + 'Noftication/current', {
-      skip: skip ? skip : 0,
-      count: count ? count : 100,
-    });
+    return await getAPI(jwtToken).get(api + 'Noftication/current');
+  }
+  static async deleteById(jwtToken,id){
+    return await getAPI(jwtToken).delete(api + 'Noftication/' + id);
+  }
+  // ???
+  static async readNotify(jwtToken,id){
+    return await getAPI(jwtToken).put(api + 'Noftication/read?id=' + id);
   }
 }
 

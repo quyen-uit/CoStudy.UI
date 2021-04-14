@@ -73,7 +73,27 @@ class PostService {
     return await getAPI(jwtToken).post(api + `Post/filter`, {
       skip: params.skip,
       count: params.count,
-      keyword: params.search,
+      content_filter: {
+        keyword: params.search,
+        is_sort_descending: true
+      },
+      created_date_filter: {
+        from_date: params.startDate,
+        to_date: params.endDate,
+        is_sort_descending: params.isDescending
+      },
+      upvote_count_filter: {
+        value_from: 0,
+        value_to: 999,
+        is_sort_descending: params.isDescending
+      },
+      comment_count_filter: 
+      {
+        value_from: 0,
+        value_to: 999,
+        is_sort_descending: params.isDescending
+      },
+      level_filter: params.fields
     });
   }
 }

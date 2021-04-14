@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
 
-    marginTop: 8,
+     
     justifyContent: 'center',
     borderTopColor: main_color,
     borderTopWidth: 0.5,

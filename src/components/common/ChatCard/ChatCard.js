@@ -53,7 +53,7 @@ function ChatCard(props) {
       name: chat.name,
       modified_date: date,
       avatar: chat.avatar,
-      content: value,
+      content: [value],
       id: chat.id,
       isUnread: false,
     });

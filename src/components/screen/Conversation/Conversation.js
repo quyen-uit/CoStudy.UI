@@ -1,4 +1,4 @@
-import { useTheme, useRoute } from '@react-navigation/native';
+import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Image,
@@ -51,19 +51,28 @@ import {
 import ImageView from 'react-native-image-viewing';
 
 import ChatService from 'controllers/ChatService';
+import navigationConstants from 'constants/navigation';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
- 
 
-function RightMessage({ item, onViewImage,onDelete }) {
+function RightMessage({ item, onViewImage, onDelete }) {
   const [showTime, setShowTime] = useState(false);
   const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
+  const onUpvoteCallback = useCallback();
+  const onDownvoteCallback = useCallback();
+  const onCommentCallback = useCallback();
+  const onVoteCallback = useCallback();
+
   const onDelete1 = React.useCallback(value => {
     setVisible(true);
   });
-   return (
-    <TouchableOpacity onLongPress={()=>setModalVisible(true)} onPress={() => setShowTime(!showTime)}>
+  return (
+    <TouchableOpacity
+      onLongPress={() => setModalVisible(true)}
+      onPress={() => setShowTime(!showTime)}
+    >
       <View style={styles.containerRightMessage}>
         <View
           style={[
@@ -88,20 +97,69 @@ function RightMessage({ item, onViewImage,onDelete }) {
         </View>
 
         <View>
-          {item.media_content.length > 0 ? (
+          {item.message_type == 1 ? (
             <TouchableOpacity
-              onPress={() => onViewImage(true, item.media_content[0].image_hash)}
+              onPress={() => onViewImage(true, item.content[0].image_hash)}
             >
               <Image
                 style={{ width: 200, height: 300, marginRight: 8 }}
-                source={{ uri: item.media_content[0].image_hash }}
+                source={{ uri: item.content[0].image_hash }}
               />
             </TouchableOpacity>
-          ) : (
+          ) : item.message_type == 0 ? (
             <View style={styles.boxRightMessage}>
-              <Text style={{ color: '#ffffff' }}>{item.string_content}</Text>
+              <Text style={{ color: '#ffffff' }}>{item.content[0]}</Text>
             </View>
-          )}
+          ) : item.message_type == 3 ? (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate(navigationConstants.post, {
+                  post: item.content,
+                  author: item.content.author_name,
+                  vote: 1,
+                  upvote: item.content.upvote,
+                  commentCount: item.content.comment_count,
+                  downvote: item.content.downvote,
+                  onUpvote: onUpvoteCallback,
+                  onDownvote: onDownvoteCallback,
+                  onComment: onCommentCallback,
+                  onVote: onVoteCallback,
+                })
+              }
+              style={styles.boxRightMessage}
+            >
+              <View>
+                <View style={{ flexDirection: 'row' }}>
+                  <Image
+                    source={{ uri: item.content.author_avatar }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      borderWidth: 0.5,
+                      marginRight: 8,
+                    }}
+                  />
+                  <View>
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                      {item.content.title}
+                    </Text>
+                    <Text style={{ color: '#ccc', fontSize: 12 }}>
+                      {item.content.author_name}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={{ color: '#fff' }} numberOfLines={3}>
+                  {item.content.string_contents[0].content.length < 80
+                    ? `${item.content.string_contents[0].content}`
+                    : `${item.content.string_contents[0].content.substring(
+                        0,
+                        200
+                      )}...`}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
       {showTime ? (
@@ -129,7 +187,7 @@ function RightMessage({ item, onViewImage,onDelete }) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
-        onDelete = {onDelete1}
+        onDelete={onDelete1}
       />
       <Modal
         visible={visible}
@@ -174,22 +232,33 @@ function LeftMessage({ item, onViewImage, avatar }) {
             <Image style={styles.imgAvatar} source={{ uri: avatar }} />
           </View>
 
-          {item.media_content != null ? (
+          {item.message_type == 1 ? (
             <TouchableOpacity
-              onPress={() => onViewImage(true, item.media_content.image_hash)}
+              onPress={() => onViewImage(true, item.content[0].image_hash)}
             >
               <Image
-                style={{ width: 200, height: 300, marginLeft: 8, borderRadius: 8, borderWidth: 0.5, borderColor: main_color }}
-                source={{ uri: item.media_content.image_hash }}
+                style={{
+                  width: 200,
+                  height: 300,
+                  marginLeft: 8,
+                  borderRadius: 8,
+                  borderWidth: 0.5,
+                  borderColor: main_color,
+                }}
+                source={{ uri: item.content[0].image_hash }}
               />
             </TouchableOpacity>
-          ) : (
+          ) : item.message_type == 0 ? (
             <View style={styles.shirk1}>
               <View style={styles.boxMessage}>
-                <Text>{item.string_content}</Text>
+                <Text>{item.content[0]}</Text>
               </View>
             </View>
-          )}
+          ) : item.message_type == 3 ? (
+            <View>
+              <Text>Bài đăng</Text>
+            </View>
+          ) : null}
         </View>
         {showTime ? (
           <View style={styles.timeLeft}>
@@ -209,7 +278,6 @@ function LeftMessage({ item, onViewImage, avatar }) {
           </View>
         ) : null}
       </View>
-      
     </TouchableOpacity>
   );
 }
@@ -221,7 +289,6 @@ function Conversation(props) {
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
   const [message, setMessage] = useState('');
-
 
   const flatListRef = useRef();
   const [chosing, setChosing] = useState(false);
@@ -235,18 +302,14 @@ function Conversation(props) {
   });
   const onDeleteCallBack = React.useCallback(async id => {
     let tmp = listMes.filter(i => i.oid !== id);
-     
+
     setListMes([...tmp]);
-    
+
     await ChatService.deleteMessageById(id)
-      .then(res =>
-        setTimeout(
-          () => ToastAndroid.show('Đã xóa', 1000),
-          1000
-        )
-      ).catch(err=> {
+      .then(res => setTimeout(() => ToastAndroid.show('Đã xóa', 1000), 1000))
+      .catch(err => {
         console.log(err);
-        ToastAndroid.show('Xóa thất bại.', 1000)
+        ToastAndroid.show('Xóa thất bại.', 1000);
       });
   });
   //lazy
@@ -285,7 +348,9 @@ function Conversation(props) {
         id: '',
         sender_id: res.SenderId,
         conversation_id: res.ConversationId,
-        media_content: res.MediaContent ? {image_hash: res.MediaContent.ImageUrl} :  res.MediaContent ,
+        media_content: res.MediaContent
+          ? { image_hash: res.MediaContent.ImageUrl }
+          : res.MediaContent,
         string_content: res.StringContent,
         status: res.Status,
         created_date: res.CreatedDate,
@@ -308,7 +373,11 @@ function Conversation(props) {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await ChatService.getAllMessage(jwtToken, {conversation_id: conversation_id, skip: skip, count: 15})
+      await ChatService.getAllMessage(jwtToken, {
+        conversation_id: conversation_id,
+        skip: skip,
+        count: 15,
+      })
         .then(response => {
           response.data.result.forEach(i => (i.sending = false));
           if (isRender) {
@@ -331,8 +400,8 @@ function Conversation(props) {
       id: '',
       sender_id: userInfo.id,
       media_content: [],
-      string_content: message,
-
+      content: [message],
+      message_type: 0,
       created_date: new Date(),
       modified_date: new Date(),
       sending: true,
@@ -340,7 +409,10 @@ function Conversation(props) {
     setMessage('');
     setListMes([tmp, ...listMes]);
 
-    await ChatService.createMessage(jwtToken, {conversation_id: conversation_id, message: message})
+    await ChatService.createMessage(jwtToken, {
+      conversation_id: conversation_id,
+      message: message,
+    })
       .then(response => {
         // setListMes([...listMes, response.data.result]);
         listMes.forEach(i => {
@@ -348,7 +420,7 @@ function Conversation(props) {
         });
         if (route.params?.callback) {
           route.params.callback(
-            'Bạn: ' + response.data.result.string_content,
+            'Bạn: ' + response.data.result.content[0],
             new Date()
           );
         }
@@ -357,25 +429,32 @@ function Conversation(props) {
             id: '',
             sender_id: userInfo.id,
             media_content: response.data.result.media_content,
-            string_content: response.data.result.string_content,
+            content: response.data.result.content,
             conversation_id: response.data.result.conversation_id,
             created_date: response.data.result.created_date,
             modified_date: response.data.result.modified_date,
             sending: false,
+            message_type: 0,
           },
           ...listMes,
         ]);
         setSending(false);
       })
       .catch(err => {
-       console.log(err);
+        console.log(err);
         setSending(false);
       });
   };
 
   const renderItem = ({ item }) => {
     if (item.sender_id == userInfo.id)
-      return <RightMessage item={item} onViewImage={onViewImage} onDelete={onDeleteCallBack}/>;
+      return (
+        <RightMessage
+          item={item}
+          onViewImage={onViewImage}
+          onDelete={onDeleteCallBack}
+        />
+      );
     else
       return (
         <LeftMessage
@@ -402,8 +481,8 @@ function Conversation(props) {
         const tmp = {
           id: '',
           sender_id: userInfo.id,
-          media_content: [{ image_hash: image.path }],
-
+          content: [{ image_hash: image.path }],
+          message_type: 1,
           created_date: new Date(),
           modified_date: new Date(),
           sending: true,
@@ -435,13 +514,16 @@ function Conversation(props) {
                 .ref(response.metadata.fullPath)
                 .getDownloadURL()
                 .then(async url => {
-                  await ChatService.createImageMessage(jwtToken, {conversation_id: conversation_id, url: url})
+                  await ChatService.createImageMessage(jwtToken, {
+                    conversation_id: conversation_id,
+                    url: url,
+                  })
                     .then(response => {
                       const tmp = {
                         id: '',
                         sender_id: userInfo.id,
-                        media_content: [{ image_hash: image.path }],
-
+                        content: [{ image_hash: image.path }],
+                        message_type: 1,
                         created_date: new Date(),
                         modified_date: new Date(),
                         sending: false,
@@ -477,8 +559,8 @@ function Conversation(props) {
         const tmp = {
           id: '',
           sender_id: userInfo.id,
-          media_content: [{ image_hash: image.path }],
-
+          content: [{ image_hash: image.path }],
+          message_type: 1,
           created_date: new Date(),
           modified_date: new Date(),
           sending: true,
@@ -510,13 +592,16 @@ function Conversation(props) {
                 .ref(response.metadata.fullPath)
                 .getDownloadURL()
                 .then(async url => {
-                  await ChatService.createImageMessage(jwtToken, {conversation_id: conversation_id, url: url})
+                  await ChatService.createImageMessage(jwtToken, {
+                    conversation_id: conversation_id,
+                    url: url,
+                  })
                     .then(response => {
                       const tmp = {
                         id: '',
                         sender_id: userInfo.id,
-                        media_content: [{ image_hash: image.path }],
-
+                        content: [{ image_hash: image.path }],
+                        message_type: 1,
                         created_date: new Date(),
                         modified_date: new Date(),
                         sending: false,
@@ -538,7 +623,11 @@ function Conversation(props) {
     });
   };
   const fetchData = async () => {
-    await ChatService.getAllMessage(jwtToken, {conversation_id: conversation_id, skip: skip, count: 15})
+    await ChatService.getAllMessage(jwtToken, {
+      conversation_id: conversation_id,
+      skip: skip,
+      count: 15,
+    })
       .then(response => {
         response.data.result.forEach(i => (i.sending = false));
         setListMes([...listMes, ...response.data.result]);
@@ -725,7 +814,7 @@ function Conversation(props) {
           </TouchableOpacity>
         </View>
       ) : null}
-       <ImageView
+      <ImageView
         images={[{ uri: imgMessage }]}
         imageIndex={0}
         visible={visible}

@@ -87,7 +87,7 @@ function UserCard({ item }) {
           <View style={styles.headerAvatar}>
             <TouchableOpacity
               onPress={() =>
-                navigation.push(navigationConstants.profile, {
+                navigation.navigate(navigationConstants.profile, {
                   id: item.to_id,
                   callback: onCallback,
                 })
