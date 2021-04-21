@@ -47,8 +47,8 @@ class ChatService {
   static async createPostMessage(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'Message/message/add', {
       conversation_id: params.conversation_id,
-      postId: params.post_id,
-      message_type: 1
+      post_id: params.post_id,
+      message_type: 3
     });
   }
   static async getAllMessage(jwtToken, params) {

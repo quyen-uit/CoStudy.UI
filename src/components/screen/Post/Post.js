@@ -131,13 +131,20 @@ function Post(props) {
   });
 
   useEffect(() => {
-    route.params.onUpvote(upvote);
-    route.params.onVote(vote);
+    if(typeof route.params.onUpvote == 'function' && typeof route.params.onVote == 'function')
+    {
+      route.params.onUpvote(upvote);
+      route.params.onVote(vote);
+    }
   }, [upvote]);
 
   useEffect(() => {
-    route.params.onDownvote(downvote);
-    route.params.onVote(vote);
+    if(typeof route.params.onDownvote == 'function' && typeof route.params.onVote == 'function')
+    {
+      route.params.onDownvote(downvote);
+      route.params.onVote(vote);
+    }
+   
   }, [downvote]);
 
   useEffect(() => {
@@ -421,7 +428,8 @@ function Post(props) {
         setComments(comments.concat(response.data.result));
         setSending(false);
         setCommentCount(commentCount + 1);
-        route.params.onComment(commentCount + 1);
+        if(typeof route.params.onComment == 'function')
+          route.params.onComment(commentCount + 1);
         Toast.show({
           type: 'success',
           position: 'top',

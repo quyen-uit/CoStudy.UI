@@ -50,12 +50,16 @@ class UserService {
   static async getUser(jwtToken, url) {
     return await getAPI(jwtToken).get(api + url);
   }
- 
+
   static async filterUser(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'User/user/filter', {
-      keyword: params.search,
       skip: params.skip,
       count: params.count,
+      keyword: params.search,
+
+      filter_type: params.sortObject, //
+      order_type: params.sortType, // 0 asc, 1 desc
+      field_filter: params.fields,
     });
   }
 }

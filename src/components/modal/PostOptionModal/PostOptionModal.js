@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ToastAndroid, Text, View, TouchableHighlight } from 'react-native';
+import {
+  ToastAndroid,
+  Text,
+  View,
+  TouchableHighlight,
+  FlatList,
+  Dimensions,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { main_color } from 'constants/colorCommon';
 import { getJwtToken, getUser } from 'selectors/UserSelectors';
@@ -14,22 +24,36 @@ import Modal, {
 import styles from './styles';
 import PostService from 'controllers/PostService';
 import navigationConstants from 'constants/navigation';
-
+import ChatService from 'controllers/ChatService';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 // const chat = {
 //   title: 'Đây là title',
 //   author: 'Nguyễn Văn Nam',
 //   latestChat: 'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
 //   latestTime: '10 phut truoc',
 // }
-
+const list = [
+  {
+    name: 'Nguyễn Văn A',
+  },
+  {
+    name: 'Nguyen Le diem kieu',
+  },
+  {
+    name: 'Dang Van B',
+  },
+];
 const PostOptionModal = ({ ...rest }) => {
   const curUser = useSelector(getUser);
   const jwtToken = useSelector(getJwtToken);
   const [saved, setSaved] = useState(rest.saved);
   const [isSaving, setIsSaving] = useState(false);
   const [isMe, setIsMe] = useState(false);
-
+  const [list, setList] = useState(list);
+  const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
+  const [modalOrder, setModalOrder] = useState(1);
   useEffect(() => {
     if (rest.id != null) {
       PostService.getPostById(curUser.jwtToken, rest.id)
@@ -40,6 +64,54 @@ const PostOptionModal = ({ ...rest }) => {
     }
     return () => {};
   }, [rest.id]);
+
+  useEffect(() => {
+    // const fetch = async () => {
+    //   await ChatService.getCurrentConversation(jwtToken).then(res => {
+    //     res.data.result.conversations.forEach(item => {
+    //       let tmp = {};
+    //       tmp.conversationId = item.conversation.oid;
+    //       if (item.conversation.participants[0].member_id == curUser.oid) {
+    //         tmp.name = item.conversation.participants[1].member_name;
+    //         tmp.avatar = item.conversation.participants[1].member_avatar;
+    //       } else {
+    //         tmp.name = item.conversation.participants[0].member_name;
+    //         tmp.avatar = item.conversation.participants[0].member_avatar;
+    //       }
+    //       setList([...list, tmp]);
+    //     });
+    //     setIsLoading(false);
+    //     // name, conversation_id, avatar,
+    //   });
+    // };
+    //fetch();
+    return () => {};
+  }, [rest.id]);
+  // const onShare = async id => {
+  //   rest.onVisible(false);
+  //   await ChatService.createPostMessage(jwtToken, {
+  //     conversation_id: id,
+  //     post_id: item.id,
+  //   });
+  // };
+
+  // const fetch = async () => {
+  //   await ChatService.getCurrentConversation(jwtToken).then(res => {
+  //     res.data.result.conversations.forEach(item => {
+  //       let tmp = {};
+  //       tmp.conversationId = item.conversation.oid;
+  //       if (item.conversation.participants[0].member_id == curUser.oid) {
+  //         tmp.name = item.conversation.participants[1].member_name;
+  //         tmp.avatar = item.conversation.participants[1].member_avatar;
+  //       } else {
+  //         tmp.name = item.conversation.participants[0].member_name;
+  //         tmp.avatar = item.conversation.participants[0].member_avatar;
+  //       }
+  //     });
+  //     setList([...list, tmp]);
+  //     // name, conversation_id, avatar,
+  //   });
+  // };
 
   const onSaved = async () => {
     rest.onVisible(false);
@@ -70,6 +142,44 @@ const PostOptionModal = ({ ...rest }) => {
         });
     }
   };
+  const renderItem = item => {
+    return (
+      <View style={styles.optionContainer}>
+        <View
+          style={{
+            flexDirection: 'row',
+            margin: 4,
+            justifyContent: 'space-around',
+            alignItems: 'center',
+          }}
+        >
+          <View style={{ flexDirection: 'row' }}>
+            <Image
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                marginRight: 8,
+              }}
+              //source={{ uri: item.avatar }}
+              source={require('../../../assets/fb.png')}
+            />
+            <Text>{item.name}</Text>
+          </View>
+          <TouchableOpacity
+            //onPress={async () => await onShare(item.conversation_id)}
+            style={{
+              padding: 4,
+              backgroundColor: main_color,
+              borderRadius: 8,
+            }}
+          >
+            <Text>Gửi</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
   return (
     <BottomModal
       {...rest}
@@ -97,42 +207,67 @@ const PostOptionModal = ({ ...rest }) => {
         })
       }
     >
-      <ModalContent style={styles.content}>
-        <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
-          <View style={styles.optionContainer}>
-            <Icon
-              name={'times'}
-              color={main_color}
-              size={24}
-              style={{ marginHorizontal: 5 }}
-            />
-            <Text style={styles.txtOption}>Ẩn bài viết này</Text>
-          </View>
-        </TouchableHighlight>
-        <TouchableHighlight
-          underlayColor={'#000'}
-          onPress={() => {
-            if (isSaving == false) onSaved();
-            else ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
-          }}
-        >
-          <View style={styles.optionContainer}>
-            <Icon name={'eye'} color={saved ? main_color : '#ccc'} size={24} />
-            <Text style={styles.txtOption}>
-              {saved
-                ? 'Xóa khỏi danh sách quan tâm'
-                : 'Thêm vào danh sách quan tâm'}
-            </Text>
-          </View>
-        </TouchableHighlight>
-        {isMe ? (
+      {modalOrder == 1 ? (
+        <ModalContent style={styles.content}>
+          <TouchableHighlight
+            underlayColor={'#000'}
+            onPress={async () => setModalOrder(2)}
+          >
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'times'}
+                color={main_color}
+                size={24}
+                style={{ marginHorizontal: 5 }}
+              />
+              <Text style={styles.txtOption}>Chia sẻ bài viết cho...</Text>
+            </View>
+          </TouchableHighlight>
           <TouchableHighlight
             underlayColor={'#000'}
             onPress={() => {
-              navigation.navigate(navigationConstants.create, {
-                postId: rest.id,
-                isEdit: true,
-              });
+              if (isSaving == false) onSaved();
+              else ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
+            }}
+          >
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'eye'}
+                color={saved ? main_color : '#ccc'}
+                size={24}
+              />
+              <Text style={styles.txtOption}>
+                {saved
+                  ? 'Xóa khỏi danh sách quan tâm'
+                  : 'Thêm vào danh sách quan tâm'}
+              </Text>
+            </View>
+          </TouchableHighlight>
+          {isMe ? (
+            <TouchableHighlight
+              underlayColor={'#000'}
+              onPress={() => {
+                navigation.navigate(navigationConstants.create, {
+                  postId: rest.id,
+                  isEdit: true,
+                });
+              }}
+            >
+              <View style={styles.optionContainer}>
+                <Icon
+                  name={'flag'}
+                  color={main_color}
+                  size={24}
+                  style={{ marginHorizontal: 2 }}
+                />
+                <Text style={styles.txtOption}>Sửa bài viết</Text>
+              </View>
+            </TouchableHighlight>
+          ) : null}
+          <TouchableHighlight
+            underlayColor={'#000'}
+            onPress={() => {
+              ToastAndroid.show('Đã báo cáo', ToastAndroid.SHORT);
             }}
           >
             <View style={styles.optionContainer}>
@@ -142,27 +277,40 @@ const PostOptionModal = ({ ...rest }) => {
                 size={24}
                 style={{ marginHorizontal: 2 }}
               />
-              <Text style={styles.txtOption}>Sửa bài viết</Text>
+              <Text style={styles.txtOption}>Báo cáo</Text>
             </View>
           </TouchableHighlight>
-        ) : null}
-        <TouchableHighlight
-          underlayColor={'#000'}
-          onPress={() => {
-            ToastAndroid.show('Đã báo cáo', ToastAndroid.SHORT);
-          }}
-        >
-          <View style={styles.optionContainer}>
-            <Icon
-              name={'flag'}
-              color={main_color}
-              size={24}
-              style={{ marginHorizontal: 2 }}
+        </ModalContent>
+      ) : (
+        <ModalContent style={styles.content}>
+          <View>
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              data={list}
+              renderItem={renderItem}
+              keyExtractor={(item, index) => index.toString()}
             />
-            <Text style={styles.txtOption}>Báo cáo</Text>
           </View>
-        </TouchableHighlight>
-      </ModalContent>
+          {isLoading ? (
+            <View
+              style={{
+                position: 'absolute',
+                justifyContent: 'center',
+                backgroundColor: '#cccccc',
+                opacity: 0.5,
+                width: deviceWidth,
+                height: deviceHeight - 20,
+              }}
+            >
+              <ActivityIndicator
+                size="large"
+                color={main_color}
+                style={{ marginBottom: 100 }}
+              />
+            </View>
+          ) : null}
+        </ModalContent>
+      )}
     </BottomModal>
   );
 };

@@ -70,30 +70,19 @@ class PostService {
   }
 
   static async filterPost(jwtToken, params) {
+     
+
     return await getAPI(jwtToken).post(api + `Post/filter`, {
       skip: params.skip,
       count: params.count,
-      content_filter: {
-        keyword: params.search,
-        is_sort_descending: true
+      content_filter: params.search,
+      from_date: params.startDate,
+      to_date: params.endDate,
+      sort_object: params.sortObject, //
+      sort_type: params.sortType, // 0 asc, 1 desc
+      level_filter: {
+        filter_items: params.fields,
       },
-      created_date_filter: {
-        from_date: params.startDate,
-        to_date: params.endDate,
-        is_sort_descending: params.isDescending
-      },
-      upvote_count_filter: {
-        value_from: 0,
-        value_to: 999,
-        is_sort_descending: params.isDescending
-      },
-      comment_count_filter: 
-      {
-        value_from: 0,
-        value_to: 999,
-        is_sort_descending: params.isDescending
-      },
-      level_filter: params.fields
     });
   }
 }

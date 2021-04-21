@@ -60,10 +60,10 @@ function RightMessage({ item, onViewImage, onDelete }) {
   const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
-  const onUpvoteCallback = useCallback();
-  const onDownvoteCallback = useCallback();
-  const onCommentCallback = useCallback();
-  const onVoteCallback = useCallback();
+  // const onUpvoteCallback = useCallback();
+  // const onDownvoteCallback = useCallback();
+  // const onCommentCallback = useCallback();
+  // const onVoteCallback = useCallback();
 
   const onDelete1 = React.useCallback(value => {
     setVisible(true);
@@ -112,20 +112,20 @@ function RightMessage({ item, onViewImage, onDelete }) {
             </View>
           ) : item.message_type == 3 ? (
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate(navigationConstants.post, {
-                  post: item.content,
-                  author: item.content.author_name,
-                  vote: 1,
-                  upvote: item.content.upvote,
-                  commentCount: item.content.comment_count,
-                  downvote: item.content.downvote,
-                  onUpvote: onUpvoteCallback,
-                  onDownvote: onDownvoteCallback,
-                  onComment: onCommentCallback,
-                  onVote: onVoteCallback,
-                })
-              }
+              onPress={() => {
+                if (item.content.is_vote_by_current)
+                  navigation.navigate(navigationConstants.post, {
+                    post: item.content,
+                    vote: item.content.is_vote_by_current
+                      ? 1
+                      : item.content.is_downvote_by_curren
+                      ? -1
+                      : 0,
+                    upvote: item.content.upvote,
+                    commentCount: item.content.comment_count,
+                    downvote: item.content.downvote,
+                  });
+              }}
               style={styles.boxRightMessage}
             >
               <View>
@@ -141,7 +141,7 @@ function RightMessage({ item, onViewImage, onDelete }) {
                     }}
                   />
                   <View>
-                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                    <Text style={{ color: '#fff', fontWeight: 'bold',fontSize: 14}}>
                       {item.content.title}
                     </Text>
                     <Text style={{ color: '#ccc', fontSize: 12 }}>
@@ -149,7 +149,7 @@ function RightMessage({ item, onViewImage, onDelete }) {
                     </Text>
                   </View>
                 </View>
-                <Text style={{ color: '#fff' }} numberOfLines={3}>
+                <Text style={{ color: '#fff',marginHorizontal: 8}} numberOfLines={3}>
                   {item.content.string_contents[0].content.length < 80
                     ? `${item.content.string_contents[0].content}`
                     : `${item.content.string_contents[0].content.substring(
@@ -255,9 +255,56 @@ function LeftMessage({ item, onViewImage, avatar }) {
               </View>
             </View>
           ) : item.message_type == 3 ? (
-            <View>
-              <Text>Bài đăng</Text>
-            </View>
+            (
+              <TouchableOpacity
+                onPress={() => {
+                  if (item.content.is_vote_by_current)
+                    navigation.navigate(navigationConstants.post, {
+                      post: item.content,
+                      vote: item.content.is_vote_by_current
+                        ? 1
+                        : item.content.is_downvote_by_curren
+                        ? -1
+                        : 0,
+                      upvote: item.content.upvote,
+                      commentCount: item.content.comment_count,
+                      downvote: item.content.downvote,
+                    });
+                }}
+                style={styles.boxMessage}
+              >
+                <View>
+                  <View style={{ flexDirection: 'row' }}>
+                    <Image
+                      source={{ uri: item.content.author_avatar }}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        borderWidth: 0.5,
+                        marginRight: 8,
+                      }}
+                    />
+                    <View>
+                      <Text style={{ color: '#fff', fontWeight: 'bold',fontSize: 14}}>
+                        {item.content.title}
+                      </Text>
+                      <Text style={{ color: '#ccc', fontSize: 12 }}>
+                        {item.content.author_name}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={{ color: '#fff',marginHorizontal: 8}} numberOfLines={3}>
+                    {item.content.string_contents[0].content.length < 80
+                      ? `${item.content.string_contents[0].content}`
+                      : `${item.content.string_contents[0].content.substring(
+                          0,
+                          200
+                        )}...`}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )
           ) : null}
         </View>
         {showTime ? (

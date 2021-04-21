@@ -159,9 +159,9 @@ function Search() {
   const [search, setSearch] = useState('');
   const [countFilter, setCountFilter] = useState(0);
   const [keyword, setKeyword] = useState('');
-  const [filterTime, setFilterTime] = useState();
-  const [filterVote, setFilterVote] = useState();
-  const [filterComment, setFilterComment] = useState();
+  const [filterTime, setFilterTime] = useState(-1);
+  const [filterVote, setFilterVote] = useState(-1);
+  const [filterComment, setFilterComment] = useState(-1);
   const [amountField, setAmoutField] = useState(0);
   // data
   const [fieldPickers, setFieldPickers] = useState([]);
@@ -169,8 +169,8 @@ function Search() {
   const [users, setUsers] = useState([]);
   // date
   const [rangeDate, setRangeDate] = useState({
-    startDate: '1/1/2020',
-    endDate: moment(moment.now()).format('DD/MM/YYYY'),
+    startDate: moment(moment.now()).subtract(1, 'months'),
+    endDate: moment(moment.now()),
   });
   // show modal
   const [modalVisible, setModalVisible] = useState(false);
@@ -218,68 +218,68 @@ function Search() {
       isRender = false;
     };
   }, []);
-  useEffect(() => {
-    let tmp = 0;
-    if (filterComment > 0) tmp = tmp + 1;
-    if (filterTime > 0) tmp = tmp + 1;
-    if (filterVote > 0) tmp = tmp + 1;
-    fieldPickers.forEach(i => {
-      if (i.isPick) tmp = tmp + 1;
-    });
-    setCountFilter(tmp);
-    //sort
+  // useEffect(() => {
+  //   let tmp = 0;
+  //   if (filterComment > 0) tmp = tmp + 1;
+  //   if (filterTime > 0) tmp = tmp + 1;
+  //   if (filterVote > 0) tmp = tmp + 1;
+  //   fieldPickers.forEach(i => {
+  //     if (i.isPick) tmp = tmp + 1;
+  //   });
+  //   setCountFilter(tmp);
+  //   //sort
 
-    if (filterTime == 0) {
-      let tmpList = posts.sort(
-        (d1, d2) => new Date(d1.modified_date) - new Date(d2.modified_date)
-      );
-      if (tmpList.length > 0) setPosts([...tmpList]);
-    } else if (filterTime == 1) {
-      let tmpList = posts.sort(
-        (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)
-      );
-      if (tmpList.length > 0) setPosts([...tmpList]);
-    }
-    // let type;
-    // let order;
-    // if (filterComment > 0) {
-    //   type = 0;
-    //   if(filterComment == 0)
-    //   order = 0;
-    //   else order = 1;
-    // }
-    // if (filterTime > 0)  {type = 1;
-    //   if(filterComment == 0)
-    //   order = 0;
-    //   else order = 1;}
-    // if (filterVote > 0)  {type = 2
-    //   if(filterComment == 0)
-    //   order = 0;
-    //   else order = 1;}
+  //   if (filterTime == 0) {
+  //     let tmpList = posts.sort(
+  //       (d1, d2) => new Date(d1.modified_date) - new Date(d2.modified_date)
+  //     );
+  //     if (tmpList.length > 0) setPosts([...tmpList]);
+  //   } else if (filterTime == 1) {
+  //     let tmpList = posts.sort(
+  //       (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)
+  //     );
+  //     if (tmpList.length > 0) setPosts([...tmpList]);
+  //   }
+  //   // let type;
+  //   // let order;
+  //   // if (filterComment > 0) {
+  //   //   type = 0;
+  //   //   if(filterComment == 0)
+  //   //   order = 0;
+  //   //   else order = 1;
+  //   // }
+  //   // if (filterTime > 0)  {type = 1;
+  //   //   if(filterComment == 0)
+  //   //   order = 0;
+  //   //   else order = 1;}
+  //   // if (filterVote > 0)  {type = 2
+  //   //   if(filterComment == 0)
+  //   //   order = 0;
+  //   //   else order = 1;}
 
-    if (filterComment == 0) {
-      let tmpList = posts.sort(
-        (d1, d2) => d1.comments_countd - d2.comments_countd
-      );
+  //   if (filterComment == 0) {
+  //     let tmpList = posts.sort(
+  //       (d1, d2) => d1.comments_countd - d2.comments_countd
+  //     );
 
-      if (tmpList.length > 0) {
-        setPosts([]);
-        setPosts([...tmpList]);
-      }
-    } else if (filterComment == 1) {
-      let tmpList = posts.sort(
-        (d1, d2) => d2.comments_countd - d1.comments_countd
-      );
-      if (tmpList.length > 0) setPosts([...tmpList]);
-    }
-    if (filterVote == 1) {
-      let tmpList = posts.sort((d1, d2) => d1.vote - d2.vote);
-      if (tmpList.length > 0) setPosts([...tmpList]);
-    } else if (filterVote == 0) {
-      let tmpList = posts.sort((d1, d2) => d2.vote - d1.vote);
-      if (tmpList.length > 0) setPosts([...tmpList]);
-    }
-  }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
+  //     if (tmpList.length > 0) {
+  //       setPosts([]);
+  //       setPosts([...tmpList]);
+  //     }
+  //   } else if (filterComment == 1) {
+  //     let tmpList = posts.sort(
+  //       (d1, d2) => d2.comments_countd - d1.comments_countd
+  //     );
+  //     if (tmpList.length > 0) setPosts([...tmpList]);
+  //   }
+  //   if (filterVote == 1) {
+  //     let tmpList = posts.sort((d1, d2) => d1.vote - d2.vote);
+  //     if (tmpList.length > 0) setPosts([...tmpList]);
+  //   } else if (filterVote == 0) {
+  //     let tmpList = posts.sort((d1, d2) => d2.vote - d1.vote);
+  //     if (tmpList.length > 0) setPosts([...tmpList]);
+  //   }
+  // }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
   // useEffect(() => {
   //   if (isFirst) {
   //     setIsFirst(false);
@@ -378,20 +378,54 @@ function Search() {
   //     isRender = false;
   //   };
   // }, [keyword]);
-
+  const getSortObject = () => {
+    if (filterComment != -1) return 2;
+    else if (filterVote != -1) return 1;
+    else if (filterTime != -1) return 0;
+  };
+ 
+ 
+  const getSortType = () => {
+    if (filterComment != -1) return filterComment;
+    else if (filterVote != -1) return filterVote;
+    else if (filterTime != -1) return filterTime;
+  };
+  const getFieldPick = () => {
+    let temp = [];
+    fieldPickers.forEach(x => {
+      if (x.isPick) temp.push({ field_id: x.oid });
+    });
+    return temp;
+  };
+  const getStringFieldPick = () => {
+    let temp = [];
+    fieldPickers.forEach(x => {
+      if (x.isPick) temp.push(x.oid);
+    });
+    return temp;
+  };
   const onSearch = async () => {
+    let sortObject = getSortObject();
+    let sortType = getSortType();
     if (isPostSearch) {
       setIsLoading(true);
       const tmp = [];
       fieldPickers.forEach(item => {
         if (item.isPick) tmp.push(item);
       });
+
+      let fields = getFieldPick();
       await UserService.getCurrentUser(jwtToken)
         .then(async response => {
           await PostService.filterPost(jwtToken, {
             skip: 0,
             count: 3,
             search: search,
+            startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+            endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+            sortObject: sortObject,
+            sortType: sortType,
+            fields: fields,
           })
             .then(async res => {
               res.data.result.forEach(item => {
@@ -421,14 +455,20 @@ function Search() {
         .catch(error => console.log(error));
     } else {
       setIsLoading(true);
+      let fields = getStringFieldPick();
+
       const tmp = [];
       fieldPickers.forEach(item => {
         if (item.isPick) tmp.push(item);
       });
       await UserService.filterUser(jwtToken, {
         skip: 0,
-        count: 99,
+        count: 10,
         search: search,
+
+        sortObject: sortObject,
+        sortType: sortType,
+        fields: fields,
       })
         .then(async res => {
           await FollowService.getFollowingByUserId(jwtToken, {
@@ -451,42 +491,86 @@ function Search() {
   };
   const fetchMore = async () => {
     if (isEnd == true) return;
-    await UserService.getCurrentUser(jwtToken)
-      .then(async response => {
-        await PostService.filterPost(jwtToken, {
-          skip: skip,
-          count: 3,
-          search: search,
-        })
-          .then(async res => {
-            res.data.result.forEach(item => {
-              item.vote = 0;
-              response.data.result.post_upvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = 1;
-                }
+    let sortObject = getSortObject();
+    let sortType = getSortType();
+    if (isPostSearch) {
+      let fields = getFieldPick();
+      await UserService.getCurrentUser(jwtToken)
+        .then(async response => {
+          await PostService.filterPost(jwtToken, {
+            skip: 0,
+            count: 3,
+            search: search,
+            startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+            endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+            sortObject: sortObject,
+            sortType: sortType,
+            fields: fields,
+          })
+            .then(async res => {
+              res.data.result.forEach(item => {
+                item.vote = 0;
+                response.data.result.post_upvote.forEach(i => {
+                  if (i == item.oid) {
+                    item.vote = 1;
+                  }
+                });
+                response.data.result.post_downvote.forEach(i => {
+                  if (i == item.oid) {
+                    item.vote = -1;
+                  }
+                });
               });
-              response.data.result.post_downvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = -1;
-                }
+
+              setPosts(posts.concat(res.data.result));
+              setIsLoading(false);
+              setSkip(skip + 3);
+              setIsEnd(false);
+            })
+            .catch(error => console.log(error));
+        })
+        .catch(error => console.log(error));
+    } else {
+      setIsLoading(true);
+      let fields = getStringFieldPick();
+
+      const tmp = [];
+      fieldPickers.forEach(item => {
+        if (item.isPick) tmp.push(item);
+      });
+      await UserService.filterUser(jwtToken, {
+        skip: 0,
+        count: 10,
+        search: search,
+
+        sortObject: sortObject,
+        sortType: sortType,
+        fields: fields,
+      })
+        .then(async res => {
+          await FollowService.getFollowingByUserId(jwtToken, {
+            skip: 0,
+            count: 99,
+            id: userInfo.id,
+          }).then(following => {
+            res.data.result.forEach(er => {
+              er.following = false;
+              following.data.result.forEach(ing => {
+                if (er.oid == ing.to_id) er.following = true;
               });
             });
-
-            setPosts(posts.concat(res.data.result));
             setIsLoading(false);
-            setSkip(skip + 3);
-            setIsEnd(false);
-          })
-          .catch(error => console.log(error));
-      })
-      .catch(error => console.log(error));
+            setUsers(res.data.result);
+          });
+        })
+        .catch(error => console.log(error));
+    }
   };
   const reset = () => {
-    setFilterComment();
+    setFilterComment(-1);
     setAmoutField(0);
-    setFilterTime();
-    setFilterVote();
+    setFilterTime(-1);
+    setFilterVote(-1);
 
     //??
     fieldPickers.forEach(element => {
@@ -682,9 +766,21 @@ function Search() {
             ) : modalOrder == 4 ? (
               <Text style={styles.md_txtHeader}>Khoảng thời gian</Text>
             ) : modalOrder == 2 ? (
-              <Text style={styles.md_txtHeader}>Thời gian</Text>
+              <View>
+                {isPostSearch ? (
+                  <Text style={styles.md_txtHeader}>Thời gian</Text>
+                ) : (
+                  <Text style={styles.md_txtHeader}>Số bài đăng</Text>
+                )}
+              </View>
             ) : modalOrder == 3 ? (
-              <Text style={styles.md_txtHeader}>Lượt upvote</Text>
+              <View>
+                {isPostSearch ? (
+                  <Text style={styles.md_txtHeader}>Lượt upvote</Text>
+                ) : (
+                  <Text style={styles.md_txtHeader}>Số lượt theo dõi</Text>
+                )}
+              </View>
             ) : (
               <Text style={styles.md_txtHeader}>Lượt comment</Text>
             )}
@@ -713,25 +809,28 @@ function Search() {
         {modalOrder == 0 ? (
           <ModalContent style={{ marginHorizontal: -16 }}>
             <View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(4)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Khoảng thời gian</Text>
+              {isPostSearch ? (
+                <View>
+                  <TouchableOpacity onPress={() => setModalOrder(4)}>
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>Khoảng thời gian</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.md_txtchoose}>
+                          {moment(rangeDate.startDate).format('DD-MM-YYYY')} đến{' '}
+                          {moment(rangeDate.endDate).format('DD-MM-YYYY')}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {rangeDate.startDate} - {rangeDate.endDate}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
               <View>
                 <TouchableOpacity onPress={() => setModalOrder(1)}>
                   <View style={styles.md_field}>
@@ -769,75 +868,129 @@ function Search() {
                   </View>
                 </TouchableOpacity>
               </View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(2)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Thời gian</Text>
+              {isPostSearch ? (
+                <View>
+                  <TouchableOpacity onPress={() => setModalOrder(2)}>
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>Thời gian</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.md_txtchoose}>
+                          {filterTime == 1
+                            ? 'Mới nhât'
+                            : filterTime == 0
+                            ? 'Cũ nhất'
+                            : 'Chưa chọn'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterTime == 1
-                          ? 'Mới nhât'
-                          : filterTime == 0
-                          ? 'Cũ nhất'
-                          : 'Chưa chọn'}
-                      </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View>
+                  <TouchableOpacity onPress={() => setModalOrder(2)}>
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>Số bài đăng</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.md_txtchoose}>
+                          {filterTime == 1
+                            ? 'Giảm dần'
+                            : filterTime == 0
+                            ? 'Tăng dần'
+                            : 'Chưa chọn'}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(3)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Số lượt vote</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {isPostSearch ? (
+                <View>
+                  <TouchableOpacity onPress={() => setModalOrder(3)}>
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>Số lượt vote</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.md_txtchoose}>
+                          {filterVote == 1
+                            ? 'Giảm dần'
+                            : filterVote == 0
+                            ? 'Tăng dần'
+                            : 'Chưa chọn'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterVote == 1
-                          ? 'Giảm dần'
-                          : filterVote == 0
-                          ? 'Tăng dần'
-                          : 'Chưa chọn'}
-                      </Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View>
+                  <TouchableOpacity onPress={() => setModalOrder(3)}>
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>Số lượt theo dõi</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.md_txtchoose}>
+                          {filterVote == 1
+                            ? 'Giảm dần'
+                            : filterVote == 0
+                            ? 'Tăng dần'
+                            : 'Chưa chọn'}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-              <View>
-                <TouchableOpacity onPress={() => setModalOrder(5)}>
-                  <View style={styles.md_field}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon
-                        name={'question-circle'}
-                        size={20}
-                        color={main_color}
-                      />
-                      <Text style={styles.md_txtfield}>Số lượt trả lời</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {isPostSearch ? (
+                <View>
+                  <TouchableOpacity onPress={() => setModalOrder(5)}>
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>Số lượt trả lời</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.md_txtchoose}>
+                          {filterComment == 1
+                            ? 'Giảm dần'
+                            : filterComment == 0
+                            ? 'Tăng dần'
+                            : 'Chưa chọn'}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Text style={styles.md_txtchoose}>
-                        {filterComment == 1
-                          ? 'Giảm dần'
-                          : filterComment == 0
-                          ? 'Tăng dần'
-                          : 'Chưa chọn'}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
 
               <TouchableOpacity
                 onPress={() => {
@@ -944,7 +1097,15 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Bài đăng mới nhất</Text>
+                      {isPostSearch ? (
+                        <Text style={styles.md_txtfield}>
+                          Bài đăng mới nhất
+                        </Text>
+                      ) : (
+                        <Text style={styles.md_txtfield}>
+                          Số bài đăng giảm dần
+                        </Text>
+                      )}
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -972,7 +1133,13 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Bài đăng cũ nhất</Text>
+                      {isPostSearch ? (
+                        <Text style={styles.md_txtfield}>Bài đăng cũ nhất</Text>
+                      ) : (
+                        <Text style={styles.md_txtfield}>
+                          Số bài đăng tăng dần
+                        </Text>
+                      )}
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -1030,7 +1197,15 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Số upvote giảm dần</Text>
+                      {isPostSearch ? (
+                        <Text style={styles.md_txtfield}>
+                          Số upvote giảm dần
+                        </Text>
+                      ) : (
+                        <Text style={styles.md_txtfield}>
+                          Lượt theo dõi giảm dần
+                        </Text>
+                      )}
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon
@@ -1059,7 +1234,15 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>Số upvote tăng dần</Text>
+                      {isPostSearch ? (
+                        <Text style={styles.md_txtfield}>
+                          Số upvote tăng dần
+                        </Text>
+                      ) : (
+                        <Text style={styles.md_txtfield}>
+                          Lượt theo dõi tăng dần
+                        </Text>
+                      )}
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon

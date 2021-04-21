@@ -75,7 +75,6 @@ function PostCard(props) {
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post, {
       post: post,
-      author: author,
       vote: vote,
       upvote: upvote,
       commentCount: comment,

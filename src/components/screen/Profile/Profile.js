@@ -549,7 +549,7 @@ function Profile({ userId }) {
                       flexWrap: 'wrap',
                     }}
                   >
-                    {fields.map((item, index) => (
+                    {fields.slice(0,3).map((item, index) => (
                       <TouchableOpacity
                         onPress={() =>
                           navigation.navigate(navigationConstants.listField, {
