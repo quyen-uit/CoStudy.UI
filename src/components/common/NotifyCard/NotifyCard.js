@@ -16,32 +16,42 @@ import {
   touch_color,
 } from '../../../constants/colorCommon';
 import NotifyOptionModal from 'components/modal/NotifyOptionModal/NotifyOptionModal';
- 
+import { useSelector } from 'react-redux';
 import moment from 'moment';
- 
+
 import {
   Modal,
   ModalFooter,
   ModalButton,
   ModalContent,
 } from 'react-native-modals';
+import NotifyService from 'controllers/NotifyService';
+import { getJwtToken } from 'selectors/UserSelectors';
+import { Alert } from 'react-native';
+import { ToastAndroid } from 'react-native';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function NotifyCard(props) {
   const notify = props.notify;
+  const jwtToken = useSelector(getJwtToken);
   const [modalVisible, setModalVisible] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [isUnread, setIsUnread] = useState(props.notify.isUnread);
+  const [isRead, setisRead] = useState(props.notify.is_read);
   React.useEffect(() => {
- 
-    setIsUnread(notify.isUnread);
+    setisRead(notify.is_read);
   }, [notify.oid]);
-   return (
+  const read = async () => {
+    await NotifyService.readNotify(jwtToken, notify.oid).then(res => {
+      setisRead(true);
+      ToastAndroid.show('Đã đọc.', ToastAndroid.SHORT);
+    });
+  };
+  return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
         style={styles.btnCard}
-        onPress={() => setIsUnread(false)}
+        onPress={async () => await read()}
         onLongPress={() => {
           setModalVisible(true);
         }}
@@ -52,8 +62,8 @@ function NotifyCard(props) {
             flexDirection: 'row',
             padding: 8,
             borderRadius: 8,
-            backgroundColor: isUnread ? '#ccc' : '#fff',
-            opacity: isUnread ? 0.8 : 1,
+            backgroundColor: !isRead ? '#ccc' : '#fff',
+            opacity: !isRead ? 0.8 : 1,
           }}
         >
           <View style={styles.headerAvatar}>

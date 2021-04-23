@@ -341,16 +341,7 @@ function NewsFeed() {
       </SafeAreaView>
       <PostOptionModal
         visible={modalVisible}
-        onSwipeOut={event => {
-          setModalVisible(false);
-        }}
-        onHardwareBackPress={() => {
-          setModalVisible(false);
-          return true;
-        }}
-        onTouchOutside={() => {
-          setModalVisible(false);
-        }}
+        
         saved={savedModal}
         id={idModal}
         onVisible={onVisibleCallBack}

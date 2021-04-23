@@ -42,6 +42,7 @@ import Following from 'components/screen/Following';
 import Search from 'components/screen/Search';
 import ListField from 'components/screen/ListField';
 import PickField from 'components/screen/PickField';
+import Report from 'components/screen/Report';
 const Stack = createStackNavigator();
 
 const {
@@ -59,6 +60,7 @@ const {
   create,
   listField,
   pickField,
+  report
 } = navigationConstants;
 
 function AppNavigator() {
@@ -103,6 +105,28 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
+        }}
+      />
+      <Stack.Screen
+        name={report}
+        component={Report}
+        options={{
+          title: report,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
         }}
       />
       <Stack.Screen

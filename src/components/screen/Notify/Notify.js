@@ -69,7 +69,7 @@ function Notify() {
           author_avatar: res.AuthorAvatar,
           content: res.Content,
           created_date: new Date(),
-          isUnread: true,
+         // isUnread: true,
         },
         ...list,
       ]);
@@ -87,7 +87,7 @@ function Notify() {
           res.data.result.sort(
             (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)
           );
-          res.data.result.map(i => (i.isUnread = false));
+           
           setList(res.data.result);
         })
         .catch(err => console.log(err));

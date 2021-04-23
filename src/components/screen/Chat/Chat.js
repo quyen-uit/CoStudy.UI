@@ -152,6 +152,7 @@ function Chat() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message
       );
+      console.log(res);
       // test
           if(listMes.length < 1)
           return;

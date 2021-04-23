@@ -24,7 +24,8 @@ const navigationConstants = {
   profileEdit: 'Chỉnh sửa thông tin',
   search: 'Tìm kiếm',
   pickField: 'Chọn lĩnh vực',
-  listField: 'Lĩnh vực'
+  listField: 'Lĩnh vực',
+  report: 'Báo cáo'
 
 };
 

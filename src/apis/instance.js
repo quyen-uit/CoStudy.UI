@@ -3,6 +3,8 @@ import { api } from '../constants/route';
 import { store } from '../store/index';
 import { actionTypes, update } from 'actions/UserActions';
 import { BackHandler } from "react-native";
+import { logout } from '../actions/UserActions';
+
 export const getAPI = jwtToken => {
   let isRefreshing = false;
   let refreshSubscribers = [];
@@ -31,16 +33,17 @@ export const getAPI = jwtToken => {
       const originalRequest = config;
 
       if (status === 400) {
+        // logout
+        store.dispatch(logout(jwtToken));
         if (!isRefreshing) {
           isRefreshing = true;
-
-          await axios
+           await axios
             .post('http://192.168.207.91:8015/api/Accounts/refresh-token')
             .then(response => {
               isRefreshing = false;
               store.dispatch(update(response.data.result.jwtToken));
               onRrefreshed(jwtToken);
-              BackHandler.exitApp();
+            
             })
             .catch(err => console.log(err));
         }

@@ -50,7 +50,7 @@ const PostOptionModal = ({ ...rest }) => {
   const [saved, setSaved] = useState(rest.saved);
   const [isSaving, setIsSaving] = useState(false);
   const [isMe, setIsMe] = useState(false);
-  const [list, setList] = useState(list);
+  const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
   const [modalOrder, setModalOrder] = useState(1);
@@ -66,34 +66,38 @@ const PostOptionModal = ({ ...rest }) => {
   }, [rest.id]);
 
   useEffect(() => {
-    // const fetch = async () => {
-    //   await ChatService.getCurrentConversation(jwtToken).then(res => {
-    //     res.data.result.conversations.forEach(item => {
-    //       let tmp = {};
-    //       tmp.conversationId = item.conversation.oid;
-    //       if (item.conversation.participants[0].member_id == curUser.oid) {
-    //         tmp.name = item.conversation.participants[1].member_name;
-    //         tmp.avatar = item.conversation.participants[1].member_avatar;
-    //       } else {
-    //         tmp.name = item.conversation.participants[0].member_name;
-    //         tmp.avatar = item.conversation.participants[0].member_avatar;
-    //       }
-    //       setList([...list, tmp]);
-    //     });
-    //     setIsLoading(false);
-    //     // name, conversation_id, avatar,
-    //   });
-    // };
-    //fetch();
+    setList([]);
+    const fetch = async () => {
+      await ChatService.getCurrentConversation(jwtToken).then(res => {
+        res.data.result.conversations.forEach(item => {
+          let tmp = { conversationId: '', name: '', avatar: '' };
+
+          tmp.conversationId = item.conversation.oid;
+          if (item.conversation.participants[0].member_id == curUser.oid) {
+            tmp.name = item.conversation.participants[1].member_name;
+            tmp.avatar = item.conversation.participants[1].member_avatar;
+          } else {
+            tmp.name = item.conversation.participants[0].member_name;
+            tmp.avatar = item.conversation.participants[0].member_avatar;
+          }
+
+          setList([...list, tmp]);
+        });
+        setIsLoading(false);
+        // name, conversation_id, avatar,
+      });
+    };
+    fetch();
     return () => {};
-  }, [rest.id]);
-  // const onShare = async id => {
-  //   rest.onVisible(false);
-  //   await ChatService.createPostMessage(jwtToken, {
-  //     conversation_id: id,
-  //     post_id: item.id,
-  //   });
-  // };
+  }, []);
+  const onShare = async id => {
+    rest.onVisible(false);
+    setModalOrder(1);
+    await ChatService.createPostMessage(jwtToken, {
+      conversation_id: id,
+      post_id: id,
+    });
+  };
 
   // const fetch = async () => {
   //   await ChatService.getCurrentConversation(jwtToken).then(res => {
@@ -144,16 +148,15 @@ const PostOptionModal = ({ ...rest }) => {
   };
   const renderItem = item => {
     return (
-      <View style={styles.optionContainer}>
+      <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
         <View
           style={{
             flexDirection: 'row',
-            margin: 4,
-            justifyContent: 'space-around',
             alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Image
               style={{
                 width: 40,
@@ -162,19 +165,19 @@ const PostOptionModal = ({ ...rest }) => {
                 marginRight: 8,
               }}
               //source={{ uri: item.avatar }}
-              source={require('../../../assets/fb.png')}
+              source={{ uri: item.avatar }}
             />
             <Text>{item.name}</Text>
           </View>
           <TouchableOpacity
-            //onPress={async () => await onShare(item.conversation_id)}
+            onPress={async () => await onShare(item.conversationId)}
             style={{
               padding: 4,
               backgroundColor: main_color,
               borderRadius: 8,
             }}
           >
-            <Text>Gửi</Text>
+            <Text style={{ color: '#fff', marginHorizontal: 4 }}>Chia sẻ</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -186,6 +189,19 @@ const PostOptionModal = ({ ...rest }) => {
       swipeDirection={['down']} // can be string or an array
       swipeThreshold={100} // default 100
       useNativeDriver={true}
+      onSwipeOut={event => {
+        rest.onVisible(false);
+        setModalOrder(1);
+      }}
+      onHardwareBackPress={() => {
+        rest.onVisible(false);
+        setModalOrder(1);
+        return true;
+      }}
+      onTouchOutside={() => {
+        rest.onVisible(false);
+        setModalOrder(1);
+      }}
       modalAnimation={
         new SlideAnimation({
           slideFrom: 'bottom',
@@ -267,7 +283,8 @@ const PostOptionModal = ({ ...rest }) => {
           <TouchableHighlight
             underlayColor={'#000'}
             onPress={() => {
-              ToastAndroid.show('Đã báo cáo', ToastAndroid.SHORT);
+              rest.onVisible(false);
+              navigation.navigate(navigationConstants.report, {postId: rest.id});
             }}
           >
             <View style={styles.optionContainer}>
@@ -285,10 +302,25 @@ const PostOptionModal = ({ ...rest }) => {
         <ModalContent style={styles.content}>
           <View>
             <FlatList
+              style={{ height: deviceHeight / 2 - 80 }}
               showsVerticalScrollIndicator={false}
               data={list}
-              renderItem={renderItem}
+              renderItem={({ item, index, separators }) => renderItem(item)}
               keyExtractor={(item, index) => index.toString()}
+              ListHeaderComponent={() => (
+                <View>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: 20,
+                      color: main_color,
+                    }}
+                  >
+                    Chia sẻ cho...
+                  </Text>
+                </View>
+              )}
+              ListHeaderComponentStyle={{ alignItems: 'center' }}
             />
           </View>
           {isLoading ? (

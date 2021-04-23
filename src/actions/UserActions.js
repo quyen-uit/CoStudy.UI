@@ -84,10 +84,12 @@ export const logout = token => async dispatch => {
     await axios
       .post(api + 'Accounts/revoke-token', { token: token })
       .then(res => console.log(res))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   } finally {
     dispatch(clearStore());
   }
+  // 
+  dispatch(clearStore());
 };
 
 export const update = jwt => async dispatch => {
