@@ -38,7 +38,7 @@ class PostService {
   }
 
   static async savePost(jwtToken, oid) {
-    return await getAPI(jwtToken).post(api + 'Post/save/' + oid, { id: oid });
+    return await getAPI(jwtToken).post(api + 'Post/save/' + oid);
   }
 
   static async upvote(jwtToken, oid) {

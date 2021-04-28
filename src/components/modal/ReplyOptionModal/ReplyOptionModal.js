@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
+
 import { Text, View, TouchableHighlight } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { main_color } from 'constants/colorCommon';
@@ -18,10 +19,10 @@ import navigationConstants from 'constants/navigation';
 //   latestChat: 'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
 //   latestTime: '10 phut truoc',
 // }
-function CommentOptionModal({ ...rest }) {
+function ReplyOptionModal({ ...rest }) {
   const onEdit = () => {
-    rest.onVisible(false);
-    rest.onEdit(true, rest.id);
+   
+    rest.onEdit(true);
   };
   const navigation = useNavigation();
   return (
@@ -66,14 +67,15 @@ function CommentOptionModal({ ...rest }) {
         <TouchableHighlight underlayColor={'#000'} onPress={() => onEdit()}>
           <View style={styles.optionContainer}>
             <Icon name={'eye'} color={main_color} size={24} />
-            <Text style={styles.txtOption}>Sửa bình luận</Text>
+            <Text style={styles.txtOption}>Sửa phản hồi</Text>
           </View>
         </TouchableHighlight>
         <TouchableHighlight
           underlayColor={'#000'}
+          
           onPress={() => {
             rest.onVisible(false);
-            navigation.navigate(navigationConstants.report, {commentId: rest.id});
+            navigation.navigate(navigationConstants.report, {replyId: rest.id});
           }}
         >
           <View style={styles.optionContainer}>
@@ -91,4 +93,4 @@ function CommentOptionModal({ ...rest }) {
   );
 }
 
-export default CommentOptionModal;
+export default ReplyOptionModal;

@@ -41,6 +41,8 @@ import PostService from 'controllers/PostService';
 import ChatService from 'controllers/ChatService';
 import ImageView from 'react-native-image-viewing';
 import Badge from 'components/common/Badge';
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
+
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function GroupAmount(props) {
@@ -107,7 +109,7 @@ function Profile({ userId }) {
   const curUser = useSelector(getUser);
   const [data, setData] = useState(curUser);
   //const [data,setData] = useState();
-  const [fields,setFields] = useState([]);
+  const [fields, setFields] = useState([]);
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
@@ -115,7 +117,18 @@ function Profile({ userId }) {
     setIsVisible(true);
     setImgView(uri);
   });
-
+  //modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [idModal, setIdModal] = useState(null);
+  const [savedModal, setSavedModal] = useState();
+  const onModal = React.useCallback((value, id, saved) => {
+    setModalVisible(value);
+    setIdModal(id);
+    setSavedModal(saved);
+  });
+  const onVisibleCallBack = React.useCallback(value => {
+    setModalVisible(value);
+  });
   const [avatar, setAvatar] = useState('');
   const [bg, setBg] = useState();
   const [chosing, setChosing] = useState(false);
@@ -286,7 +299,7 @@ function Profile({ userId }) {
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard onViewImage={onViewImage} post={item} />;
+    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} />;
   };
   // const renderBadge = item => {
   //   return (
@@ -549,7 +562,7 @@ function Profile({ userId }) {
                       flexWrap: 'wrap',
                     }}
                   >
-                    {fields.slice(0,3).map((item, index) => (
+                    {fields.slice(0, 3).map((item, index) => (
                       <TouchableOpacity
                         onPress={() =>
                           navigation.navigate(navigationConstants.listField, {
@@ -807,6 +820,12 @@ function Profile({ userId }) {
           </TouchableOpacity>
         </View>
       ) : null}
+      <PostOptionModal
+        visible={modalVisible}
+        saved={savedModal}
+        id={idModal}
+        onVisible={onVisibleCallBack}
+      />
     </View>
   );
 }

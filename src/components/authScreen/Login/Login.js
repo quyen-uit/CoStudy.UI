@@ -61,7 +61,7 @@ function Login() {
         alert('play services not available');
         // play services not available or outdated
       } else {
-        alert(error);
+        console.log(error);
         // some other error happened
       }
     }

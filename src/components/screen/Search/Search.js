@@ -40,6 +40,7 @@ import navigationConstants from 'constants/navigation';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
 import FollowService from 'controllers/FollowService';
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 
 function UserCard({ item }) {
   const [loading, setLoading] = useState(false);
@@ -186,6 +187,18 @@ function Search() {
   const [isLoading, setIsLoading] = useState(true);
   const [skip, setSkip] = useState(0);
 
+  //modal
+  const [modalPostVisible, setModalPostVisible] = useState(false);
+  const [idModal, setIdModal] = useState(null);
+  const [savedModal, setSavedModal] = useState();
+  const onModal = React.useCallback((value, id, saved) => {
+    setModalPostVisible(value);
+    setIdModal(id);
+    setSavedModal(saved);
+  });
+  const onVisibleCallBack = React.useCallback(value => {
+    setModalPostVisible(value);
+  });
   const backAction = () => {
     setModalVisible(false);
     return true;
@@ -383,8 +396,7 @@ function Search() {
     else if (filterVote != -1) return 1;
     else if (filterTime != -1) return 0;
   };
- 
- 
+
   const getSortType = () => {
     if (filterComment != -1) return filterComment;
     else if (filterVote != -1) return filterVote;
@@ -580,7 +592,7 @@ function Search() {
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard post={item} />;
+    return <PostCard post={item} onModal={onModal} />;
   };
   const renderUserCard = ({ item }) => {
     return <UserCard item={item} />;
@@ -819,14 +831,14 @@ function Search() {
                           size={20}
                           color={main_color}
                         />
-                        <Text style={styles.md_txtfield}>Khoảng thời gian</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row' }}>
                         <Text style={styles.md_txtchoose}>
-                          {moment(rangeDate.startDate).format('DD-MM-YYYY')} đến{' '}
+                          {' '}
+                          Từ{' '}
+                          {moment(rangeDate.startDate).format('DD-MM-YYYY')}{' '}đến{' '}
                           {moment(rangeDate.endDate).format('DD-MM-YYYY')}
                         </Text>
                       </View>
+                      <View style={{ flexDirection: 'row' }}></View>
                     </View>
                   </TouchableOpacity>
                 </View>
@@ -867,6 +879,9 @@ function Search() {
                     )}
                   </View>
                 </TouchableOpacity>
+              </View>
+              <View style={{backgroundColor: main_2nd_color, marginTop: -4, paddingLeft: 4, paddingBottom: 2}}>
+                <Text style={{color: '#fff'}}>Sắp xếp theo</Text>
               </View>
               {isPostSearch ? (
                 <View>
@@ -1468,6 +1483,12 @@ function Search() {
           </View>
         </ModalContent>
       </BottomModal>
+      <PostOptionModal
+        visible={modalPostVisible}
+        saved={savedModal}
+        id={idModal}
+        onVisible={onVisibleCallBack}
+      />
     </View>
   );
 }

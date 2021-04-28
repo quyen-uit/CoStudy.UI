@@ -1,5 +1,5 @@
 import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Image,
   Text,
@@ -33,20 +33,19 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import navigationConstants from 'constants/navigation';
-import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
+import ReplyOptionModal from 'components/modal/ReplyOptionModal/ReplyOptionModal';
 import { getAPI } from '../../../apis/instance';
-
 
 function ReplyCard(props) {
   const curUser = useSelector(getUser);
 
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
+  // const { colors } = useTheme();
+  // const dispatch = useDispatch();
   const [isVote, setIsVote] = useState(false);
   const [showOption, setShowOption] = useState(true);
   const comment = props.comment;
-  const isInPost = props.isInPost;
+  //const isInPost = props.isInPost;
   const [modalVisible, setModalVisible] = useState(false);
   // like, comment
   const [upvote, setUpvote] = useState(comment.upvote_count);
@@ -54,27 +53,27 @@ function ReplyCard(props) {
   const [comment_count, setCommentCount] = useState(comment.replies_count);
 
   const [vote, setVote] = useState(comment.vote);
-  const onUpvoteCallback = useCallback(value => setUpvote(value));
-  const onDownvoteCallback = useCallback(value => setDownvote(value));
-  const onCommentCallback = useCallback(value => setCommentCount(value));
-  const onVoteCallback = useCallback((value)=> setVote(value));
-
-  const GoToComment = () => {
+  const onEditCallBack = React.useCallback( isEdit => {
+    setModalVisible(false);
+    props.onEdit(isEdit, comment.oid);
+  });
+  const onVisibleCallBack = React.useCallback( isEdit => {
+    setModalVisible(false);
     
-  };
+  });
+  const GoToComment = () => {};
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: comment.author_id });
   };
 
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bình luận này.',1000)
+      ToastAndroid.show('Bạn đã upvote cho bình luận này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
       setUpvote(upvote + 1);
-    } else 
-    {
+    } else {
       setVote(1);
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
@@ -86,13 +85,12 @@ function ReplyCard(props) {
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bình luận này.', 1000)
+      ToastAndroid.show('Bạn đã downvote cho bình luận này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
       setDownvote(downvote + 1);
-    } else 
-    {
+    } else {
       setVote(-1);
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
@@ -108,7 +106,7 @@ function ReplyCard(props) {
         <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
             style={styles.imgAvatar}
-            source={{ uri: comment.authorAvatar }}
+            source={{ uri: comment.author_avatar }}
           />
         </TouchableOpacity>
         <View style={styles.shrink1}>
@@ -119,7 +117,7 @@ function ReplyCard(props) {
             onLongPress={() => setModalVisible(true)}
           >
             <View>
-              <Text style={styles.txtAuthor}>{comment.authorName}</Text>
+              <Text style={styles.txtAuthor}>{comment.author_name}</Text>
               <Text style={styles.txtContent}>{comment.content}</Text>
               <View style={styles.footer}>
                 <View style={styles.containerCreatedTime}>
@@ -162,7 +160,6 @@ function ReplyCard(props) {
                         name={'thumbs-up'}
                         size={18}
                         color={vote == 1 ? main_color : '#ccc'}
-
                       />
                     </TouchableOpacity>
                   </View>
@@ -170,10 +167,9 @@ function ReplyCard(props) {
               </View>
             </View>
           </TouchableHighlight>
-          
         </View>
       </View>
-      <CommentOptionModal
+      <ReplyOptionModal
         visible={modalVisible}
         onSwipeOut={event => {
           setModalVisible(false);
@@ -185,6 +181,9 @@ function ReplyCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
+        onEdit={onEditCallBack}
+        id={comment.oid}
+        onVisible={onVisibleCallBack}
       />
     </View>
   );

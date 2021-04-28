@@ -48,9 +48,9 @@ export const createTimeline = (jwtToken, skip, count) => async dispatch => {
             dispatch(create)
             
           })
-          .catch(error => alert(error));
+          .catch(error => console.log(error));
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   } catch (error) {
     console.log('dispatch timeline err');
     console.log(error);

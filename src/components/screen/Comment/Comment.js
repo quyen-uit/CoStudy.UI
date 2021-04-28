@@ -1,5 +1,5 @@
 import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Image,
   Text,
@@ -49,6 +49,8 @@ function Comment(props) {
   const [data, setData] = useState(route.params.comment);
   const [isLoading, setIsLoading] = useState(false);
   const [replies, setReplies] = useState([]);
+  const [replyId, setReplyId] = useState('');
+  const [isEdit, setIsEdit] = useState(false);
 
   //comment
   const [comment, setComment] = useState('');
@@ -56,9 +58,26 @@ function Comment(props) {
   const [upvote, setUpvote] = useState(route.params.upvote);
   const [downvote, setDownvote] = useState(route.params.downvote);
   const [comment_count, setCommentCount] = useState(route.params.replies);
-
   const [sending, setSending] = useState(false);
   const navigation = useNavigation();
+
+  const onEditCallBack = useCallback((isEdit, id) => {
+    setIsEdit(isEdit);
+    setReplyId(id);
+    let cmt = replies.filter(x => x.oid == id);
+    setComment(cmt[0].content);
+  });
+
+  const resetComment = () => {
+    setComment('');
+    //setImgComment('');
+    setIsEdit(false);
+  };
+
+  const onViewImage = useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
 
   useEffect(() => {
     route.params.onUpvote(upvote);
@@ -75,7 +94,7 @@ function Comment(props) {
   const renderItem = ({ item }) => {
     return (
       <View style={{ opacity: item.opacity }}>
-        <ReplyCard comment={item} />
+        <ReplyCard comment={item} onEdit={onEditCallBack} />
       </View>
     );
   };
@@ -125,6 +144,46 @@ function Comment(props) {
     //   })
     //   .catch(error => console.log(error));
   };
+
+  const updateReply = async () => {
+    Keyboard.dismiss();
+
+    if (comment == '') {
+      Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+      return;
+    }
+    setSending(true);
+    replies.forEach(x => {
+      if (x.oid == replyId) {
+        x.opacity = 0.5;
+        x.content = comment;
+      }
+    });
+    ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
+    await CommentService.updateReply(jwtToken, {
+      content: comment,
+      replyId: replyId,
+    })
+      .then(response => {
+        replies.forEach(x => {
+          x.opacity = 1;
+        });
+        setComment('');
+        setIsEdit(false);
+        setSending(false);
+        
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: 'Trả lời đã được sửa',
+          visibilityTime: 2000,
+        });
+      })
+      .catch(error => {
+        setSending(false);
+        console.log(error);
+      });
+  };
   const onUpvote = async () => {
     if (vote == 1) {
       ToastAndroid.show('Bạn đã upvote cho bình luận này.', 1000);
@@ -158,6 +217,10 @@ function Comment(props) {
       .catch(err => console.log(err));
   };
   const postComment = async () => {
+    if (isEdit) {
+      await updateReply();
+      return;
+    }
     Keyboard.dismiss();
 
     if (comment == '') {
@@ -173,8 +236,8 @@ function Comment(props) {
       modified_date: new Date(),
       upvote_count: 0,
       downvote_count: 0,
-      authorAvatar: userInfo.avatar,
-      authorName: userInfo.first_name + userInfo.last_name,
+      author_avatar: userInfo.avatar,
+      author_name: userInfo.first_name + userInfo.last_name,
       vote: 0,
       opacity: 0.5,
     };
@@ -392,14 +455,34 @@ function Comment(props) {
             <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
           </TouchableOpacity>
         )}
-        <TextInput
-          multiline={true}
-          style={styles.input}
-          onTouchEnd={() => setShowOption(false)}
-          onChangeText={text => setComment(text)}
-          placeholder="Nhập j đi tml.."
-          value={comment}
-        />
+        <View style={{ flex: 1 }}>
+          {isEdit ? (
+            <View
+              style={{
+                alignSelf: 'flex-end',
+                backgroundColor: '#b90000',
+                padding: 4,
+                paddingHorizontal: 8,
+                borderRadius: 8,
+                marginBottom: 4,
+              }}
+            >
+              <TouchableOpacity onPress={() => resetComment()}>
+                <Text style={{ fontSize: 16, color: '#fff' }}>
+                  Hủy sửa bình luận
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          <TextInput
+            multiline={true}
+            style={styles.input}
+            onTouchEnd={() => setShowOption(false)}
+            onChangeText={text => setComment(text)}
+            placeholder="Nhập j đi .."
+            value={comment}
+          />
+        </View>
         {sending ? (
           <View style={styles.btnInputOption}>
             <FontAwesome5 name={'paper-plane'} size={24} color={'#ccc'} />

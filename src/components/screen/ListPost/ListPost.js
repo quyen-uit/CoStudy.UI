@@ -233,7 +233,7 @@ function ListPost() {
   const fetchData = async () => {
     await UserService.getCurrentUser(jwtToken)
       .then(async resUser => {
-        await PostService(jwtToken, {skip: skip, count: 5})
+        await PostService.getSavedPost(jwtToken, {skip: skip, count: 5})
           .then(res => {
             res.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {

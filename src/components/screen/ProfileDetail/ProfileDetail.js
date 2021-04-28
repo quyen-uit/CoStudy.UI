@@ -53,7 +53,7 @@ function ProfileDetail({ userId }) {
             setIsLoading(false);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
@@ -184,19 +184,31 @@ function ProfileDetail({ userId }) {
             title={'Thành phố'}
             value={data.address ? data.address.city : null}
           />
-          <View style={styles.field}>
+          <View
+            style={{
+              marginHorizontal: 10,
+              marginVertical: 4,
+              backgroundColor: '#fff',
+              padding: 4,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+            }}
+          >
             <View
               style={{
                 width: 30,
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginRight: 12,
+                marginTop: 4
               }}
             >
               <Icon name={'icons'} size={20} color={main_color} />
             </View>
             <View>
-              <Text style={{ color: '#ccc', fontSize: 13 }}>Lĩnh vực</Text>
+              <Text style={{ color: '#ccc', fontSize: 13, marginBottom: 4}}>Lĩnh vực</Text>
               <View style={styles.containerTag}>
                 {fields.length < 1 ? (
                   <Text>Chưa có thông tin</Text>
@@ -318,7 +330,7 @@ const styles = StyleSheet.create({
   containerTag: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-   // marginBottom: 8,
+    // marginBottom: 8,
     flexWrap: 'wrap',
   },
   btnTag: {

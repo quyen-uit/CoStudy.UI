@@ -65,11 +65,11 @@ function ChatCard(props) {
   }, [chat.content, chat.modified_date]);
   const GoToConversation = () => {
     setIsUnread(false);
-     navigation.navigate(navigationConstants.conversation, {
+    navigation.navigate(navigationConstants.conversation, {
       id: chat.id,
       callback: onCallback,
       avatar: chat.avatar,
-      name: chat.name
+      name: chat.name,
     });
   };
   return (
@@ -99,7 +99,14 @@ function ChatCard(props) {
             </TouchableOpacity>
             <View style={{ marginLeft: 8 }}>
               <Text style={styles.txtAuthor}>{chat.name}</Text>
-              <Text style={styles.txtContent}>{content}</Text>
+              <Text style={styles.txtContent} numberOfLines={1}>
+                {content.length < 20
+                  ? `${content}`
+                  : `${content.substring(
+                      0,
+                      20
+                    )}...`}
+              </Text>
             </View>
           </View>
 
@@ -133,7 +140,7 @@ function ChatCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
-        onDelete = {onDelete}
+        onDelete={onDelete}
       />
       <Modal
         visible={visible}

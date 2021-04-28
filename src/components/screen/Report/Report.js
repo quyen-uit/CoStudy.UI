@@ -77,17 +77,30 @@ function Report() {
 
   const onReport = async () => {
     let listPicked = [];
-    ToastAndroid.show('Đang gửi báo cáo', ToastAndroid.SHORT);
     setIsLoading(true);
     list.forEach(item => {
       if (item.isPick) listPicked.push(item.oid);
     });
     if (listPicked.length > 0) {
-      await ReportService.reportPost(jwtToken, {
-        postId: route.params.postId,
-        reasons: listPicked,
-        content: content,
-      });
+      if (Object.keys(route.params)[0] == 'postId') {
+        await ReportService.reportPost(jwtToken, {
+          postId: route.params.postId,
+          reasons: listPicked,
+          content: content,
+        });
+      } else if (Object.keys(route.params)[0] == 'commentId') {
+        await ReportService.reportComment(jwtToken, {
+          commentId: route.params.commentId,
+          reasons: listPicked,
+          content: content,
+        });
+      } else {
+        await ReportService.reportReply(jwtToken, {
+          replyId: route.params.replyId,
+          reasons: listPicked,
+          content: content,
+        });
+      }
       setIsLoading(false);
       Toast.show({
         type: 'success',
@@ -100,7 +113,6 @@ function Report() {
       Alert.alert('Không thể báo cáo', 'Vui lòng chọn một lí do báo cáo.');
       return;
     }
-    
   };
 
   return (

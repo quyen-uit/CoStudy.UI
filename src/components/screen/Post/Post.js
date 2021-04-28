@@ -121,7 +121,7 @@ function Post(props) {
     let cmt = comments.filter(x => x.oid == id);
 
     setComment(cmt[0].content);
-    if (cmt[0].image != '')
+    if (cmt[0].image != '' && cmt[0].image != null)
       setImgComment({ path: cmt[0].image, isEdit: false });
     else setImgComment('');
   });
@@ -131,20 +131,23 @@ function Post(props) {
   });
 
   useEffect(() => {
-    if(typeof route.params.onUpvote == 'function' && typeof route.params.onVote == 'function')
-    {
+    if (
+      typeof route.params.onUpvote == 'function' &&
+      typeof route.params.onVote == 'function'
+    ) {
       route.params.onUpvote(upvote);
       route.params.onVote(vote);
     }
   }, [upvote]);
 
   useEffect(() => {
-    if(typeof route.params.onDownvote == 'function' && typeof route.params.onVote == 'function')
-    {
+    if (
+      typeof route.params.onDownvote == 'function' &&
+      typeof route.params.onVote == 'function'
+    ) {
       route.params.onDownvote(downvote);
       route.params.onVote(vote);
     }
-   
   }, [downvote]);
 
   useEffect(() => {
@@ -428,7 +431,7 @@ function Post(props) {
         setComments(comments.concat(response.data.result));
         setSending(false);
         setCommentCount(commentCount + 1);
-        if(typeof route.params.onComment == 'function')
+        if (typeof route.params.onComment == 'function')
           route.params.onComment(commentCount + 1);
         Toast.show({
           type: 'success',
@@ -678,21 +681,8 @@ function Post(props) {
           </View>
         ) : null}
       </SafeAreaView>
-      {isEdit ? (
-        <View
-          style={{
-            position: 'absolute',
-            left: 10,
-            bottom: 60,
-            backgroundColor: '#fff',
-          }}
-        >
-          <TouchableOpacity onPress={() => resetComment()}>
-            <Text style={{ fontSize: 16 }}>Hủy sửa bình luận</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-      {imgComment != '' ? (
+
+      {/* {imgComment != '' ? (
         <View style={{ position: 'absolute', right: 0, bottom: 60 }}>
           <Image
             style={{
@@ -719,7 +709,7 @@ function Post(props) {
             <FontAwesome5 name={'times-circle'} size={20} color={'#fff'} />
           </TouchableOpacity>
         </View>
-      ) : null}
+      ) : null} */}
       <View style={styles.containerInput}>
         {showOption ? (
           <View style={styles.row}>
@@ -748,14 +738,104 @@ function Post(props) {
             <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
           </TouchableOpacity>
         )}
+        {/* {imgComment != '' ? (
+          <View>
+            <Image
+              style={{
+                height: 100,
+                width: 80,
+                alignSelf: 'flex-end',
+                margin: 4,
+                marginRight: 16,
+              }}
+              source={{ uri: imgComment.path }}
+            />
+            <TouchableOpacity
+              onPress={() => {
+                setImgComment('');
+              }}
+              style={{
+                position: 'absolute',
+                alignSelf: 'flex-end',
+                borderRadius: 30,
+                right: 10,
+                backgroundColor: '#ccc',
+              }}
+            >
+              <FontAwesome5 name={'times-circle'} size={20} color={'#fff'} />
+            </TouchableOpacity>
+          </View>
+        ) : null}
         <TextInput
           multiline={true}
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
           onChangeText={text => setComment(text)}
-          placeholder="Nhập j đi tml.."
+          placeholder="Nhập j đi ..."
           value={comment}
-        />
+        /> */}
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            {imgComment != '' && imgComment != null ? (
+              <View>
+                <Image
+                  style={{
+                    height: 100,
+                    width: 80,
+                    alignSelf: 'flex-end',
+                    margin: 4,
+                    marginRight: 16,
+                  }}
+                  source={{ uri: imgComment.path }}
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    setImgComment('');
+                  }}
+                  style={{
+                    position: 'absolute',
+                    alignSelf: 'flex-end',
+                    borderRadius: 30,
+                    right: 10,
+                    backgroundColor: '#ccc',
+                  }}
+                >
+                  <FontAwesome5
+                    name={'times-circle'}
+                    size={20}
+                    color={'#fff'}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+            {isEdit ? (
+              <View
+                style={{
+                  alignSelf: 'flex-end',
+                  backgroundColor: '#b90000',
+                  padding: 4,
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                  marginBottom: 4
+                }}
+              >
+                <TouchableOpacity onPress={() => resetComment()}>
+                  <Text style={{ fontSize: 16, color: '#fff' }}>
+                    Hủy sửa bình luận
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+          <TextInput
+            multiline={true}
+            style={styles.input}
+            onTouchEnd={() => setShowOption(false)}
+            onChangeText={text => setComment(text)}
+            placeholder="Nhập j đi ..."
+            value={comment}
+          />
+        </View>
         {sending ? (
           <View style={styles.btnInputOption}>
             <FontAwesome5 name={'paper-plane'} size={24} color={'#ccc'} />

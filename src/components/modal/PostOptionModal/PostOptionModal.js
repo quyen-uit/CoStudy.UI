@@ -95,8 +95,12 @@ const PostOptionModal = ({ ...rest }) => {
     setModalOrder(1);
     await ChatService.createPostMessage(jwtToken, {
       conversation_id: id,
-      post_id: id,
-    });
+      post_id: rest.id,
+    })
+      .then(res => {
+        ToastAndroid.show('Chia sẻ thành công', ToastAndroid.SHORT);
+      })
+      .catch(err => console.log(err));
   };
 
   // const fetch = async () => {
@@ -284,7 +288,9 @@ const PostOptionModal = ({ ...rest }) => {
             underlayColor={'#000'}
             onPress={() => {
               rest.onVisible(false);
-              navigation.navigate(navigationConstants.report, {postId: rest.id});
+              navigation.navigate(navigationConstants.report, {
+                postId: rest.id,
+              });
             }}
           >
             <View style={styles.optionContainer}>

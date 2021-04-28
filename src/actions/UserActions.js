@@ -67,7 +67,7 @@ export const login = (email, password) => async dispatch => {
               });
             dispatch(loginSuccess(response.data.result));
           })
-          .catch(error => alert(error));
+          .catch(error => console.log(error));
       })
       .catch(error => {
         console.log(error)
@@ -102,7 +102,7 @@ export const update = jwt => async dispatch => {
         response.data.result.jwtToken = jwt;
         dispatch(updateUser(response.data.result));
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   } catch (error) {
     dispatch(loginError(error.message));
   }
