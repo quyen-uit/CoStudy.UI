@@ -388,12 +388,13 @@ function Conversation(props) {
   // }, [message]);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
+      alert('a');
       if (
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message == 'undefined'
       )
-        return;
+      return;
 
       const res = JSON.parse(
         JSON.parse(
@@ -401,27 +402,35 @@ function Conversation(props) {
         ).message
       );
 
-      if (res.SenderId == userInfo.id) return;
+      if (res.sender_id == userInfo.id) return;
+      // if (route.params?.callback)
+        // if (res.MediaContent == null) {
+        //   route.params.callback(res.StringContent, new Date());
+        // } else {
+        //   route.params.callback('Ảnh', new Date());
+        // }
       if (route.params?.callback)
-        if (res.MediaContent == null) {
-          route.params.callback(res.StringContent, new Date());
-        } else {
-          route.params.callback('Ảnh', new Date());
+      {
+        if(res.message_type == 3)    
+        {
+          res.content.string_contents.content = res.content.string_contents.Content;
         }
-      const tmp = {
-        id: '',
-        sender_id: res.SenderId,
-        conversation_id: res.ConversationId,
-        media_content: res.MediaContent
-          ? { image_hash: res.MediaContent.ImageUrl }
-          : res.MediaContent,
-        string_content: res.StringContent,
-        status: res.Status,
-        created_date: res.CreatedDate,
-        modified_date: res.ModifiedDate,
-        oid: res.OId,
-      };
-      setListMes([tmp, ...listMes]);
+      }
+      setListMes([res, ...listMes]);
+      // const tmp = {
+      //   id: '',
+      //   sender_id: res.SenderId,
+      //   conversation_id: res.ConversationId,
+      //   media_content: res.MediaContent
+      //     ? { image_hash: res.MediaContent.ImageUrl }
+      //     : res.MediaContent,
+      //   string_content: res.StringContent,
+      //   status: res.Status,
+      //   created_date: res.CreatedDate,
+      //   modified_date: res.ModifiedDate,
+      //   oid: res.OId,
+      // };
+      //setListMes([tmp, ...listMes]);
 
       // console.log(
       //   JSON.parse(

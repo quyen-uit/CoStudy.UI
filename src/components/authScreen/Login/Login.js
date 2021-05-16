@@ -122,7 +122,7 @@ function Login() {
                 <Text style={styles.txtForgot}>{strings.forgotPassword} ?</Text>
               </TouchableOpacity>
             </View>
-            <View>
+            <View style={{justifyContent: 'space-around', alignItems: 'center'}}> 
             <GoogleSigninButton
                   style={{}}
                   size={GoogleSigninButton.Size.Standard}
@@ -140,6 +140,7 @@ function Login() {
                 
               </View>
               <TouchableOpacity
+              style={{marginTop: 20}}
                 onPress={() => navigation.navigate(navigationConstants.signup)}
               >
                 <Text style={styles.txtFooter}>

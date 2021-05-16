@@ -50,7 +50,12 @@ class UserService {
   static async getUser(jwtToken, url) {
     return await getAPI(jwtToken).get(api + url);
   }
-
+  static async getRanking(jwtToken, params) {
+    return await getAPI(jwtToken).get(api + `Level/leader-board?Skip=${params.skip}&Count=${params.count}`);
+  }
+  static async getNewToken(jwtToken, url) {
+    return await getAPI(jwtToken).post(api + 'Accounts/refresh-token');
+  }
   static async filterUser(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'User/user/filter', {
       skip: params.skip,

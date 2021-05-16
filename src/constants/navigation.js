@@ -25,7 +25,9 @@ const navigationConstants = {
   search: 'Tìm kiếm',
   pickField: 'Chọn lĩnh vực',
   listField: 'Lĩnh vực',
-  report: 'Báo cáo'
+  report: 'Báo cáo',
+  videoCall: 'Gọi',
+  ranking: 'Xếp hạng'
 
 };
 

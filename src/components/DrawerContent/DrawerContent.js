@@ -16,7 +16,7 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../actions/UserActions';
 import { actionTypes, increaseChat, setChat } from 'actions/ChatAction';
 
-const { tabNav, profile, field, home, help, setting } = navigationConstants;
+const { tabNav, profile, field, home, help, setting, ranking } = navigationConstants;
 function ItemDrawer({ icon, route }) {
   const navigation = useNavigation();
 
@@ -26,7 +26,6 @@ function ItemDrawer({ icon, route }) {
       label={route}
       labelStyle={styles.label}
       onPress={() => {
-        if(route == profile)
          navigation.navigate(route);
       }}
     />
@@ -75,6 +74,7 @@ function DrawerContent(props) {
               label={home}
              />
             <ItemDrawer icon={'user-circle'} route={profile} />
+            <ItemDrawer icon={'trophy'} route={ranking} />
             <ItemDrawer icon={'cog'} route={setting} />
             <ItemDrawer icon={'question-circle'} route={help} />
           </Drawer.Section>

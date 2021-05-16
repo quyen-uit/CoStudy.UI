@@ -26,6 +26,7 @@ import axios from 'axios';
 import { api } from 'constants/route';
 import Loading from 'components/common/Loading';
 import { main_color } from 'constants/colorCommon';
+import { ToastAndroid } from 'react-native';
 function Verification() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -51,6 +52,7 @@ function Verification() {
       .then(res => {
         //check response
         dispatch(login(route.params.email, route.params.password));
+        ToastAndroid.show('Bạn đã đăng kí thành công.', ToastAndroid.SHORT);
       })
       .catch(err => {
         Alert.alert('Thất bại', 'Mã xác thực không đúng, vui lòng nhập lại.');

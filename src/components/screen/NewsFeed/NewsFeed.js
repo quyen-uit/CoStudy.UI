@@ -29,7 +29,13 @@ import ImageView from 'react-native-image-viewing';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
-
+import GetLocation from 'react-native-get-location';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -44,7 +50,7 @@ function NewsFeed() {
   const [isLoading, setIsLoading] = useState(true);
   const userInfo = useSelector(getBasicInfo);
   const jwtToken = useSelector(getJwtToken);
-
+  const [pickFieldVisible, setPickFieldVisible] = useState(false);
   const [data, setData] = useState([]);
   const [posts, setPosts] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -71,7 +77,29 @@ function NewsFeed() {
     setModalVisible(value);
   });
   React.useEffect(() => {
-    dispatch(update(jwtToken));
+    GetLocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 15000,
+    })
+      .then(location => {
+        console.log(location);
+      })
+      .catch(error => {
+        const { code, message } = error;
+        console.warn(code, message);
+      });
+
+    const fetch = async () => {
+      await UserService.getFieldByUserId(jwtToken, userInfo.id)
+        .then(res => {
+          if (res.data.result.length < 1) setPickFieldVisible(true);
+        })
+        .catch(err => console.log(err));
+      await UserService.getNewToken(jwtToken)
+        .then(res => dispatch(update(res.data.result.jwtToken)))
+        .catch(err => console.log(err));
+    };
+    fetch();
   }, []);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -341,11 +369,34 @@ function NewsFeed() {
       </SafeAreaView>
       <PostOptionModal
         visible={modalVisible}
-        
         saved={savedModal}
         id={idModal}
         onVisible={onVisibleCallBack}
       />
+      <Modal
+        visible={pickFieldVisible}
+         footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Chọn ngay"
+              onPress={() => {
+                setPickFieldVisible(false);
+
+                navigation.navigate(navigationConstants.pickField);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn chưa chọn lĩnh vực quan tâm nào
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

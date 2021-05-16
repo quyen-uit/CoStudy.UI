@@ -64,7 +64,7 @@ class ChatService {
   }
 
   static async createConversation(jwtToken, oid) {
-    return await getAPI(jwtToken).post(api + 'Message/conversation/add', {
+    return await getAPI(jwtToken).post(api + 'Conversation', {
       participants: [{ member_id: oid }],
       name: '',
     });
