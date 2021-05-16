@@ -53,13 +53,19 @@ function PickField() {
               fieldPickers.forEach(i => {
                 if (i.isPick) temp.push(i.oid);
               });
-              console.log(temp);
-              await UserService.updateFieldOfUser(jwtToken, userInfo.id, temp)
+              if(temp.length < 1)
+              {
+                ToastAndroid.show('Bạn chưa chọn lĩnh vực nào.', ToastAndroid.SHORT);
+              }
+              else
+              {
+                await UserService.updateFieldOfUser(jwtToken, userInfo.id, temp)
                 .then(res => {
                   ToastAndroid.show('Cập nhật thành công.', ToastAndroid.SHORT);
                   navigation.goBack();
                 })
                 .catch(err => console.log(err));
+              }
             }}
           >
             <Text style={{ color: '#fff', fontSize: 16 }}>OK</Text>
@@ -67,7 +73,7 @@ function PickField() {
         </View>
       ),
     });
-  }, [navigation]);
+  }, [navigation,fieldPickers]);
 
   useEffect(() => {
     let isRender = true;
