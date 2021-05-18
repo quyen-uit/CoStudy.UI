@@ -233,6 +233,7 @@ function RightMessage({ item, onViewImage, onDelete }) {
 }
 function LeftMessage({ item, onViewImage, avatar }) {
   const [showTime, setShowTime] = useState(false);
+  const navigation = useNavigation();
 
   return (
     <TouchableOpacity onPress={() => setShowTime(!showTime)}>
@@ -294,10 +295,10 @@ function LeftMessage({ item, onViewImage, avatar }) {
                       marginRight: 8,
                     }}
                   />
-                  <View>
+                  <View style={{ flex: 1 }}>
                     <Text
                       style={{
-                        color: '#fff',
+                        color: '#000',
                         fontWeight: 'bold',
                         fontSize: 14,
                       }}
@@ -310,7 +311,7 @@ function LeftMessage({ item, onViewImage, avatar }) {
                   </View>
                 </View>
                 <Text
-                  style={{ color: '#fff', marginHorizontal: 8 }}
+                  style={{ color: '#000', marginHorizontal: 8 }}
                   numberOfLines={3}
                 >
                   {item.content.string_contents[0].content.length < 80
@@ -388,34 +389,35 @@ function Conversation(props) {
   // }, [message]);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      alert('a');
       if (
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message == 'undefined'
       )
-      return;
+        return;
 
       const res = JSON.parse(
         JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message
       );
-
+      console.log(res);
       if (res.sender_id == userInfo.id) return;
       // if (route.params?.callback)
-        // if (res.MediaContent == null) {
-        //   route.params.callback(res.StringContent, new Date());
-        // } else {
-        //   route.params.callback('Ảnh', new Date());
-        // }
-      if (route.params?.callback)
-      {
-        if(res.message_type == 3)    
-        {
-          res.content.string_contents.content = res.content.string_contents.Content;
-        }
+      // if (res.MediaContent == null) {
+      //   route.params.callback(res.StringContent, new Date());
+      // } else {
+      //   route.params.callback('Ảnh', new Date());
+      // }
+      if (route.params?.callback) {
       }
+      if (res.message_type == 1) {
+        res.content = [{ image_hash: res.content[0].ImageHash }];
+      } else if (res.message_type == 3) {
+        res.content.string_contents[0].content = res.content.string_contents[0].Content;
+      }
+
+
       setListMes([res, ...listMes]);
       // const tmp = {
       //   id: '',

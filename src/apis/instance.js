@@ -33,7 +33,7 @@ export const getAPI = jwtToken => {
       const originalRequest = config;
 
       if (status === 400) {
-        // logout
+         // logout
         store.dispatch(logout(jwtToken));
         if (!isRefreshing) {
           isRefreshing = true;

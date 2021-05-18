@@ -60,7 +60,12 @@ export const login = (email, password) => async dispatch => {
                       response.data.result.oid +
                       '&token=' +
                       token,
-                    { userId: response.data.result.oid, token: token }
+                    { userId: response.data.result.oid, token: token },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${res.data.result.jwtToken}`,
+                      },
+                    }
                   )
 
                   .catch(err => console.log(err));
@@ -70,7 +75,7 @@ export const login = (email, password) => async dispatch => {
           .catch(error => console.log(error));
       })
       .catch(error => {
-        console.log(error)
+        console.log(error);
         Alert.alert('Thông báo', 'Email hoặc mật khẩu không đúng.');
         dispatch(loginSuccess());
       });
@@ -78,7 +83,52 @@ export const login = (email, password) => async dispatch => {
     dispatch(loginError(error.message));
   }
 };
+export const loginGoogle = (ggParams) => async dispatch => {
+  dispatch(loginRequest());
+  try {
+    await axios
+      .post(api + `Accounts/google-login`, ggParams )
+      .then(async res => {
+        await axios
+          .get(api + 'User/current', {
+            headers: { Authorization: `Bearer ${res.data.result.jwtToken}` },
+          })
+          .then(response => {
+            response.data.result.jwtToken = res.data.result.jwtToken;
 
+            messaging()
+              .getToken()
+              .then(async token => {
+                await axios
+                  .post( 
+                    api +
+                      'Fcm/add?userId=' +
+                      response.data.result.oid +
+                      '&token=' +
+                      token,
+                    { userId: response.data.result.oid, token: token },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${res.data.result.jwtToken}`,
+                      },
+                    }
+                  )
+
+                  .catch(err => console.log(err));
+              });
+            dispatch(loginSuccess(response.data.result));
+          })
+          .catch(error => console.log(error));
+      })
+      .catch(error => {
+        console.log(error);
+        Alert.alert('Thông báo', 'Email hoặc mật khẩu không đúng.');
+        dispatch(loginSuccess());
+      });
+  } catch (error) {
+    dispatch(loginError(error.message));
+  }
+};
 export const logout = token => async dispatch => {
   try {
     await axios
@@ -88,7 +138,7 @@ export const logout = token => async dispatch => {
   } finally {
     dispatch(clearStore());
   }
-  // 
+  //
   dispatch(clearStore());
 };
 

@@ -62,7 +62,7 @@ function NotifyCard(props) {
             flexDirection: 'row',
             padding: 8,
             borderRadius: 8,
-            backgroundColor: !isRead ? '#ccc' : '#fff',
+            backgroundColor: !isRead ? '#e3e3e3' : '#fff',
             opacity: !isRead ? 0.8 : 1,
           }}
         >

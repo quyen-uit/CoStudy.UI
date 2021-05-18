@@ -47,12 +47,12 @@ function Notify() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification
       );
-      if (
+       if (
         JSON.parse(
           JSON.parse(
             JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
           ).notification
-        ).AuthorId != userInfo.id
+        ).author_id != userInfo.id
       )
         Toast.show({
           type: 'success',
@@ -61,13 +61,14 @@ function Notify() {
             JSON.parse(
               JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
             ).notification
-          ).Content,
+          ).content,
           visibilityTime: 2000,
         });
+        console.log(res);
       setList([
         {
-          author_avatar: res.AuthorAvatar,
-          content: res.Content,
+          author_avatar: res.author_avatar,
+          content: res.content,
           created_date: new Date(),
          // isUnread: true,
         },

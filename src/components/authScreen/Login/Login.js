@@ -9,7 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { actionTypes, login } from 'actions/UserActions';
+import { actionTypes, login, loginGoogle } from 'actions/UserActions';
 import Button from 'components/common/Button';
 import ErrorView from 'components/common/ErrorView';
 import TextField from 'components/common/TextField';
@@ -48,8 +48,8 @@ function Login() {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfoGG = await GoogleSignin.signIn();
-      console.log(userInfoGG);
       setUserInfo(userInfoGG);
+      dispatch(loginGoogle(userInfoGG));
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         alert('cancel');
@@ -118,18 +118,22 @@ function Login() {
               >
                 <Text style={styles.txtLogin}>{strings.login}</Text>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(navigationConstants.forgot)}
+              >
                 <Text style={styles.txtForgot}>{strings.forgotPassword} ?</Text>
               </TouchableOpacity>
             </View>
-            <View style={{justifyContent: 'space-around', alignItems: 'center'}}> 
-            <GoogleSigninButton
-                  style={{}}
-                  size={GoogleSigninButton.Size.Standard}
-                  color={GoogleSigninButton.Color.Dark}
-                  onPress={signIn}
-                  //disabled={this.state.isSigninInProgress}
-                />
+            <View
+              style={{ justifyContent: 'space-around', alignItems: 'center' }}
+            >
+              <GoogleSigninButton
+                style={{}}
+                size={GoogleSigninButton.Size.Standard}
+                color={GoogleSigninButton.Color.Dark}
+                onPress={signIn}
+                //disabled={this.state.isSigninInProgress}
+              />
               <View style={styles.otherContainer}>
                 {/* <TouchableOpacity>
                   <Image source={require('../../../assets/fb.png')} />
@@ -137,10 +141,9 @@ function Login() {
                 {/* <TouchableOpacity onPress={() => signIn()}>
                   <Image source={require('../../../assets/google.png')} />
                 </TouchableOpacity> */}
-                
               </View>
               <TouchableOpacity
-              style={{marginTop: 20}}
+                style={{ marginTop: 20 }}
                 onPress={() => navigation.navigate(navigationConstants.signup)}
               >
                 <Text style={styles.txtFooter}>

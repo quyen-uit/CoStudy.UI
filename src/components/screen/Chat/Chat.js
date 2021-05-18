@@ -38,7 +38,7 @@ function Chat() {
 
   const onDeleteCallBack = React.useCallback(async id => {
     let tmp = listMes.filter(i => i.id !== id);
-    ToastAndroid.show('Đang xóa...', 1000)
+    ToastAndroid.show('Đang xóa...', 1000);
     setListMes([...tmp]);
     await ChatService.deleteConversation(id)
       .then(res =>
@@ -46,87 +46,91 @@ function Chat() {
           () => ToastAndroid.show('Đã xóa cuộc trò chuyện này.', 1000),
           1000
         )
-      ).catch(err=> {
+      )
+      .catch(err => {
         console.log(err);
-        ToastAndroid.show('Xóa thất bại.', 1000)
+        ToastAndroid.show('Xóa thất bại.', 1000);
       });
   });
   const onRefresh = React.useCallback(() => {
     let temp = [];
 
     setRefreshing(true);
-     const fetchData1 = async () => {
+    const fetchData1 = async () => {
       await ChatService.getCurrentConversation(jwtToken)
-      .then(async res => {
-        res.data.result.conversations.forEach(async item => {
-          if (item.conversation.oid != null) {
-            const obj = {};
+        .then(async res => {
+          res.data.result.conversations.forEach(async item => {
+            if (item.conversation.oid != null) {
+              const obj = {};
 
-            if (item.conversation.participants[0].member_id == userInfo.id) {
-              await UserService.getUserById(jwtToken,item.conversation.participants[1].member_id)
-                .then(user => {
+              if (item.conversation.participants[0].member_id == userInfo.id) {
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[1].member_id
+                ).then(user => {
                   obj.name =
                     user.data.result.first_name +
                     ' ' +
                     user.data.result.last_name;
                   obj.avatar = user.data.result.avatar.image_hash;
                 });
-            } else {
-              await UserService.getUserById(jwtToken,item.conversation.participants[0].member_id)
-                .then(user => {
+              } else {
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[0].member_id
+                ).then(user => {
                   obj.name =
                     user.data.result.first_name +
                     ' ' +
                     user.data.result.last_name;
                   obj.avatar = user.data.result.avatar.image_hash;
                 });
-            }
-            
-            // if (item.messages.sender_id == userInfo.id) {
-            //   if (item.messages.media_content == null)
-            //     obj.content = 'Bạn: ' + item.messages.string_content;
-            //   else obj.content = 'Bạn: Ảnh';
-            // } else {
-            //   if (item.messages.media_content == null)
-            //     obj.content = item.messages.string_content;
-            //   else obj.content = 'Ảnh';
-            // }
-            if (item.messages[0].sender_id == userInfo.id) {
-              if (item.messages[0].message_type == 0)
-                obj.content = 'Bạn: ' + item.messages[0].content[0];
-              else if (item.messages[0].message_type == 3)
-                obj.content = 'Bạn: Bài đăng'
-              else obj.content = 'Bạn: Hình ảnh';
-            } else {
-              if (item.messages[0].message_type == 0)
-                obj.content = item.messages[0].content[0];
+              }
+
+              // if (item.messages.sender_id == userInfo.id) {
+              //   if (item.messages.media_content == null)
+              //     obj.content = 'Bạn: ' + item.messages.string_content;
+              //   else obj.content = 'Bạn: Ảnh';
+              // } else {
+              //   if (item.messages.media_content == null)
+              //     obj.content = item.messages.string_content;
+              //   else obj.content = 'Ảnh';
+              // }
+              if (item.messages[0].sender_id == userInfo.id) {
+                if (item.messages[0].message_type == 0)
+                  obj.content = 'Bạn: ' + item.messages[0].content[0];
                 else if (item.messages[0].message_type == 3)
-                obj.content = 'Bài đăng'
-              else obj.content = 'Hình ảnh';
-            }
-            temp.push({
-              name: obj.name,
-              modified_date: item.messages[0].modified_date,
-              avatar: obj.avatar,
-              content:
-                obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
-              id: item.conversation.oid,
-              isUnread: false,
-            });
-            //console.log('1');
-           
+                  obj.content = 'Bạn: Bài đăng';
+                else obj.content = 'Bạn: Hình ảnh';
+              } else {
+                if (item.messages[0].message_type == 0)
+                  obj.content = item.messages[0].content[0];
+                else if (item.messages[0].message_type == 3)
+                  obj.content = 'Bài đăng';
+                else obj.content = 'Hình ảnh';
+              }
+              temp.push({
+                name: obj.name,
+                modified_date: item.messages[0].modified_date,
+                avatar: obj.avatar,
+                content:
+                  obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
+                id: item.conversation.oid,
+                isUnread: false,
+              });
+              //console.log('1');
+
               temp.sort(
                 (d1, d2) =>
                   new Date(d2.modified_date) - new Date(d1.modified_date)
               );
               setListMes(temp);
               setRefreshing(false);
-
-          }
-        });
-        //setListMes([...listMes, ...temp]);
-      })
-      .catch(err => console.log(err));
+            }
+          });
+          //setListMes([...listMes, ...temp]);
+        })
+        .catch(err => console.log(err));
     };
 
     fetchData1();
@@ -140,8 +144,6 @@ function Chat() {
   }, [navigation]);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(remoteMessage => {
-      console.log(remoteMessage);
-
       if (
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
@@ -155,29 +157,66 @@ function Chat() {
         ).message
       );
       // test
-          if(listMes.length < 1)
-          return;
-      let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
-      let tmp = listMes.filter(i => i.id !== res.ConversationId);
+      if (listMes.length < 1) return;
+      //let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
+      //let tmp = listMes.filter(i => i.id !== res.ConversationId);
 
-      setListMes([
-        {
-          name: userTemp.name,
-          modified_date: res.CreatedDate,
-          avatar: userTemp.avatar,
-          content: res.MediaContent == null ? res.StringContent : 'Ảnh',
-          id: userTemp.id,
-          isUnread: true,
-        },
-        ...tmp,
-      ]);
-      if (res.SenderId == userInfo.id) return;
-      Toast.show({
-        type: 'success',
-        position: 'top',
-        text1: 'Bạn có tin nhắn mới từ ' + userTemp.name,
-        visibilityTime: 2000,
-      });
+      let userTemp = listMes.filter(i => i.id === res.conversation_id)[0];
+      let tmp = listMes.filter(i => i.id !== res.conversation_id);
+
+      // setListMes([
+      //   {
+      //     name: userTemp.name,
+      //     modified_date: res.CreatedDate,
+      //     avatar: userTemp.avatar,
+      //     content: res.MediaContent == null ? res.StringContent : 'Ảnh',
+      //     id: userTemp.id,
+      //     isUnread: true,
+      //   },
+      //   ...tmp,
+      // ]);
+
+      if (res.sender_id == userInfo.id) {
+        setListMes([
+          {
+            name: userTemp.name,
+            modified_date: res.created_date,
+            avatar: userTemp.avatar,
+            content:
+              res.message_type == 3
+                ? 'Bài đăng'
+                : res.message_type == 1
+                ? 'Ảnh'
+                : res.content,
+            id: userTemp.id,
+            isUnread: false,
+          },
+          ...tmp,
+        ]);
+      } else {
+        setListMes([
+          {
+            name: userTemp.name,
+            modified_date: res.created_date,
+            avatar: userTemp.avatar,
+            content:
+              res.message_type == 3
+                ? 'Bài đăng'
+                : res.message_type == 1
+                ? 'Ảnh'
+                : res.content,
+            id: userTemp.id,
+            isUnread: true,
+          },
+          ...tmp,
+        ]);
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: 'Bạn có tin nhắn mới từ ' + userTemp.name,
+          visibilityTime: 2000,
+        });
+      }
       ///
     });
 
@@ -190,39 +229,43 @@ function Chat() {
       await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
           res.data.result.conversations.forEach(async item => {
-             if (item.conversation.oid != null) {
+            if (item.conversation.oid != null) {
               const obj = {};
               if (item.conversation.participants[0].member_id == userInfo.id) {
-                await UserService.getUserById(jwtToken, item.conversation.participants[1].member_id)
-                  .then(user => {
-                    obj.name =
-                      user.data.result.first_name +
-                      ' ' +
-                      user.data.result.last_name;
-                    obj.avatar = user.data.result.avatar.image_hash;
-                  });
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[1].member_id
+                ).then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                });
               } else {
-                await UserService.getUserById(jwtToken,item.conversation.participants[0].member_id)
-                .then(user => {
-                    obj.name =
-                      user.data.result.first_name +
-                      ' ' +
-                      user.data.result.last_name;
-                    obj.avatar = user.data.result.avatar.image_hash;
-                  });
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[0].member_id
+                ).then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                });
               }
 
               if (item.messages[0].sender_id == userInfo.id) {
                 if (item.messages[0].message_type == 0)
                   obj.content = 'Bạn: ' + item.messages[0].content[0];
                 else if (item.messages[0].message_type == 3)
-                  obj.content = 'Bạn: Bài đăng'
+                  obj.content = 'Bạn: Bài đăng';
                 else obj.content = 'Bạn: Hình ảnh';
               } else {
                 if (item.messages[0].message_type == 0)
                   obj.content = item.messages[0].content[0];
-                  else if (item.messages[0].message_type == 3)
-                  obj.content = 'Bài đăng'
+                else if (item.messages[0].message_type == 3)
+                  obj.content = 'Bài đăng';
                 else obj.content = 'Hình ảnh';
               }
               temp.push({
@@ -293,4 +336,3 @@ function Chat() {
   );
 }
 export default Chat;
-

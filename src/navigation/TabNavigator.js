@@ -246,7 +246,7 @@ function TabNavigator() {
             JSON.parse(
               JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
             ).notification
-          ).AuthorId != curUser.oid
+          ).author_id != curUser.oid
         ) {
           dispatch(increaseNotify());
         }
@@ -254,6 +254,13 @@ function TabNavigator() {
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message != 'undefined'
+      )
+      if (
+        JSON.parse(
+          JSON.parse(
+            JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+          ).message
+        ).sender_id != curUser.oid
       )
         dispatch(increaseChat());
     });

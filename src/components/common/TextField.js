@@ -12,8 +12,8 @@ const styles = StyleSheet.create({
    alignSelf: 'stretch',
    marginHorizontal: 56,
    marginVertical: 10,
-   justifyContent: 'center'
-  },
+   justifyContent: 'center',
+   },
  
   input: {
     backgroundColor: '#fff',
@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     paddingLeft: 48,
     fontSize: 16,
-    color: '#000'
-  },
+    color: '#000',
+   },
   icon: {
     paddingLeft: 12,
     position: 'absolute'

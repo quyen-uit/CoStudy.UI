@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   txtCreateDate: {
-    color: '#c4c4c4',
+    color: '#8f8f8f',
     fontSize: 12,
     marginRight: 4,
     marginTop: 4,

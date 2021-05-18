@@ -27,8 +27,8 @@ const navigationConstants = {
   listField: 'Lĩnh vực',
   report: 'Báo cáo',
   videoCall: 'Gọi',
-  ranking: 'Xếp hạng'
-
+  ranking: 'Xếp hạng',
+  forgot: 'Quên mật khẩu'
 };
 
 export default navigationConstants;
