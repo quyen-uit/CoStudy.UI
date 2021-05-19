@@ -34,7 +34,7 @@ export const getAPI = jwtToken => {
 
       if (status === 400) {
          // logout
-        store.dispatch(logout(jwtToken));
+        //store.dispatch(logout(jwtToken));
         if (!isRefreshing) {
           isRefreshing = true;
            await axios

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Dimensions
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -25,6 +26,14 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { hint_color, main_2nd_color, main_color } from 'constants/colorCommon';
 import moment from 'moment';
 import navigationConstants from 'constants/navigation';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 function SignUp() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -36,20 +45,25 @@ function SignUp() {
   const [date, setDate] = useState(new Date(1598051730000));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === 'ios');
     setDate(currentDate);
   };
-
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   const onNext = () => {
     if (first == '' || last == '') {
-      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ họ và tên.');
+      showAlert('Thông báo', 'Vui lòng nhập đầy đủ họ và tên.');
       return;
     } 
     else if (district == '' || city == '')
     {
-      Alert.alert('Thông báo', 'Vui lòng chọn thông tin nơi ở.');
+      showAlert('Thông báo', 'Vui lòng chọn thông tin nơi ở.');
       return;
     }
     else {
@@ -165,8 +179,29 @@ function SignUp() {
           </TouchableOpacity>
         </View>
 
-        <View></View>
-        {show && (
+        <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+             
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
+           {show && (
           <DateTimePicker
             testID="dateTimePicker"
             value={date}

@@ -29,7 +29,12 @@ import axios from 'axios';
 import { api } from 'constants/route';
 import navigationConstants from 'constants/navigation';
 import Geolocation from 'react-native-geolocation-service';
-
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function SignUp2() {
@@ -45,19 +50,25 @@ function SignUp2() {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
   const data = route.params;
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   const handleSubmit = async () => {
     if (phone == '') {
-      Alert.alert('Thông báo', 'Vui lòng nhập số điện thoại.');
+      showAlert('Thông báo', 'Vui lòng nhập số điện thoại.');
       return;
     } else if (email == '') {
-      Alert.alert('Thông báo', 'Vui lòng nhập email.');
+      showAlert('Thông báo', 'Vui lòng nhập email.');
       return;
     } else if (password.length < 6 || password2.length < 6) {
-      Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu ít nhất 6 kí tự.');
+      showAlert('Thông báo', 'Vui lòng nhập mật khẩu ít nhất 6 kí tự.');
       return;
     } else if (password != password2) {
-      Alert.alert('Thông báo', 'Mật khẩu không trùng khớp, vui lòng nhập lại');
+      showAlert('Thông báo', 'Mật khẩu không trùng khớp, vui lòng nhập lại');
       return;
     }
     setIsLoading(true);
@@ -83,7 +94,7 @@ function SignUp2() {
           })
           .catch(err => {
             setIsLoading(false);
-            Alert.alert('Đăng kí không thành công', err.message);
+            showAlert('Đăng kí không thành công', err.message);
           });
     // if (hasLocationPermission) {
     //   Geolocation.getCurrentPosition(
@@ -111,7 +122,7 @@ function SignUp2() {
     //       })
     //       .catch(err => {
     //         setIsLoading(false);
-    //         Alert.alert('Đăng kí không thành công', err.message);
+    //         showAlert('Đăng kí không thành công', err.message);
     //       });
     //       },
     //       (error) => {
@@ -192,6 +203,28 @@ function SignUp2() {
           />
         </View>
       ) : null}
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+             
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </ScrollView>
   );
   // return (

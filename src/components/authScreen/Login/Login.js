@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
+  Dimensions
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login, loginGoogle } from 'actions/UserActions';
@@ -22,13 +23,21 @@ import { isLoadingSelector } from 'selectors/StatusSelectors';
 import navigationConstants from 'constants/navigation';
 import axios from 'axios';
 import Loading from 'components/common/Loading';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 
 import {
   GoogleSignin,
   GoogleSigninButton,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-
+import { main_color } from 'constants/colorCommon';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 GoogleSignin.configure();
 
 function Login() {
@@ -37,12 +46,18 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [userInfo, setUserInfo] = useState({});
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
 
+  const [titleAlert, setTitleAlert] = useState('');
   const navigation = useNavigation();
   const isLoading = useSelector(state =>
     isLoadingSelector([actionTypes.LOGIN], state)
   );
-
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   // Somewhere in your code
   const signIn = async () => {
     try {
@@ -73,10 +88,16 @@ function Login() {
   );
 
   const handleSubmit = () => {
-    if (email === '') Alert.alert('Thông báo', 'Vui lòng nhập email.');
+    
+    if (email === '')
+      //Alert.alert('Thông báo', 'Vui lòng nhập email.');
+      showAlert('Thông báo', 'Vui lòng nhập email.');
     else if (password === '')
-      Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
+      // Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
+      showAlert('Thông báo', 'Vui lòng nhập mật khẩu.');
+
     else dispatch(login(email, password));
+    
   };
   return (
     <View style={{ flex: 1 }}>
@@ -154,6 +175,28 @@ function Login() {
           </View>
         </ScrollView>
       )}
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+             
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
   // return (

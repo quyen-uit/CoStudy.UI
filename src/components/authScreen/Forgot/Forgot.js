@@ -27,6 +27,12 @@ import { api } from 'constants/route';
 import Loading from 'components/common/Loading';
 import { main_color } from 'constants/colorCommon';
 import { ToastAndroid } from 'react-native';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 function Forgot() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -41,23 +47,28 @@ function Forgot() {
   const [isChange, setIsChange] = useState(false);
   const deviceWidth = Dimensions.get('window').width;
   const deviceHeight = Dimensions.get('window').height;
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
   const errors = useSelector(
     state => errorsSelector([actionTypes.LOGIN], state),
     shallowEqual
   );
-
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   const handleSubmit = () => {
     if (!isChange || isResend) {
       setIsResend(false);
 
       if (mail == '') {
-        Alert.alert('Thông báo', 'Vui lòng nhập email.');
+        showAlert('Thông báo', 'Vui lòng nhập email.');
         return;
       } else if (password.length < 6 || password2.length < 6) {
-        Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu ít nhất 6 kí tự.');
+        showAlert('Thông báo', 'Vui lòng nhập mật khẩu ít nhất 6 kí tự.');
         return;
       } else if (password != password2) {
-        Alert.alert(
+        showAlert(
           'Thông báo',
           'Mật khẩu không trùng khớp, vui lòng nhập lại'
         );
@@ -79,12 +90,12 @@ function Forgot() {
           setIsLoading(false);
         })
         .catch(err => {
-          Alert.alert('Thất bại', 'Có lỗi xảy ra, vui lòng thử lại sau.');
+          showAlert('Thất bại', 'Có lỗi xảy ra, vui lòng thử lại sau.');
           setIsLoading(false);
         });
     } else {
       if (key == '') {
-        Alert.alert('Thông báo', 'Bạn chưa nhập mã xác nhận.');
+        showAlert('Thông báo', 'Bạn chưa nhập mã xác nhận.');
         return;
       }
       setIsLoading(true);
@@ -103,7 +114,7 @@ function Forgot() {
           );
         })
         .catch(err => {
-          Alert.alert('Thất bại', 'Mã xác thực không đúng, vui lòng nhập lại.');
+          showAlert('Thất bại', 'Mã xác thực không đúng, vui lòng nhập lại.');
           setIsLoading(false);
         });
     }
@@ -197,6 +208,28 @@ function Forgot() {
           />
         </View>
       ) : null}
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+             
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
   // return (
