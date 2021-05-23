@@ -33,6 +33,7 @@ import {
   ModalButton,
   ModalContent,
 } from 'react-native-modals';
+import { ConnectyCube } from 'react-native-connectycube';
 function Verification() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -61,9 +62,28 @@ function Verification() {
     axios
       .post(api + 'Accounts/verify-email?token=' + key, { token: key })
       .then(res => {
+        // register chat video
+        ConnectyCube.createSession()
+          .then(session => {
+            ConnectyCube.users
+              .signup({
+                login: route.params.email,
+                password: 'connectycube',
+                email: route.params.email,
+                full_name: route.params.fullname,
+              })
+              .then(user => {
+                dispatch(login(route.params.email, route.params.password));
+                ToastAndroid.show(
+                  'Bạn đã đăng kí thành công.',
+                  ToastAndroid.SHORT
+                );
+              })
+              .catch(error => {});
+          })
+          .catch(error => {});
+
         //check response
-        dispatch(login(route.params.email, route.params.password));
-        ToastAndroid.show('Bạn đã đăng kí thành công.', ToastAndroid.SHORT);
       })
       .catch(err => {
         showAlert('Thất bại', 'Mã xác thực không đúng, vui lòng nhập lại.');

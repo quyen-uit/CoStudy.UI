@@ -34,11 +34,11 @@ export const getAPI = jwtToken => {
 
       if (status === 400) {
          // logout
-        //store.dispatch(logout(jwtToken));
+        // store.dispatch(logout(jwtToken));
         if (!isRefreshing) {
           isRefreshing = true;
            await axios
-            .post('http://192.168.207.91:8015/api/Accounts/refresh-token')
+            .post('http://192.168.36.2/api/Accounts/refresh-token')
             .then(response => {
               isRefreshing = false;
               store.dispatch(update(response.data.result.jwtToken));

@@ -36,6 +36,8 @@ import {
   ModalButton,
   ModalContent,
 } from 'react-native-modals';
+import { AuthService } from 'components/videocall/services';
+import ConnectyCube from 'react-native-connectycube';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -77,6 +79,19 @@ function NewsFeed() {
     setModalVisible(value);
   });
   React.useEffect(() => {
+    ConnectyCube.createSession({
+      login: userInfo.email,
+      // login: 'videouser1',
+      password: 'connectycube',
+    })
+      .then(session => {
+        
+        ConnectyCube.chat.connect({
+          userId: session.id,
+          password: 'connectycube',
+        });
+      })
+      .catch(err => console.log('errr' + err));
     GetLocation.getCurrentPosition({
       enableHighAccuracy: true,
       timeout: 15000,
@@ -375,7 +390,7 @@ function NewsFeed() {
       />
       <Modal
         visible={pickFieldVisible}
-         footer={
+        footer={
           <ModalFooter>
             <ModalButton
               textStyle={{ fontSize: 14, color: 'red' }}

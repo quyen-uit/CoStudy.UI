@@ -1,5 +1,5 @@
 import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Text,
@@ -57,6 +57,35 @@ function SignUp2() {
     setBodyAlert(body);
     setVisibleAlert(true);
   };
+  useEffect(() => {
+    const func = async () => {
+      try {
+        const value = await AsyncStorage.getItem('@gg_email');
+        if (value !== null) {
+          setEmail(value);
+        }
+      } catch (e) {
+        // error reading value
+      }
+    };
+    func();
+  }, []);
+  const checkEmailExisting = async () => {
+    if (email != '') {
+      await axios
+        .get(api + 'User/is-exist?email=' + email)
+        .then(res => {
+          if (res.data.result) {
+            showAlert(
+              'Thông báo',
+              'Email này đã đăng kí, vui lòng nhập email khác.'
+            );
+            setEmail('');
+          }
+        })
+        .catch(err => console.log(err));
+    }
+  };
   const handleSubmit = async () => {
     if (phone == '') {
       showAlert('Thông báo', 'Vui lòng nhập số điện thoại.');
@@ -72,30 +101,37 @@ function SignUp2() {
       return;
     }
     setIsLoading(true);
-         await axios
-          .post(api + 'User/register', {
-            first_name: data.first,
-            last_name: data.last,
-            date_of_birth: data.dob,
-            address: { city: data.city, district: data.district, latitude: '1', longtitude: '1', detail: "" },
-            email: email,
-            phone_number: phone,
-            password: password,
-            confirmPassword: password,
-            accept_term: true,
-            title: 'title',
-          })
-          .then(res => {
-            setIsLoading(false);
-            navigation.navigate(navigationConstants.verifyEmail, {
-              email: email,
-              password: password,
-            });
-          })
-          .catch(err => {
-            setIsLoading(false);
-            showAlert('Đăng kí không thành công', err.message);
-          });
+    await axios
+      .post(api + 'User/register', {
+        first_name: data.first,
+        last_name: data.last,
+        date_of_birth: data.dob,
+        address: {
+          city: data.city,
+          district: data.district,
+          latitude: '1',
+          longtitude: '1',
+          detail: '',
+        },
+        email: email,
+        phone_number: phone,
+        password: password,
+        confirmPassword: password,
+        accept_term: true,
+        title: 'title',
+      })
+      .then(res => {
+        setIsLoading(false);
+        navigation.navigate(navigationConstants.verifyEmail, {
+          email: email,
+          password: password,
+          fullname: data.first + data.last,
+        });
+      })
+      .catch(err => {
+        setIsLoading(false);
+        showAlert('Đăng kí không thành công', err.message);
+      });
     // if (hasLocationPermission) {
     //   Geolocation.getCurrentPosition(
     //       async (location) => {
@@ -132,7 +168,6 @@ function SignUp2() {
     //       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     //   );
     // }
-    
   };
   return (
     <ScrollView
@@ -213,7 +248,6 @@ function SignUp2() {
               text="Hủy"
               onPress={() => setVisibleAlert(false)}
             />
-             
           </ModalFooter>
         }
       >

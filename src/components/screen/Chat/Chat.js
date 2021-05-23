@@ -73,6 +73,8 @@ function Chat() {
                     ' ' +
                     user.data.result.last_name;
                   obj.avatar = user.data.result.avatar.image_hash;
+                  obj.call_id = user.data.result.call_id;
+
                 });
               } else {
                 await UserService.getUserById(
@@ -84,6 +86,8 @@ function Chat() {
                     ' ' +
                     user.data.result.last_name;
                   obj.avatar = user.data.result.avatar.image_hash;
+                  obj.call_id = user.data.result.call_id;
+
                 });
               }
 
@@ -117,6 +121,8 @@ function Chat() {
                   obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
                 id: item.conversation.oid,
                 isUnread: false,
+                call_id: obj.call_id
+
               });
               //console.log('1');
 
@@ -241,7 +247,8 @@ function Chat() {
                     ' ' +
                     user.data.result.last_name;
                   obj.avatar = user.data.result.avatar.image_hash;
-                });
+                  obj.call_id = user.data.result.call_id;
+                 });
               } else {
                 await UserService.getUserById(
                   jwtToken,
@@ -252,6 +259,8 @@ function Chat() {
                     ' ' +
                     user.data.result.last_name;
                   obj.avatar = user.data.result.avatar.image_hash;
+                  obj.call_id = user.data.result.call_id;
+ 
                 });
               }
 
@@ -276,6 +285,7 @@ function Chat() {
                   obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
                 id: item.conversation.oid,
                 isUnread: false,
+                call_id: obj.call_id
               });
               //console.log('1');
               if (isRender) {

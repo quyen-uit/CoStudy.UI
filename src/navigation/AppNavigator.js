@@ -12,6 +12,7 @@ import ProfileDetail from 'components/screen/ProfileDetail';
 import ProfileEdit from 'components/screen/ProfileEdit';
 
 import Create from 'components/screen/Create';
+import VideoScreen from 'components/videocall/components/VideoScreen';
 
 import NewsFeed from 'components/screen/NewsFeed';
 import Chat from 'components/screen/Chat';
@@ -62,7 +63,7 @@ const {
   listField,
   pickField,
   report,
-  videoCall,
+  video,
   ranking
 } = navigationConstants;
 
@@ -347,6 +348,28 @@ function AppNavigator() {
             alignSelf: 'center',
           },
 
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={video}
+        component={VideoScreen}
+        options={{
+          title: video,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
           headerRight: () => (
             <View style={styles.headerRight}>
               <TouchableOpacity onPress={() => alert('search is clicked')}>

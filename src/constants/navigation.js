@@ -26,7 +26,7 @@ const navigationConstants = {
   pickField: 'Chọn lĩnh vực',
   listField: 'Lĩnh vực',
   report: 'Báo cáo',
-  videoCall: 'Gọi',
+  video: 'Gọi',
   ranking: 'Xếp hạng',
   forgot: 'Quên mật khẩu'
 };

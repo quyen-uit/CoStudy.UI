@@ -46,6 +46,7 @@ function ChatCard(props) {
   const onDelete = React.useCallback(value => {
     setVisible(true);
   });
+
   const onCallback = React.useCallback((value, date) => {
     setContent(value);
     setDate(date);
@@ -57,6 +58,9 @@ function ChatCard(props) {
       id: chat.id,
       isUnread: false,
     });
+  });
+  const onVisible = React.useCallback((value ) => {
+    setModalVisible(value);
   });
   useEffect(() => {
     setContent(chat.content);
@@ -141,6 +145,9 @@ function ChatCard(props) {
           setModalVisible(false);
         }}
         onDelete={onDelete}
+        onVisible={onVisible}
+        callId={chat.call_id}
+        name={chat.name}
       />
       <Modal
         visible={visible}

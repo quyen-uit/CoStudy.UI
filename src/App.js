@@ -16,6 +16,7 @@ import { ModalPortal } from 'react-native-modals';
 
 import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
+import { AuthService } from 'components/videocall/services';
 enableScreens();
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -55,6 +56,7 @@ function App() {
   //   return unsubscribe;
   // }, []);
   useEffect(() => {
+    AuthService.init();
     persistor(hideSplashScreen);
   }, []);
   const toastConfig = {

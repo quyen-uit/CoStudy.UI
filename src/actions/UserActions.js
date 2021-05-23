@@ -4,6 +4,7 @@ import { api } from '../constants/route';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
+import ConnectyCube from 'react-native-connectycube';
 
 export const actionTypes = {
   CLEAR_STORE: 'CLEAR_STORE',
@@ -83,11 +84,11 @@ export const login = (email, password) => async dispatch => {
     dispatch(loginError(error.message));
   }
 };
-export const loginGoogle = (ggParams) => async dispatch => {
+export const loginGoogle = ggParams => async dispatch => {
   dispatch(loginRequest());
   try {
     await axios
-      .post(api + `Accounts/google-login`, ggParams )
+      .post(api + `Accounts/google-login`, ggParams)
       .then(async res => {
         await axios
           .get(api + 'User/current', {
@@ -96,29 +97,30 @@ export const loginGoogle = (ggParams) => async dispatch => {
           .then(response => {
             response.data.result.jwtToken = res.data.result.jwtToken;
 
-            messaging()
-              .getToken()
-              .then(async token => {
-                await axios
-                  .post( 
-                    api +
-                      'Fcm/add?userId=' +
-                      response.data.result.oid +
-                      '&token=' +
-                      token,
-                    { userId: response.data.result.oid, token: token },
-                    {
-                      headers: {
-                        Authorization: `Bearer ${res.data.result.jwtToken}`,
-                      },
-                    }
-                  )
+                messaging()
+                  .getToken()
+                  .then(async token => {
+                    await axios
+                      .post(
+                        api +
+                          'Fcm/add?userId=' +
+                          response.data.result.oid +
+                          '&token=' +
+                          token,
+                        { userId: response.data.result.oid, token: token },
+                        {
+                          headers: {
+                            Authorization: `Bearer ${res.data.result.jwtToken}`,
+                          },
+                        }
+                      )
 
-                  .catch(err => console.log(err));
-              });
-            dispatch(loginSuccess(response.data.result));
-          })
-          .catch(error => console.log(error));
+                      .catch(err => console.log(err));
+                  });
+                dispatch(loginSuccess(response.data.result));
+              })
+              .catch(err => console.log(err));
+
       })
       .catch(error => {
         console.log(error);

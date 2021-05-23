@@ -2,20 +2,19 @@ import React from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
 import ConnectyCube from 'react-native-connectycube';
 import AwesomeAlert from 'react-native-awesome-alerts';
-import RTCViewGrid from '../../videocall/components/VideoScreen/RTCViewGrid';
-import { CallService, AuthService } from '../../videocall/services';
-import ToolBar from '../../videocall/components/VideoScreen/ToolBar';
-import UsersSelect from '../../videocall/components/VideoScreen/UsersSelect';
- import { users } from '../../videocall/config';
+import RTCViewGrid from './RTCViewGrid';
+import { CallService, AuthService } from '../../services';
+import ToolBar from './ToolBar';
+import UsersSelect from './UsersSelect';
+import { users } from 'components/videocall/config';
 import { connect } from 'react-redux';
-import navigationConstants from 'constants/navigation';
 
 class VideoScreen extends React.Component {
   constructor(props) {
     super(props);
 
-    this._session = null;
-    this.opponentsIds = users.map(opponent => opponent.id);
+    // this.opponentsIds = users.map(opponent => opponent.id);
+
     this.state = {
       localStream: null,
       remoteStreams: [],
@@ -26,8 +25,37 @@ class VideoScreen extends React.Component {
     };
 
     this._setUpListeners();
-  }
 
+    if (this.props.route.params.isCalling) {
+      //this._session = this.props.route.params.session;
+      //CallService.processOnCallListener(this.props.route.params.session)
+      //.then(() => this.showInomingCallModal(this.props.route.params.session))
+      // console.log('------------------------------------------');
+      // console.log(this.props.route.params.session);
+      // this._onPressAccept();
+    } else {
+      this._session = null;
+      ConnectyCube.videochat.onCallListener = this._onCallListener;
+      ConnectyCube.videochat.onRemoteStreamListener = this._onRemoteStreamListener;
+    }
+  }
+  componentDidMount() {
+    this.opponentsIds = [this.props.route.params.opponent_id];
+    this.setState({ selectedUsersIds: this.opponentsIds });
+    if (this.props.route.params.isCalling) {
+      this._session = this.props.route.params.session;
+      this.initRemoteStreams(this.props.route.params.opponent_id);
+      this.updateRemoteStream(
+        this.props.route.params.userId,
+        this.props.route.params.remote
+      );
+      this.setOnCall();
+      this.setLocalStream(this.props.route.params.stream);
+      // console.log('------------------------------------------');
+      // console.log(this.props.route.params.session);
+      // this._onPressAccept();
+    }
+  }
   componentWillUnmount() {
     CallService.stopCall();
     //AuthService.logout();
@@ -76,15 +104,25 @@ class VideoScreen extends React.Component {
   };
 
   initRemoteStreams = opponentsIds => {
-    const emptyStreams = [
-      {
-        //userId: users[1].id,
-        userId: '111',
-        stream: null,
-      },
-    ];
+    if (this.props.route.params.isCalling) {
+      const emptyStreams = [
+        {
+          userId: this.props.route.params.userId,
+          stream: null,
+        },
+      ];
+      this.setState({ remoteStreams: emptyStreams });
 
-    this.setState({ remoteStreams: emptyStreams });
+    } else {
+      const emptyStreams = [
+        {
+          userId: this.props.route.params.opponent_id,
+          stream: null,
+        },
+      ];
+      this.setState({ remoteStreams: emptyStreams });
+
+    }
   };
 
   updateRemoteStream = (userId, stream) => {
@@ -122,12 +160,12 @@ class VideoScreen extends React.Component {
   };
 
   _setUpListeners() {
-    ConnectyCube.videochat.onCallListener = this._onCallListener;
-    // ConnectyCube.videochat.onAcceptCallListener = this._onAcceptCallListener;
-    // ConnectyCube.videochat.onRejectCallListener = this._onRejectCallListener;
-    // ConnectyCube.videochat.onStopCallListener = this._onStopCallListener;
-    // ConnectyCube.videochat.onUserNotAnswerListener = this._onUserNotAnswerListener;
-    ConnectyCube.videochat.onRemoteStreamListener = this._onRemoteStreamListener;
+    // ConnectyCube.videochat.onCallListener = this._onCallListener;
+    ConnectyCube.videochat.onAcceptCallListener = this._onAcceptCallListener;
+    ConnectyCube.videochat.onRejectCallListener = this._onRejectCallListener;
+    ConnectyCube.videochat.onStopCallListener = this._onStopCallListener;
+    ConnectyCube.videochat.onUserNotAnswerListener = this._onUserNotAnswerListener;
+    // ConnectyCube.videochat.onRemoteStreamListener = this._onRemoteStreamListener;
   }
 
   _onPressAccept = () => {
@@ -136,9 +174,9 @@ class VideoScreen extends React.Component {
       const opponentsIds = [initiatorID, ...opponentsIDs].filter(
         userId => currentUserID !== userId
       );
-      // this.initRemoteStreams(users[0].id);
+      this.initRemoteStreams(this.props.route.params.opponent_id);
       this.setLocalStream(stream);
-      //this.closeSelect();
+      this.closeSelect();
       this.hideInomingCallModal();
     });
   };
@@ -149,10 +187,9 @@ class VideoScreen extends React.Component {
   };
 
   _onCallListener = (session, extension) => {
-    if (!this._session)
-      CallService.processOnCallListener(session)
-        .then(() => this.showInomingCallModal(session))
-        .catch(this.hideInomingCallModal);
+    CallService.processOnCallListener(session)
+      .then(() => this.showInomingCallModal(session))
+      .catch(this.hideInomingCallModal);
   };
 
   _onAcceptCallListener = (session, userId, extension) => {
@@ -165,6 +202,7 @@ class VideoScreen extends React.Component {
     CallService.processOnRejectCallListener(session, userId, extension)
       .then(() => this.removeRemoteStream(userId))
       .catch(this.hideInomingCallModal);
+    this.props.navigation.goBack();
   };
 
   _onStopCallListener = (session, userId, extension) => {
@@ -179,6 +217,7 @@ class VideoScreen extends React.Component {
         }
       })
       .catch(this.hideInomingCallModal);
+    this.props.navigation.goBack();
   };
 
   _onUserNotAnswerListener = (session, userId) => {
@@ -188,21 +227,17 @@ class VideoScreen extends React.Component {
   };
 
   _onRemoteStreamListener = (session, userId, stream) => {
-    this.props.navigation.navigate(navigationConstants.video, {
-      session: this._session,
-      isCalling: true,
-      stream: this.state.localStream,
-      remote: stream,
-      userId: userId,
-    });
-    //   CallService.processOnRemoteStreamListener(userId)
-    //     .then(() => {
-    //       this.updateRemoteStream(userId, stream);
-    //       this.setOnCall();
-    //     })
-    //     .catch(this.hideInomingCallModal);
+    CallService.processOnRemoteStreamListener(userId)
+      .then(() => {
+        console.log('on remote stream 2');
+        this.updateRemoteStream(userId, stream);
+        this.setOnCall();
+      })
+      .catch(this.hideInomingCallModal);
   };
-
+  goBack = () => {
+    this.props.navigation.goBack();
+  };
   render() {
     const {
       localStream,
@@ -225,10 +260,31 @@ class VideoScreen extends React.Component {
 
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+        <StatusBar backgroundColor="black" barStyle="light-content" />
+        <RTCViewGrid streams={streams} />
+        {/* <UsersSelect
+          isActiveSelect={isActiveSelect}
+          opponentsIds={this.opponentsIds}
+          selectedUsersIds={selectedUsersIds}
+          selectUser={this.selectUser}
+          unselectUser={this.unselectUser}
+        /> */}
+        <ToolBar
+          selectedUsersIds={[this.props.route.params.opponent_id]}
+          localStream={localStream}
+          isActiveSelect={isActiveSelect}
+          isActiveCall={isActiveCall}
+          closeSelect={this.closeSelect}
+          initRemoteStreams={this.initRemoteStreams}
+          setLocalStream={this.setLocalStream}
+          resetState={this.resetState}
+          goBack={this.goBack}
+          isCalling={this.props.route.params.isCalling}
+        />
         <AwesomeAlert
           show={isIncomingCall}
-          showProgress={true}
-          title={`Bạn có cuộc gọi video ...`}
+          showProgress={false}
+          title={`Bạn có cuộc gọi đến ...`}
           closeOnTouchOutside={false}
           closeOnHardwareBackPress={true}
           showCancelButton={true}

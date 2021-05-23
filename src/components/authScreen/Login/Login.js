@@ -7,7 +7,7 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login, loginGoogle } from 'actions/UserActions';
@@ -36,6 +36,9 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { main_color } from 'constants/colorCommon';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ConnectyCube from 'react-native-connectycube';
+import { AuthService } from 'components/videocall/services';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 GoogleSignin.configure();
@@ -64,7 +67,20 @@ function Login() {
       await GoogleSignin.hasPlayServices();
       const userInfoGG = await GoogleSignin.signIn();
       setUserInfo(userInfoGG);
-      dispatch(loginGoogle(userInfoGG));
+      await axios
+        .get(api + 'User/is-exist?email=' + userInfoGG.user.email)
+        .then(async res => {
+          if (res.data.result) dispatch(loginGoogle(userInfoGG));
+          else {
+            try {
+              await AsyncStorage.setItem('@gg_email', userInfoGG.user.email);
+            } catch (e) {
+              // saving error
+            }
+            navigation.navigate(navigationConstants.signup2);
+          }
+        })
+        .catch(err => console.log(err));
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         alert('cancel');
@@ -86,18 +102,15 @@ function Login() {
     state => errorsSelector([actionTypes.LOGIN], state),
     shallowEqual
   );
-
   const handleSubmit = () => {
-    
+
     if (email === '')
       //Alert.alert('Thông báo', 'Vui lòng nhập email.');
       showAlert('Thông báo', 'Vui lòng nhập email.');
     else if (password === '')
       // Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
       showAlert('Thông báo', 'Vui lòng nhập mật khẩu.');
-
     else dispatch(login(email, password));
-    
   };
   return (
     <View style={{ flex: 1 }}>
@@ -185,7 +198,6 @@ function Login() {
               text="Hủy"
               onPress={() => setVisibleAlert(false)}
             />
-             
           </ModalFooter>
         }
       >
