@@ -32,7 +32,10 @@ function Notify() {
     let tmp = list.filter(i => i.oid !== id);
 
     setList([...tmp]);
-    setTimeout(() => ToastAndroid.show('Đã xóa thông báo.', 1000), 1000);
+    // setTimeout(() => ToastAndroid.show('Đã xóa thông báo.', 1000), 1000);
+    NotifyService.deleteById(jwtToken, id)
+      .then(res => ToastAndroid.show('Đã xóa thông báo.', 1000))
+      .catch(err => console.log(err));
   });
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
@@ -47,7 +50,7 @@ function Notify() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification
       );
-       if (
+      if (
         JSON.parse(
           JSON.parse(
             JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
@@ -64,13 +67,13 @@ function Notify() {
           ).content,
           visibilityTime: 2000,
         });
-        console.log(res);
+      console.log(res);
       setList([
         {
           author_avatar: res.author_avatar,
           content: res.content,
           created_date: new Date(),
-         // isUnread: true,
+          // isUnread: true,
         },
         ...list,
       ]);
@@ -88,7 +91,7 @@ function Notify() {
           res.data.result.sort(
             (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)
           );
-           
+
           setList(res.data.result);
         })
         .catch(err => console.log(err));

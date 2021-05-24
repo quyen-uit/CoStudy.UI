@@ -85,7 +85,6 @@ function NewsFeed() {
       password: 'connectycube',
     })
       .then(session => {
-        
         ConnectyCube.chat.connect({
           userId: session.id,
           password: 'connectycube',
@@ -98,6 +97,14 @@ function NewsFeed() {
     })
       .then(location => {
         console.log(location);
+        UserService.updateUser(jwtToken, {
+          address: {
+            longtitude: location.coords.longitude,
+            latitude: location.coords.latitude,
+          },
+        })
+          .then(res => console.log('update location sucess'))
+          .catch(err => console.log(err));
       })
       .catch(error => {
         const { code, message } = error;
