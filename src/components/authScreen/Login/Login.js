@@ -77,7 +77,7 @@ function Login() {
             } catch (e) {
               // saving error
             }
-            navigation.navigate(navigationConstants.signup2);
+            navigation.navigate(navigationConstants.signup, { isGoogle: true });
           }
         })
         .catch(err => console.log(err));
@@ -103,7 +103,6 @@ function Login() {
     shallowEqual
   );
   const handleSubmit = () => {
-
     if (email === '')
       //Alert.alert('Thông báo', 'Vui lòng nhập email.');
       showAlert('Thông báo', 'Vui lòng nhập email.');

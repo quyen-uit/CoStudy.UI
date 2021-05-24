@@ -47,6 +47,7 @@ function SignUp() {
   const [show, setShow] = useState(false);
   const [visibleAlert, setVisibleAlert] = useState(false);
   const [bodyAlert, setBodyAlert] = useState('');
+  const route = useRoute();
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === 'ios');
@@ -73,6 +74,7 @@ function SignUp() {
         dob: date,
         city: city,
         district: district,
+        isGoogle: route.params?.isGoogle ? true : false
       });
     }
   };

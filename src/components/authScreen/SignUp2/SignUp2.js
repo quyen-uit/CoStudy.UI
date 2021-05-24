@@ -122,11 +122,16 @@ function SignUp2() {
       })
       .then(res => {
         setIsLoading(false);
-        navigation.navigate(navigationConstants.verifyEmail, {
-          email: email,
-          password: password,
-          fullname: data.first + data.last,
-        });
+        if (route.params?.isGoogle) {
+          dispatch(login(email, password));
+          ToastAndroid.show('Bạn đã đăng kí thành công.', ToastAndroid.SHORT);
+        } else {
+          navigation.navigate(navigationConstants.verifyEmail, {
+            email: email,
+            password: password,
+            fullname: data.first + data.last,
+          });
+        }
       })
       .catch(err => {
         setIsLoading(false);
