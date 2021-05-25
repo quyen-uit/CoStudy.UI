@@ -73,7 +73,7 @@ function NotifyCard(props) {
                 source={{ uri: notify.author_avatar }}
               />
             </TouchableOpacity>
-            <View style={{ flexShrink: 1 }}>
+            <View style={{ flexShrink: 1, marginLeft: 64 }}>
               <Text>{notify.content}</Text>
 
               <Text style={styles.txtCreateDate}>

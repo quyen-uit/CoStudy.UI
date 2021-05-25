@@ -39,6 +39,7 @@ import { main_color } from 'constants/colorCommon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ConnectyCube from 'react-native-connectycube';
 import { AuthService } from 'components/videocall/services';
+import { api } from 'constants/route';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 GoogleSignin.configure();
@@ -72,24 +73,20 @@ function Login() {
         .then(async res => {
           if (res.data.result) dispatch(loginGoogle(userInfoGG));
           else {
-            try {
-              await AsyncStorage.setItem('@gg_email', userInfoGG.user.email);
-            } catch (e) {
-              // saving error
-            }
-            navigation.navigate(navigationConstants.signup, { isGoogle: true });
+            
+            navigation.navigate(navigationConstants.signup, { isGoogle: true, email: userInfoGG.user.email });
           }
         })
         .catch(err => console.log(err));
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-        alert('cancel');
+        console.log('cancel');
         // user cancelled the login flow
       } else if (error.code === statusCodes.IN_PROGRESS) {
-        alert('in progress');
+        console.log('in progress');
         // operation (e.g. sign in) is in progress already
       } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        alert('play services not available');
+        console.log('play services not available');
         // play services not available or outdated
       } else {
         console.log(error);

@@ -36,7 +36,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderColor: '#c4c4c4',
-    marginRight: 8
+    marginRight: 8,
+    position: 'absolute'
   },
 
   // text

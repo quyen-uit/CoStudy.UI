@@ -74,7 +74,8 @@ function SignUp() {
         dob: date,
         city: city,
         district: district,
-        isGoogle: route.params?.isGoogle ? true : false
+        isGoogle: route.params?.isGoogle ? true : false,
+        emailGG: route.params?.email ? route.params?.email : ''
       });
     }
   };

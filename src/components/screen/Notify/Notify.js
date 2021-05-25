@@ -50,13 +50,8 @@ function Notify() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification
       );
-      if (
-        JSON.parse(
-          JSON.parse(
-            JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
-          ).notification
-        ).author_id != userInfo.id
-      )
+      if (res.author_id != userInfo.id)
+      {
         Toast.show({
           type: 'success',
           position: 'top',
@@ -77,6 +72,7 @@ function Notify() {
         },
         ...list,
       ]);
+      }
     });
 
     return unsubscribe;

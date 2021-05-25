@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  ToastAndroid
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -58,17 +59,7 @@ function SignUp2() {
     setVisibleAlert(true);
   };
   useEffect(() => {
-    const func = async () => {
-      try {
-        const value = await AsyncStorage.getItem('@gg_email');
-        if (value !== null) {
-          setEmail(value);
-        }
-      } catch (e) {
-        // error reading value
-      }
-    };
-    func();
+    setEmail(route.params.emailGG);
   }, []);
   const checkEmailExisting = async () => {
     if (email != '') {
@@ -119,11 +110,13 @@ function SignUp2() {
         confirmPassword: password,
         accept_term: true,
         title: 'title',
+        isExternalRegister: route.params?.isGoogle ? true : false
       })
       .then(res => {
         setIsLoading(false);
         if (route.params?.isGoogle) {
           dispatch(login(email, password));
+
           ToastAndroid.show('Bạn đã đăng kí thành công.', ToastAndroid.SHORT);
         } else {
           navigation.navigate(navigationConstants.verifyEmail, {
@@ -198,6 +191,8 @@ function SignUp2() {
             placeholder={strings.email}
             value={email}
             icon={'envelope'}
+            editable={route.params?.isGoogle ? false : true}
+
           />
           <TextField
             accessibilityHint={strings.lastName}
@@ -221,7 +216,7 @@ function SignUp2() {
             style={styles.btnSignUp}
             onPress={() => handleSubmit()}
           >
-            <Text style={styles.txtSignUp}>{strings.next}</Text>
+            <Text style={styles.txtSignUp}>Đăng kí</Text>
           </TouchableOpacity>
         </View>
       </View>

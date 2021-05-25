@@ -31,16 +31,16 @@ const styles = StyleSheet.create({
 
 function TextField({ icon, ...rest }) {
   const { colors } = useTheme();
-
-  return (
+   return (
     <View style={styles.container}>
       <TextInput
         {...rest}
         window
         placeholderTextColor={hint_color}
-        style={styles.input}
+        style={{...styles.input, backgroundColor: typeof(rest.editable) == 'undefined'  || rest.editable ?  '#fff' : '#ccc'}}
         underlineColorAndroid="transparent"
-      />
+        editable={rest.editable}
+       />
       <View style={styles.icon}>
         <Icon name={icon} size={22} color={main_2nd_color}/>
       </View>
