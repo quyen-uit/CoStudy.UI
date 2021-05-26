@@ -79,6 +79,8 @@ function NewsFeed() {
     setModalVisible(value);
   });
   React.useEffect(() => {
+    ConnectyCube.destroySession().catch((error) => {});
+
     ConnectyCube.createSession({
       login: userInfo.email,
       // login: 'videouser1',
@@ -97,14 +99,14 @@ function NewsFeed() {
     })
       .then(location => {
         console.log(location);
-        // UserService.updateUser(jwtToken, {
-        //   address: {
-        //     longtitude: location.longitude,
-        //     latitude: location.latitude,
-        //   },
-        // })
-        //   .then(res => console.log('update location sucess'))
-        //   .catch(err => console.log(err));
+        UserService.updateUser(jwtToken, {
+          address: {
+            longtitude: location.longitude.toString(),
+            latitude: location.latitude.toString(),
+          },
+        })
+          .then(res => console.log('update location sucess'))
+          .catch(err => console.log(err));
       })
       .catch(error => {
         const { code, message } = error;

@@ -773,7 +773,7 @@ function Conversation(props) {
           multiline={true}
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
-          placeholder="Nhập j đi tml.."
+          placeholder="Nhập j đi bạn.."
           value={message}
           onChangeText={text => setMessage(text)}
         />

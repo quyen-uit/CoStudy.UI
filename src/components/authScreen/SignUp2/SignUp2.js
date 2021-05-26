@@ -122,7 +122,6 @@ function SignUp2() {
           navigation.navigate(navigationConstants.verifyEmail, {
             email: email,
             password: password,
-            fullname: data.first + data.last,
           });
         }
       })

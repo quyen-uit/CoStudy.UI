@@ -1,5 +1,5 @@
 import { useTheme, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Text,
@@ -62,6 +62,10 @@ function Login() {
     setBodyAlert(body);
     setVisibleAlert(true);
   };
+
+  const alertCallback = useCallback(message => {
+    setBodyAlert(message, message);
+  });
   // Somewhere in your code
   const signIn = async () => {
     try {
@@ -73,8 +77,10 @@ function Login() {
         .then(async res => {
           if (res.data.result) dispatch(loginGoogle(userInfoGG));
           else {
-            
-            navigation.navigate(navigationConstants.signup, { isGoogle: true, email: userInfoGG.user.email });
+            navigation.navigate(navigationConstants.signup, {
+              isGoogle: true,
+              email: userInfoGG.user.email,
+            });
           }
         })
         .catch(err => console.log(err));
@@ -106,7 +112,7 @@ function Login() {
     else if (password === '')
       // Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
       showAlert('Thông báo', 'Vui lòng nhập mật khẩu.');
-    else dispatch(login(email, password));
+    else dispatch(login(email, password, navigation));
   };
   return (
     <View style={{ flex: 1 }}>
