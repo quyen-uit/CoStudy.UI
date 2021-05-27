@@ -13,7 +13,7 @@ import Toast, { BaseToast } from 'react-native-toast-message';
 import messaging from '@react-native-firebase/messaging';
 import { Alert } from 'react-native';
 import { ModalPortal } from 'react-native-modals';
-
+import 'react-native-gesture-handler';
 import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
 import { AuthService } from 'components/videocall/services';
