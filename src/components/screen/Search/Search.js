@@ -701,7 +701,9 @@ function Search() {
         ) : (
           <FlatList
             showsVerticalScrollIndicator={false}
-            data={users}
+            data={[...users,...users]}
+            style={{ flexGrow: 0, marginBottom: 200 }}
+             
             renderItem={item => renderUserCard(item)}
             keyExtractor={(item, index) => index.toString()}
             ListHeaderComponent={() => (

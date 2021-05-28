@@ -28,7 +28,8 @@ const navigationConstants = {
   report: 'Báo cáo',
   video: 'Gọi',
   ranking: 'Xếp hạng',
-  forgot: 'Quên mật khẩu'
+  forgot: 'Quên mật khẩu',
+  nearby: 'Tìm quanh đây'
 };
 
 export default navigationConstants;

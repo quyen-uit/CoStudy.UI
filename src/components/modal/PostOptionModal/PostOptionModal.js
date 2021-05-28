@@ -47,7 +47,9 @@ const list = [
 const PostOptionModal = ({ ...rest }) => {
   const curUser = useSelector(getUser);
   const jwtToken = useSelector(getJwtToken);
-  const [saved, setSaved] = useState(rest.saved);
+  const [saved, setSaved] = useState(
+    typeof rest.saved == 'undefined' ? null : rest.saved
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isMe, setIsMe] = useState(false);
   const [list, setList] = useState([]);
@@ -243,30 +245,33 @@ const PostOptionModal = ({ ...rest }) => {
               <Text style={styles.txtOption}>Chia sẻ bài viết cho...</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight
-            underlayColor={'#000'}
-            onPress={() => {
-              if (isSaving == false) onSaved();
-              else ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
-            }}
-          >
-            <View style={styles.optionContainer}>
-              <Icon
-                name={'eye'}
-                color={saved ? main_color : '#ccc'}
-                size={24}
-              />
-              <Text style={styles.txtOption}>
-                {saved
-                  ? 'Xóa khỏi danh sách quan tâm'
-                  : 'Thêm vào danh sách quan tâm'}
-              </Text>
-            </View>
-          </TouchableHighlight>
+          {typeof(rest.saved) == 'undefined' ? null : (
+            <TouchableHighlight
+              underlayColor={'#000'}
+              onPress={() => {
+                if (isSaving == false) onSaved();
+                else ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
+              }}
+            >
+              <View style={styles.optionContainer}>
+                <Icon
+                  name={'eye'}
+                  color={saved ? main_color : '#ccc'}
+                  size={24}
+                />
+                <Text style={styles.txtOption}>
+                  {saved
+                    ? 'Xóa khỏi danh sách quan tâm'
+                    : 'Thêm vào danh sách quan tâm'}
+                </Text>
+              </View>
+            </TouchableHighlight>
+          )}
           {isMe ? (
             <TouchableHighlight
               underlayColor={'#000'}
               onPress={() => {
+                rest.onVisible(false);
                 navigation.navigate(navigationConstants.create, {
                   postId: rest.id,
                   isEdit: true,
@@ -275,7 +280,7 @@ const PostOptionModal = ({ ...rest }) => {
             >
               <View style={styles.optionContainer}>
                 <Icon
-                  name={'flag'}
+                  name={'edit'}
                   color={main_color}
                   size={24}
                   style={{ marginHorizontal: 2 }}

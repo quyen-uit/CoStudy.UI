@@ -45,6 +45,7 @@ import ListField from 'components/screen/ListField';
 import PickField from 'components/screen/PickField';
 import Report from 'components/screen/Report';
 import Ranking from 'components/screen/Ranking';
+import UserNearBy from 'components/screen/UserNearBy';
 const Stack = createStackNavigator();
 
 const {
@@ -64,7 +65,8 @@ const {
   pickField,
   report,
   video,
-  ranking
+  ranking,
+  nearby,
 } = navigationConstants;
 
 function AppNavigator() {
@@ -94,6 +96,28 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
+        }}
+      />
+      <Stack.Screen
+        name={nearby}
+        component={UserNearBy}
+        options={{
+          title: nearby,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
         }}
       />
       <Stack.Screen
@@ -238,13 +262,7 @@ function AppNavigator() {
             alignSelf: 'center',
           },
 
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
+         
         }}
       />
       <Stack.Screen

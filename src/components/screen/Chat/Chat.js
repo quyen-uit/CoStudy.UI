@@ -60,7 +60,7 @@ function Chat() {
       await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
           res.data.result.conversations.forEach(async item => {
-            if (item.conversation.oid != null) {
+            if (item.conversation.oid != null && item.messages.length >0) {
               const obj = {};
 
               if (item.conversation.participants[0].member_id == userInfo.id) {
@@ -235,7 +235,7 @@ function Chat() {
       await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
           res.data.result.conversations.forEach(async item => {
-            if (item.conversation.oid != null) {
+            if (item.conversation.oid != null && item.messages.length >0) {
               const obj = {};
               if (item.conversation.participants[0].member_id == userInfo.id) {
                 await UserService.getUserById(

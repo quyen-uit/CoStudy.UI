@@ -15,7 +15,11 @@ class UserService {
   static async getCurrentUser(jwtToken) {
     return await getAPI(jwtToken).get(api + 'User/current');
   }
-
+  static async getUserNearBy(jwtToken, params) {
+    return await getAPI(jwtToken).get(
+      api + `User/near-by?Skip=${params.skip}&Count=${params.count}`
+    );
+  }
   static async getAllField(jwtToken) {
     return await getAPI(jwtToken).get(api + 'User/field/all');
   }
@@ -29,7 +33,9 @@ class UserService {
   static async updateUser(jwtToken, params) {
     return await getAPI(jwtToken).put(api + 'User/update', params);
   }
-
+  static async updateLocation(jwtToken, params) {
+    return await getAPI(jwtToken).post(api + 'User/update-address', params);
+  }
   // static async updateFieldOfUser(jwtToken, params){
   //   return await getAPI(jwtToken)
   //         .put(api + 'User/field', { field_value: params.fields })

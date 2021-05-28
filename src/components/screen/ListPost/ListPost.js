@@ -323,8 +323,10 @@ function ListPost() {
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Icon name={'sliders-h'} size={24} color={'#fff'} />
+          <TouchableOpacity
+            onPress={() => navigation.navigate(navigationConstants.search)}
+          >
+            <Icon name={'search'} size={24} color={'#fff'} />
           </TouchableOpacity>
         </View>
       </View>

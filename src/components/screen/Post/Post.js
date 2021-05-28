@@ -54,6 +54,8 @@ import PostService from 'controllers/PostService';
 import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
 import { update } from 'actions/UserActions';
 import Badge from 'components/common/Badge';
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -82,6 +84,18 @@ function Post(props) {
   const [skip, setSkip] = useState(0);
   const [sending, setSending] = useState(false);
 
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{margin: 16}}>
+          <TouchableOpacity onPress={() => setPostModalVisible(true)}>
+            <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
+
   const resetComment = () => {
     setComment('');
     setImgComment('');
@@ -107,6 +121,11 @@ function Post(props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [idModal, setIdModal] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
+  const [postModalVisible, setPostModalVisible] = useState(false);
+
+  const onPostVisibleCallBack = React.useCallback(value => {
+    setPostModalVisible(value);
+  });
 
   const onCommentModal = useCallback((value, id) => {
     setModalVisible(value);
@@ -816,7 +835,7 @@ function Post(props) {
                   padding: 4,
                   paddingHorizontal: 8,
                   borderRadius: 8,
-                  marginBottom: 4
+                  marginBottom: 4,
                 }}
               >
                 <TouchableOpacity onPress={() => resetComment()}>
@@ -952,6 +971,11 @@ function Post(props) {
         imageIndex={0}
         visible={visible}
         onRequestClose={() => setIsVisible(false)}
+      />
+      <PostOptionModal
+        visible={postModalVisible}
+        id={post.oid}
+        onVisible={onPostVisibleCallBack}
       />
       <CommentOptionModal
         visible={modalVisible}
