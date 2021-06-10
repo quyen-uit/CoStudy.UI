@@ -66,7 +66,7 @@ function PostCard(props) {
     setUpvote(post.upvote);
     setDownvote(post.downvote);
     setVote(post.vote)
-   },[post.comments_count])
+   },[post.comments_count, post.vote, post.upvote, post.downvote])
 
   useEffect(() => {
     const fetchData = async () => {};

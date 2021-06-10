@@ -446,17 +446,10 @@ function Search() {
                     item.saved = true;
                   } else item.saved = false;
                 });
+                // set vote
                 item.vote = 0;
-                response.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                response.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+                if (item.is_downvote_by_current) item.vote = -1;
+                else if (item.is_vote_by_current) item.vote = 1;
               });
               setPosts(res.data.result);
               setIsLoading(false);
@@ -615,10 +608,10 @@ function Search() {
             style={{ position: 'absolute', alignSelf: 'flex-end', right: 16 }}
           >
             <TouchableOpacity
-              onPress={() => {
+              onPress={async () => {
                 Keyboard.dismiss();
                 setKeyword(search);
-                onSearch();
+                await onSearch();
               }}
             >
               <Icon name={'search'} size={24} color={'#000'} />
@@ -701,7 +694,7 @@ function Search() {
         ) : (
           <FlatList
             showsVerticalScrollIndicator={false}
-            data={[...users,...users]}
+            data={users}
             style={{ flexGrow: 0, marginBottom: 200 }}
              
             renderItem={item => renderUserCard(item)}
@@ -808,6 +801,19 @@ function Search() {
           })
         }
         onSwipeOut={event => {
+          setModalVisible(false);
+          setAmoutField(
+            fieldPickers.filter(item => item.isPick == true).length
+          );
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          setAmoutField(
+            fieldPickers.filter(item => item.isPick == true).length
+          );
+          return true;
+        }}
+        onTouchOutside={() => {
           setModalVisible(false);
           setAmoutField(
             fieldPickers.filter(item => item.isPick == true).length
@@ -1012,6 +1018,7 @@ function Search() {
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(false);
+                  onSearch();
                 }}
               >
                 <View
@@ -1422,6 +1429,14 @@ function Search() {
           })
         }
         onSwipeOut={event => {
+          setModalFieldVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalFieldVisible(false);
+
+          return true;
+        }}
+        onTouchOutside={() => {
           setModalFieldVisible(false);
         }}
       >

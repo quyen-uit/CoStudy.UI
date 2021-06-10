@@ -62,8 +62,8 @@ function Verification() {
     axios
       .post(api + 'Accounts/verify-email?token=' + key, { token: key })
       .then(res => {
-        dispatch(login(route.params.email, route.params.password));
         ToastAndroid.show('Bạn đã đăng kí thành công.', ToastAndroid.SHORT);
+        dispatch(login(route.params.email, route.params.password, navigation));
         // register chat video
 
         //check response

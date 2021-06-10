@@ -87,7 +87,7 @@ function Post(props) {
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <View style={{margin: 16}}>
+        <View style={{ margin: 16 }}>
           <TouchableOpacity onPress={() => setPostModalVisible(true)}>
             <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
           </TouchableOpacity>
@@ -222,29 +222,35 @@ function Post(props) {
   };
   const onSaved = async () => {
     setIsSaving(true);
-    if (saved) {
-      await PostService.savePost(userInfo.jwtToken, post.oid)
-        .then(response => {
-          setIsSaving(false);
-          setSaved(false);
-          ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
-        })
-        .catch(err => {
-          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
-          setIsSaving(false);
-        });
-    } else {
-      await PostService.savePost(userInfo.jwtToken, post.oid)
-        .then(response => {
+    // if (saved) {
+    await PostService.savePost(jwtToken, post.oid)
+      .then(response => {
+        if (response.data.result.is_save) {
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
           setSaved(true);
-        })
-        .catch(err => {
-          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+        } else {
+          setSaved(false);
           setIsSaving(false);
-        });
-    }
+          ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+        }
+      })
+      .catch(err => {
+        ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+        setIsSaving(false);
+      });
+    // } else {
+    //   await PostService.savePost(jwtToken, post.oid)
+    //     .then(response => {
+    //       ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
+    //       setIsSaving(false);
+    //       setSaved(true);
+    //     })
+    //     .catch(err => {
+    //       ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+    //       setIsSaving(false);
+    //     });
+    // }
   };
   const onUpvote = async () => {
     if (vote == 1) {
@@ -407,8 +413,10 @@ function Post(props) {
       upvote_count: 0,
       opacity: 0.5,
       vote: 0,
+      author_field: null
     };
-    setComments(comments.concat(tmp));
+    // setComments(comments.concat(tmp));
+    setComments([tmp, ...comments]);
     setSending(true);
     ToastAndroid.show('Đang tải bình luận lên...', ToastAndroid.SHORT);
     if (imgComment) {
@@ -447,7 +455,9 @@ function Post(props) {
         setImgComment('');
         setComment('');
         response.data.result.opacity = 1;
-        setComments(comments.concat(response.data.result));
+        response.data.result.vote = 0;
+        // setComments(comments.concat(response.data.result));
+        setComments([response.data.result,...comments]);
         setSending(false);
         setCommentCount(commentCount + 1);
         if (typeof route.params.onComment == 'function')
@@ -469,6 +479,7 @@ function Post(props) {
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
+          extraData={comments}
           showsVerticalScrollIndicator={false}
           style={{ marginBottom: 50 }}
           data={comments}
@@ -481,7 +492,7 @@ function Post(props) {
           }}
           onEndReachedThreshold={0.5}
           renderItem={item => renderItem(item)}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item, index) => item.oid}
           ListHeaderComponent={() => (
             <Card containerStyle={styles.container}>
               <View>
@@ -851,7 +862,7 @@ function Post(props) {
             style={styles.input}
             onTouchEnd={() => setShowOption(false)}
             onChangeText={text => setComment(text)}
-            placeholder="Nhập j đi ..."
+            placeholder="Nhập bình luận ..."
             value={comment}
           />
         </View>

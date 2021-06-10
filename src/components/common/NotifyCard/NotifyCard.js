@@ -29,6 +29,11 @@ import NotifyService from 'controllers/NotifyService';
 import { getJwtToken } from 'selectors/UserSelectors';
 import { Alert } from 'react-native';
 import { ToastAndroid } from 'react-native';
+import { useNavigation } from '@react-navigation/core';
+import navigationConstants from 'constants/navigation';
+import UserService from 'controllers/UserService';
+import PostService from 'controllers/PostService';
+import CommentService from 'controllers/CommentService';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -38,14 +43,77 @@ function NotifyCard(props) {
   const [modalVisible, setModalVisible] = useState(false);
   const [visible, setVisible] = useState(false);
   const [isRead, setisRead] = useState(props.notify.is_read);
+  const navigation = useNavigation();
   React.useEffect(() => {
     setisRead(notify.is_read);
   }, [notify.oid]);
   const read = async () => {
+    goTo();
     await NotifyService.readNotify(jwtToken, notify.oid).then(res => {
       setisRead(true);
-      ToastAndroid.show('Đã đọc.', ToastAndroid.SHORT);
+      props.onLoading(true);
+
+      //ToastAndroid.show('Đã đọc.', ToastAndroid.SHORT);
     });
+  };
+  const goTo = async () => {
+    if (notify.notification_type == 0)
+      await UserService.getCurrentUser(jwtToken)
+        .then(async response => {
+          await PostService.getPostById(jwtToken, notify.object_id)
+            .then(res => {
+              let item = res.data.result;
+              response.data.result.post_saved.forEach(i => {
+                if (i == item.oid) {
+                  item.saved = true;
+                } else item.saved = false;
+              });
+              // set vote
+              item.vote = 0;
+              if (item.is_downvote_by_current) item.vote = -1;
+              else if (item.is_vote_by_current) item.vote = 1;
+              props.onLoading(false);
+              navigation.navigate(navigationConstants.post, {
+                post: item,
+                vote: item.vote,
+                upvote: item.upvote,
+                commentCount: item.comments_count,
+                downvote: item.downvote,
+                // onUpvote: onUpvoteCallback,
+                // onDownvote: onDownvoteCallback,
+                // onComment: onCommentCallback,
+                // onVote: onVoteCallback,
+              });
+            })
+            .catch(error => console.log(error));
+        })
+        .catch(error => {
+          props.onLoading(false);
+          console.log(error);
+        });
+      else if (notify.notification_type == 1) {
+      await CommentService.getCommentById(jwtToken, notify.object_id)
+        .then(res => {
+            i = res.data.result;
+          if (i.is_vote_by_current) i.vote = 1;
+          else if (i.is_downvote_by_current) i.vote = -1;
+          else i.vote = 0;
+          props.onLoading(false);
+
+          navigation.navigate(navigationConstants.comment, {
+            comment: i,
+            upvote: i.upvote,
+            downvote: i.downvote,
+            replies: i.comment_count,
+            vote: i.vote,
+            fromNotify: true
+          });
+        })
+        .catch(error => {
+          props.onLoading(false);
+          console.log(error);
+        });
+    }
   };
   return (
     <Card containerStyle={styles.container}>

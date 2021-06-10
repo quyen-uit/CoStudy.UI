@@ -128,18 +128,20 @@ function Create() {
                 setTitle(resPost.data.result.title);
                 setContent(resPost.data.result.string_contents[0].content);
                 response.data.result.forEach(element => {
-                  resPost.data.result.field.forEach(picked => {
-                    if (element.oid == picked.field_id) {
-                      element.isPick = true;
-                      element.level_id = picked.level_id;
-                    } else {
-                      element.isPick = false;
-                      element.level_id = '6031da2eba003751a1470d42';
-                      element.level_name = 'Level 1';
-                    }
-                  });
+                  element.isPick = false;
+                  element.level_id = '6031da2eba003751a1470d42';
+                  element.level_name = 'Level 1';
+                  if (resPost.data.result.field != null)
+                    resPost.data.result.field.forEach(picked => {
+                      if (element.oid == picked.field_id) {
+                        element.isPick = true;
+                        element.level_id = picked.level_id;
+                        element.level_name = picked.level_name;
+                      }
+                    });
                 });
                 setFieldPickers(response.data.result);
+                console.log(fieldPickers);
                 setListImg(
                   resPost.data.result.image_contents.map(item => ({
                     path: item.image_hash,
@@ -269,7 +271,7 @@ function Create() {
           title: title,
           content: content,
           list: list,
-          fields: tempFields
+          fields: tempFields,
         })
           .then(response => {
             Toast.show({
@@ -280,7 +282,7 @@ function Create() {
             });
             // console.log(post);
             // set vote
-            const vote = 0;
+            let vote = 0;
             if (response.data.result.is_downvote_by_current) vote = -1;
             else if (response.data.result.is_vote_by_current) vote = 1;
             console.log(response.data.result);
@@ -509,8 +511,7 @@ function Create() {
                 key={index}
                 onPress={() => {
                   item.isPick = false;
-                  item.level_id = '6031da2eba003751a1470d42';
-                  item.level_name = 'Level 1';
+
                   setFieldPickers(fieldPickers.filter(item => item));
                 }}
               >
@@ -595,6 +596,14 @@ function Create() {
           })
         }
         onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+
+          return true;
+        }}
+        onTouchOutside={() => {
           setModalVisible(false);
         }}
       >

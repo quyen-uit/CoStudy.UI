@@ -72,7 +72,7 @@ function ListField() {
           <TouchableOpacity
             onPress={() => navigation.navigate(navigationConstants.pickField)}
           >
-            <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+            <Icon name={'edit'} size={24} color={'#fff'} />
           </TouchableOpacity>
         </View>
       ),
@@ -121,7 +121,7 @@ function ListField() {
         }}
       >
         <Text style={{ fontSize: 16, color: item.color }}>
-          {index + 1}. {item.field_name}
+          {index + 1}. {item.field_name} - {item.point}đ
         </Text>
         <Image source={item.icon} />
       </View>

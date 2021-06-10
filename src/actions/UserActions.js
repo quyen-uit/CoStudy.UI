@@ -57,6 +57,7 @@ export const login = (email, password, navigation) => async dispatch => {
             ) {
               ConnectyCube.createSession()
                 .then(session => {
+                  console.log(session);
                   ConnectyCube.users
                     .signup({
                       login: email,
@@ -68,6 +69,7 @@ export const login = (email, password, navigation) => async dispatch => {
                         response.data.result.last_name,
                     })
                     .then(user => {
+                      console.log(user);
                       response.data.result.call_id = user.user.id;
                       axios
                         .post(api + 'User/call-id', {

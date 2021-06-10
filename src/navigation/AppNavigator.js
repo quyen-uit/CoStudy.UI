@@ -170,14 +170,6 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
-
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
         }}
       />
       <Stack.Screen
@@ -193,14 +185,6 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
-
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
         }}
       />
       <Stack.Screen
@@ -302,8 +286,8 @@ function AppNavigator() {
 
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              <TouchableOpacity  >
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
           ),
@@ -357,7 +341,7 @@ function AppNavigator() {
         name={ranking}
         component={Ranking}
         options={{
-          title: ranking,
+          //title: ranking,
           headerStyle: {
             backgroundColor: main_color,
           },
@@ -366,13 +350,13 @@ function AppNavigator() {
             alignSelf: 'center',
           },
 
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
+          // headerRight: () => (
+          //   <View style={styles.headerRight}>
+          //     <TouchableOpacity onPress={() => alert('search is clicked')}>
+          //       <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+          //     </TouchableOpacity>
+          //   </View>
+          // ),
         }}
       />
       <Stack.Screen

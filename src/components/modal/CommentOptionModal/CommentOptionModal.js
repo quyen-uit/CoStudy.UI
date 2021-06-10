@@ -55,7 +55,7 @@ function CommentOptionModal({ ...rest }) {
         <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
           <View style={styles.optionContainer}>
             <Icon
-              name={'times'}
+              name={'reply'}
               color={main_color}
               size={24}
               style={{ marginHorizontal: 5 }}
@@ -65,7 +65,7 @@ function CommentOptionModal({ ...rest }) {
         </TouchableHighlight>
         <TouchableHighlight underlayColor={'#000'} onPress={() => onEdit()}>
           <View style={styles.optionContainer}>
-            <Icon name={'eye'} color={main_color} size={24} />
+            <Icon name={'edit'} color={main_color} size={24} />
             <Text style={styles.txtOption}>Sửa bình luận</Text>
           </View>
         </TouchableHighlight>

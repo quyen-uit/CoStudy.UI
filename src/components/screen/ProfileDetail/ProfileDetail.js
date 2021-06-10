@@ -1,5 +1,5 @@
 import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
   Image,
   Text,
@@ -96,6 +96,25 @@ function ProfileDetail({ userId }) {
       </View>
     );
   }
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerRight: () => (
+        <View style={{ marginRight: 16 }}>
+          <TouchableOpacity
+            onPress={() => {
+              if (isMe)
+                navigation.navigate(navigationConstants.profileEdit, {
+                  data: data,
+                });
+            }}
+          >
+            {isMe ? <Icon name={'edit'} size={24} color={'#fff'} /> : <Icon name={'edit'} size={24} color={main_color} />}
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, data, isMe]);
   return (
     <View style={{ flex: 1 }}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -115,7 +134,7 @@ function ProfileDetail({ userId }) {
                   : { uri: avatar }
               }
             />
-            {isMe ? (
+            {/* {isMe ? (
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate(navigationConstants.profileEdit, {
@@ -140,12 +159,12 @@ function ProfileDetail({ userId }) {
                   marginTop: 48,
                 }}
               ></View>
-            )}
+            )} */}
             <Text
               style={{
                 fontSize: 24,
                 fontWeight: 'bold',
-                marginTop: 12,
+                marginTop: 64,
                 alignSelf: 'center',
               }}
             >
@@ -202,22 +221,21 @@ function ProfileDetail({ userId }) {
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginRight: 12,
-                marginTop: 4
+                marginTop: 4,
               }}
             >
               <Icon name={'icons'} size={20} color={main_color} />
             </View>
             <View>
-              <Text style={{ color: '#ccc', fontSize: 13, marginBottom: 4}}>Lĩnh vực</Text>
+              <Text style={{ color: '#ccc', fontSize: 13, marginBottom: 4 }}>
+                Lĩnh vực
+              </Text>
               <View style={styles.containerTag}>
                 {fields.length < 1 ? (
                   <Text>Chưa có thông tin</Text>
                 ) : (
                   fields.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => alert('tag screen')}
-                    >
+                    <TouchableOpacity key={index}>
                       <Badge
                         item={{
                           name: item.level_name,
@@ -332,6 +350,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     // marginBottom: 8,
     flexWrap: 'wrap',
+    marginRight: 16,
   },
   btnTag: {
     backgroundColor: main_2nd_color,
@@ -347,6 +366,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#fff',
     textAlign: 'center',
+  },
+  headerLeft: {
+    marginLeft: 16,
+  },
+  headerRight: {
+    marginRight: 12,
   },
 });
 

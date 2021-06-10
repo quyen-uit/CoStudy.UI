@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
   Image,
   Text,
@@ -107,7 +107,7 @@ function Profile({ userId }) {
   const route = useRoute();
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
-  const [data, setData] = useState(curUser);
+  const [data, setData] = useState([]);
   //const [data,setData] = useState();
   const [fields, setFields] = useState([]);
   ///image view
@@ -455,6 +455,25 @@ function Profile({ userId }) {
       }
     );
   };
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerRight: () => (
+        <View style={{ marginRight: 16 }}>
+          <TouchableOpacity
+            onPress={() => {
+              if (isMe)
+                navigation.navigate(navigationConstants.profileEdit, {
+                  data: data,
+                });
+            }}
+          >
+            {isMe ? <Icon name={'edit'} size={24} color={'#fff'} /> : <Icon name={'edit'} size={24} color={main_color} />}
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, data]);
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>

@@ -34,19 +34,19 @@ export const getAPI = jwtToken => {
 
       if (status === 400) {
          // logout
-        // store.dispatch(logout(jwtToken));
-        if (!isRefreshing) {
-          isRefreshing = true;
-           await axios
-            .post('http://192.168.207.150:8000/api/Accounts/refresh-token')
-            .then(response => {
-              isRefreshing = false;
-              store.dispatch(update(response.data.result.jwtToken));
-              onRrefreshed(jwtToken);
+       store.dispatch(logout(jwtToken));
+        // if (!isRefreshing) {
+        //   isRefreshing = true;
+        //    await axios
+        //     .post('http://192.168.207.150:8000/api/Accounts/refresh-token')
+        //     .then(response => {
+        //       isRefreshing = false;
+        //       store.dispatch(update(response.data.result.jwtToken));
+        //       onRrefreshed(jwtToken);
             
-            })
-            .catch(err => console.log(err));
-        }
+        //     })
+        //     .catch(err => console.log(err));
+        // }
 
         const retryOrigReq = new Promise((resolve, reject) => {
           subscribeTokenRefresh(token => {

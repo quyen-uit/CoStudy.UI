@@ -57,15 +57,15 @@ const PostOptionModal = ({ ...rest }) => {
   const navigation = useNavigation();
   const [modalOrder, setModalOrder] = useState(1);
   useEffect(() => {
-    if (rest.id != null) {
+     if (rest.id != null) {
       PostService.getPostById(curUser.jwtToken, rest.id)
         .then(res => {
-          if (res.data.result.author_id == curUser.oid) setIsMe(true);
+          if (res.data.result.author_id == curUser.oid) setIsMe(true); else setIsMe(false);
         })
         .catch(err => console.log(err));
     }
     return () => {};
-  }, [rest.id]);
+  }, [rest.id,isMe]);
 
   useEffect(() => {
     setList([]);
@@ -126,31 +126,41 @@ const PostOptionModal = ({ ...rest }) => {
   const onSaved = async () => {
     rest.onVisible(false);
     setIsSaving(true);
-    if (saved) {
+    // if (saved) {
       await PostService.savePost(curUser.jwtToken, rest.id)
         .then(response => {
-          setSaved(false);
-          setIsSaving(false);
-
-          ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+          if (response.data.result.is_save) {
+            ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
+            setIsSaving(false);
+            setSaved(true);
+          } else {
+            setSaved(false);
+            setIsSaving(false);
+            ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+          }
         })
         .catch(err => {
           ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
           setIsSaving(false);
         });
-    } else {
-      await PostService.savePost(curUser.jwtToken, rest.id)
-        .then(response => {
-          ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
-          setIsSaving(false);
-
-          setSaved(true);
-        })
-        .catch(err => {
-          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
-          setIsSaving(false);
-        });
-    }
+    // } else {
+    //   await PostService.savePost(curUser.jwtToken, rest.id)
+    //     .then(response => {
+    //       if (response.data.result.is_save) {
+    //         ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
+    //         setIsSaving(false);
+    //         setSaved(true);
+    //       } else {
+    //         setSaved(false);
+    //         setIsSaving(false);
+    //         ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+    //       }
+    //     })
+    //     .catch(err => {
+    //       ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+    //       setIsSaving(false);
+    //     });
+    // }
   };
   const renderItem = item => {
     return (
@@ -237,7 +247,7 @@ const PostOptionModal = ({ ...rest }) => {
           >
             <View style={styles.optionContainer}>
               <Icon
-                name={'times'}
+                name={'share'}
                 color={main_color}
                 size={24}
                 style={{ marginHorizontal: 5 }}
@@ -245,7 +255,6 @@ const PostOptionModal = ({ ...rest }) => {
               <Text style={styles.txtOption}>Chia sẻ bài viết cho...</Text>
             </View>
           </TouchableHighlight>
-          {typeof(rest.saved) == 'undefined' ? null : (
             <TouchableHighlight
               underlayColor={'#000'}
               onPress={() => {
@@ -266,7 +275,6 @@ const PostOptionModal = ({ ...rest }) => {
                 </Text>
               </View>
             </TouchableHighlight>
-          )}
           {isMe ? (
             <TouchableHighlight
               underlayColor={'#000'}

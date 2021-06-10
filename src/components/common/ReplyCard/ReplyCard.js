@@ -20,7 +20,7 @@ import strings from 'localization';
 import { color } from 'react-native-reanimated';
 import moment from 'moment';
 import { api } from '../../../constants/route';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import {
   main_2nd_color,
@@ -35,10 +35,11 @@ import { Card } from 'react-native-elements';
 import navigationConstants from 'constants/navigation';
 import ReplyOptionModal from 'components/modal/ReplyOptionModal/ReplyOptionModal';
 import { getAPI } from '../../../apis/instance';
+import CommentService from 'controllers/CommentService';
 
 function ReplyCard(props) {
-  const curUser = useSelector(getUser);
-
+  // const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
   const navigation = useNavigation();
   // const { colors } = useTheme();
   // const dispatch = useDispatch();
@@ -53,6 +54,9 @@ function ReplyCard(props) {
   const [comment_count, setCommentCount] = useState(comment.replies_count);
 
   const [vote, setVote] = useState(comment.vote);
+  React.useEffect(() => {
+  
+  },[comment]);
   const onEditCallBack = React.useCallback( isEdit => {
     setModalVisible(false);
     props.onEdit(isEdit, comment.oid);
@@ -78,8 +82,7 @@ function ReplyCard(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/upvote/' + comment.oid)
+    await CommentService.upVoteReply(jwtToken, comment.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
       .catch(err => console.log(err));
   };
@@ -95,13 +98,12 @@ function ReplyCard(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/downvote/' + comment.oid)
+    await CommentService.downVoteReply(jwtToken,comment.oid)
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
       .catch(err => console.log(err));
   };
   return (
-    <View>
+    <View key={comment.oid} >
       <View style={styles.containerComment}>
         <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
@@ -189,6 +191,6 @@ function ReplyCard(props) {
   );
 }
 
-export default ReplyCard;
+export default React.memo(ReplyCard);
 
 // {isInPost ? <ChildComment /> : null}

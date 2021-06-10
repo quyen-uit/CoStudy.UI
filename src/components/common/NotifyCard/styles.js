@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-start',
+    marginBottom: 4
    },
   headerAuthor: {
     flexDirection: 'row',

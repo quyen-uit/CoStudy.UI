@@ -21,6 +21,7 @@ import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
 import moment from 'moment';
 import FollowService from 'controllers/FollowService';
+import ChatService from 'controllers/ChatService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -71,6 +72,17 @@ function UserCard({ item }) {
         .catch(error => console.log(error));
     }
   };
+  const goToConversation = async (item) => {
+    await ChatService.createConversation(jwtToken, item.to_id).then(
+      res => {
+        navigation.replace(navigationConstants.conversation, {
+          id: res.data.result.oid,
+          avatar: item.to_avatar,
+          name: item.to_name,
+        });
+      }
+    );
+  };
   return (
     <Card containerStyle={styles.cardContainer}>
       <TouchableHighlight
@@ -109,7 +121,27 @@ function UserCard({ item }) {
               </Text>
             </View>
           </View>
-          {item.to_id != userInfo.id ? (
+          {route.params?.isChat ? (
+            <TouchableOpacity
+         
+              onPress={() => {
+                goToConversation(item);
+              }}
+            >
+              <Text
+                style={{
+                  color: '#fff',
+                  alignSelf: 'center',
+                  backgroundColor: main_color,
+                  padding: 4,
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                 }}
+              >
+                Nhắn tin
+              </Text>
+            </TouchableOpacity>
+          ) : item.to_id != userInfo.id ? (
             <View style={{ alignSelf: 'center', width: 96 }}>
               {loading ? (
                 <ActivityIndicator

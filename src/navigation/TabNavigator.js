@@ -101,6 +101,8 @@ function NewsFeedNavigator({ navigation }) {
 }
 function ChatNavigator() {
   const navigation = useNavigation();
+  const curUser = useSelector(getUser);
+  const dispatch = useDispatch();
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -117,15 +119,30 @@ function ChatNavigator() {
           },
           headerLeft: () => (
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => navigation.navigate(search)}>
-                <Icon name={'search'} size={24} color={'#fff'} />
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.dispatch(DrawerActions.openDrawer())
+                
+                }
+              >
+                <Image
+                  style={styles.imgAvatar}
+                  source={{ uri: curUser.avatar.image_hash }}
+                />
               </TouchableOpacity>
             </View>
           ),
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'edit'} size={24} color={'#fff'} />
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.push(navigationConstants.following, {
+                    id: curUser.oid,
+                    isChat: true
+                  })
+                }
+              >
+                <Icon name={'comment-dots'} size={28} color={'#fff'} />
               </TouchableOpacity>
             </View>
           ),
@@ -137,6 +154,7 @@ function ChatNavigator() {
 function NotifyNavigator() {
   const curUser = useSelector(getUser);
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -155,9 +173,8 @@ function NotifyNavigator() {
             <View style={styles.headerLeft}>
               <TouchableOpacity
                 onPress={() =>
-                  navigation.push(navigationConstants.profile, {
-                    id: curUser.oid,
-                  })
+                  navigation.dispatch(DrawerActions.openDrawer())
+                
                 }
               >
                 <Image
@@ -172,9 +189,6 @@ function NotifyNavigator() {
               <TouchableHighlight
                 style={styles.btnRight}
                 underlayColor={touch_color}
-                onPress={() =>
-                  navigation.navigate(navigationConstants.pickField)
-                }
               >
                 <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
               </TouchableHighlight>
@@ -255,14 +269,14 @@ function TabNavigator() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message != 'undefined'
       )
-      if (
-        JSON.parse(
+        if (
           JSON.parse(
-            JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
-          ).message
-        ).sender_id != curUser.oid
-      )
-        dispatch(increaseChat());
+            JSON.parse(
+              JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+            ).message
+          ).sender_id != curUser.oid
+        )
+          dispatch(increaseChat());
     });
 
     return unsubscribe;
@@ -315,7 +329,7 @@ function TabNavigator() {
                 params: {},
               })
             );
-           // navigation.replace(navigationConstants.create, { isEdit: false });
+            // navigation.replace(navigationConstants.create, { isEdit: false });
           },
         }}
         options={navigation => ({

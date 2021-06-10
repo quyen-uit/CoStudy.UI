@@ -1,6 +1,6 @@
 import { useTheme, useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
-import { Text, View, FlatList, ToastAndroid } from 'react-native';
+import { Text, View, FlatList, ToastAndroid, ActivityIndicator, Dimensions } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/Notify/styles';
 import TextStyles from 'helpers/TextStyles';
@@ -14,9 +14,13 @@ import messaging from '@react-native-firebase/messaging';
 import Toast from 'react-native-toast-message';
 import { setNotify } from 'actions/NotifyAction';
 import NotifyService from 'controllers/NotifyService';
+import { main_color } from 'constants/colorCommon';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 function Notify() {
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [list, setList] = useState([]);
   const navigation = useNavigation();
@@ -28,6 +32,9 @@ function Notify() {
 
     return unsubscribe;
   }, [navigation]);
+  const onLoadingCallBack = React.useCallback(value=>{
+    setIsLoading(value);
+  })
   const onDeleteCallBack = React.useCallback(id => {
     let tmp = list.filter(i => i.oid !== id);
 
@@ -99,7 +106,7 @@ function Notify() {
   }, []);
 
   const renderItem = ({ item }) => {
-    return <NotifyCard notify={item} onDelete={onDeleteCallBack} />;
+    return <NotifyCard notify={item} onDelete={onDeleteCallBack} onLoading={onLoadingCallBack} />;
   };
   return (
     <View>
@@ -109,6 +116,24 @@ function Notify() {
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
       />
+      {isLoading ? (
+          <View
+            style={{
+              position: 'absolute',
+              justifyContent: 'center',
+              backgroundColor: '#cccccc',
+              opacity: 0.5,
+              width: deviceWidth,
+              height: deviceHeight - 20,
+            }}
+          >
+            <ActivityIndicator
+              size="large"
+              color={main_color}
+              style={{ marginBottom: 100 }}
+            />
+          </View>
+        ) : null}
     </View>
   );
 }

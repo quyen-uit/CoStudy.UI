@@ -7,5 +7,5 @@ export function getJwtToken(state) {
 }
 
 export function getBasicInfo(state) {
-  return Object.keys(state.user).length > 0 ? {email: state.user.email, id: state.user.oid, avatar: state.user.avatar.image_hash, first_name: state.first_name, last_name: state.last_name} : null;
+  return Object.keys(state.user).length > 0 ? {call_id: state.user.call_id, email: state.user.email, id: state.user.oid, avatar: state.user.avatar.image_hash, first_name: state.user.first_name, last_name: state.user.last_name, refresh_token: state.user.refresh_token} : null;
 }

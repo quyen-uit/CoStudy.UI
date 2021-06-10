@@ -30,6 +30,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginLeft: 4,
   },
+  badgeSmallContainer: {
+    borderWidth: 2,
+    marginRight: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+    flexDirection: 'row',
+  },
+  badgeSmallText: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginLeft: 4,
+  },
 });
 
 function Badge({ item }) {
@@ -51,13 +66,25 @@ function Badge({ item }) {
   }
   return (
     <View
-      style={{
+      style={
+        typeof(item.userBadge) == 'undefined' ?
+        {
         borderColor: item.color,
         ...styles.badgeContainer,
-      }}
+      } :
+      {
+        borderColor: '#b5b5b5',
+        backgroundColor: '#f0f0f0',
+        ...styles.badgeSmallContainer,
+      }
+    }
     >
-      <Image style={{ width: 20, height: 24 }} source={item.icon} />
-      <Text style={{ color: item.color, ...styles.badgeText }}>
+      <Image style={ typeof(item.userBadge) == 'undefined' ?
+      { width: 20, height: 24 } : {width: 14, height: 18}} source={item.icon} />
+      <Text style={
+         typeof(item.userBadge) == 'undefined' ?
+         { color: item.color, ...styles.badgeText } :
+         { color: '#6e6e6e', ...styles.badgeSmallText }}>
         {item.description}
       </Text>
     </View>

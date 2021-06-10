@@ -38,6 +38,8 @@ import {
 } from 'react-native-modals';
 import { AuthService } from 'components/videocall/services';
 import ConnectyCube from 'react-native-connectycube';
+import { api } from 'constants/route';
+import axios from 'axios';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -79,16 +81,14 @@ function NewsFeed() {
     setModalVisible(value);
   });
   React.useEffect(() => {
-    ConnectyCube.destroySession().catch(error => {});
-
-    ConnectyCube.createSession({
-      login: userInfo.email,
-      // login: 'videouser1',
-      password: 'connectycube',
-    })
+    //ConnectyCube.destroySession().catch(error => {});
+    // ConnectyCube.logout().catch((error) => {});
+    
+    ConnectyCube.createSession()
       .then(session => {
+        console.log(session);
         ConnectyCube.chat.connect({
-          userId: session.id,
+          userId: userInfo.call_id,
           password: 'connectycube',
         });
       })
@@ -117,7 +117,7 @@ function NewsFeed() {
           if (res.data.result.length < 1) setPickFieldVisible(true);
         })
         .catch(err => console.log(err));
-      await UserService.getNewToken(jwtToken)
+      await axios.post(api + 'Accounts/refresh-token?refreshToken=' + userInfo.refresh_token)
         .then(res => dispatch(update(res.data.result.jwtToken)))
         .catch(err => console.log(err));
     };

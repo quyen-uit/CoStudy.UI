@@ -58,11 +58,11 @@ class UserService {
   }
   static async getRanking(jwtToken, params) {
     return await getAPI(jwtToken).get(
-      api + `Level/leader-board?Skip=${params.skip}&Count=${params.count}`
+      api + `Level/leader-board?FieldId=${params.fieldId}&Skip=${params.skip}&Count=${params.count}`
     );
   }
-  static async getNewToken(jwtToken, url) {
-    return await getAPI(jwtToken).post(api + 'Accounts/refresh-token');
+  static async getNewToken(jwtToken, refresh_token) {
+    return await getAPI(jwtToken).post(api + 'Accounts/refresh-token?refreshToken=' + refresh_token );
   }
 
   static async addCallId(jwtToken, params) {

@@ -34,6 +34,8 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import navigationConstants from 'constants/navigation';
 import CommentService from 'controllers/CommentService';
+import Badge from 'components/common/Badge';
+import { set } from 'react-native-connectycube/lib/cubeConfig';
 
 const tmpComment = {
   id: '1',
@@ -69,7 +71,12 @@ function CommentCard(props) {
   const onDownvoteCallback = useCallback(value => setDownvote(value));
   const onCommentCallback = useCallback(value => setCommentCount(value));
   const onVoteCallback = useCallback(value => setVote(value));
-
+  React.useEffect(() => {
+    setUpvote(comment.upvote_count);
+    setDownvote(comment.downvote_count);
+    setCommentCount(comment.replies_count);
+    setVote(comment.vote);
+  },[comment]);
   const GoToComment = () => {
     if (isInPost) {
       navigation.navigate(navigationConstants.comment, {
@@ -85,7 +92,6 @@ function CommentCard(props) {
       });
     }
   };
-
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: comment.author_id });
   };
@@ -122,9 +128,8 @@ function CommentCard(props) {
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
       .catch(err => console.log(err));
   };
-
   return (
-    <View>
+    <View key={comment.oid} >
       <View style={styles.containerComment}>
         <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
@@ -141,7 +146,27 @@ function CommentCard(props) {
             onLongPress={() => props.onCommentModal(true, comment.oid)}
           >
             <View>
-              <Text style={styles.txtAuthor}>{comment.author_name}</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+
+                  marginRight: -10,
+                }}
+              >
+                <Text style={styles.txtAuthor}>{comment.author_name} </Text>
+
+                <View>
+                  { comment.author_field != null ? (
+                    <Badge
+                      item={{
+                        name: comment.author_field.level_name,
+                        description: comment.author_field.field_name,
+                        userBadge: true,
+                      }}
+                    />
+                  ) : null}
+                </View>
+              </View>
               <Text style={styles.txtContent}>{comment.content}</Text>
               <View style={styles.footer}>
                 <View style={styles.containerCreatedTime}>
@@ -223,6 +248,6 @@ function CommentCard(props) {
   );
 }
 
-export default CommentCard;
+export default React.memo(CommentCard);
 
 // {isInPost ? <ChildComment /> : null}

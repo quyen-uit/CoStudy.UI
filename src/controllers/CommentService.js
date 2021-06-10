@@ -15,7 +15,9 @@ class CommentService {
       }
     );
   }
-
+  static async getCommentById(jwtToken, id) {
+    return await getAPI(jwtToken).get(api + `Comment/commment/` + id);
+  }
   static async getAllReply(jwtToken, params) {
     return await getAPI(jwtToken).get(
       api +
@@ -30,13 +32,19 @@ class CommentService {
   }
 
   static async upVoteComment(jwtToken, oid) {
-    return await getAPI(jwtToken).post(api + 'Comment/upvote/' + oid);
+    return await getAPI(jwtToken).post(api + 'Comment/upvote-comment/' + oid);
   }
 
   static async downVoteComment(jwtToken, oid) {
-    return await getAPI(jwtToken).post(api + 'Comment/downvote/' + oid);
+    return await getAPI(jwtToken).post(api + 'Comment/downvote-comment/' + oid);
+  }
+  static async upVoteReply(jwtToken, oid) {
+    return await getAPI(jwtToken).post(api + 'Comment/upvote-reply/' + oid);
   }
 
+  static async downVoteReply(jwtToken, oid) {
+    return await getAPI(jwtToken).post(api + 'Comment/downvote-reply/' + oid);
+  }
   static async createComment(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'Comment/add', {
       content: params.comment,

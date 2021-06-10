@@ -37,7 +37,7 @@ import { useSelector } from 'react-redux';
 import navigationConstants from 'constants/navigation';
 import CommentService from 'controllers/CommentService';
 import UserService from 'controllers/UserService';
-
+import PostService from 'controllers/PostService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Comment(props) {
@@ -80,12 +80,16 @@ function Comment(props) {
   });
 
   useEffect(() => {
-    route.params.onUpvote(upvote);
-    route.params.onVote(vote);
+    if (typeof route.params?.onUpvote == 'function') {
+      route.params?.onUpvote(upvote);
+      route.params?.onVote(vote);
+    }
   }, [upvote]);
   useEffect(() => {
-    route.params.onDownvote(downvote);
-    route.params.onVote(vote);
+    if (typeof route.params?.onUpvote == 'function') {
+      route.params?.onDownvote(downvote);
+      route.params?.onVote(vote);
+    }
   }, [downvote]);
 
   const GoToProfile = () => {
@@ -171,7 +175,7 @@ function Comment(props) {
         setComment('');
         setIsEdit(false);
         setSending(false);
-        
+
         Toast.show({
           type: 'success',
           position: 'top',
@@ -240,8 +244,11 @@ function Comment(props) {
       author_name: userInfo.first_name + userInfo.last_name,
       vote: 0,
       opacity: 0.5,
+      oid: '',
     };
-    setReplies(replies.concat(tmp));
+    // setReplies(replies.concat(tmp));
+    setReplies([tmp, ...replies]);
+
     ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
     await CommentService.createReply(jwtToken, {
       comment: comment,
@@ -251,7 +258,9 @@ function Comment(props) {
         setComment('');
         tmp.opacity = 1;
         tmp.oid = response.data.result.oid;
-        setReplies(replies.concat(tmp));
+        // setReplies(replies.concat(tmp));
+        setReplies([tmp, ...replies]);
+
         setSending(false);
 
         Toast.show({
@@ -260,7 +269,8 @@ function Comment(props) {
           text1: 'Bình luận đã được đăng',
           visibilityTime: 2000,
         });
-        route.params.onComment(comment_count + 1);
+        if (typeof route.params?.onUpvote == 'function')
+          route.params?.onComment(comment_count + 1);
         setCommentCount(comment_count + 1);
       })
       .catch(error => {
@@ -273,6 +283,7 @@ function Comment(props) {
       <SafeAreaView>
         <FlatList
           showsVerticalScrollIndicator={false}
+          extraData={replies}
           style={{ marginBottom: 54, paddingBottom: 12 }}
           data={replies}
           onEndReached={async () => {
@@ -283,7 +294,7 @@ function Comment(props) {
           }}
           onEndReachedThreshold={0.1}
           renderItem={item => renderItem(item)}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item, index) => item.oid}
           ListHeaderComponent={() => (
             <Card containerStyle={styles.container}>
               <View>
@@ -329,6 +340,58 @@ function Comment(props) {
                       </View>
                     </View>
                   </View>
+                  {route.params?.fromNotify ? (
+                    <TouchableOpacity
+                      onPress={async () => {
+                        await UserService.getCurrentUser(jwtToken)
+                          .then(async response => {
+                            setIsLoading(true);
+                            await PostService.getPostById(
+                              jwtToken,
+                              data.post_id
+                            )
+                              .then(res => {
+                                let item = res.data.result;
+                                response.data.result.post_saved.forEach(i => {
+                                  if (i == item.oid) {
+                                    item.saved = true;
+                                  } else item.saved = false;
+                                });
+                                // set vote
+                                item.vote = 0;
+                                if (item.is_downvote_by_current) item.vote = -1;
+                                else if (item.is_vote_by_current) item.vote = 1;
+                                setIsLoading(false);
+                                navigation.replace(navigationConstants.post, {
+                                  post: item,
+                                  vote: item.vote,
+                                  upvote: item.upvote,
+                                  commentCount: item.comments_count,
+                                  downvote: item.downvote,
+                                  // onUpvote: onUpvoteCallback,
+                                  // onDownvote: onDownvoteCallback,
+                                  // onComment: onCommentCallback,
+                                  // onVote: onVoteCallback,
+                                });
+                              })
+                              .catch(error => console.log(error));
+                          })
+                          .catch(error => console.log(error));
+                      }}
+                    >
+                      <Text
+                        style={{
+                          padding: 4,
+                          backgroundColor: main_color,
+                          fontSize: 16,
+                          color: '#fff',
+                          borderRadius: 8,
+                        }}
+                      >
+                        Đi đến bài đăng
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
                 <View>
                   <View style={styles.rowFlexStart}>
@@ -431,7 +494,7 @@ function Comment(props) {
         ) : null}
       </SafeAreaView>
       <View style={styles.containerInput}>
-        {showOption ? (
+        {false ? (
           <View style={styles.row}>
             <TouchableOpacity style={styles.btnInputOption}>
               <FontAwesome5 name={'plus-circle'} size={24} color={main_color} />
@@ -448,12 +511,13 @@ function Comment(props) {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
-            style={styles.btnInputOption}
-            onPress={() => setShowOption(true)}
-          >
-            <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
-          </TouchableOpacity>
+          // <TouchableOpacity
+          //   style={styles.btnInputOption}
+          //   onPress={() => setShowOption(true)}
+          // >
+          //   <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
+          // </TouchableOpacity>
+          <View style={{ marginLeft: 4 }}></View>
         )}
         <View style={{ flex: 1 }}>
           {isEdit ? (
@@ -479,7 +543,7 @@ function Comment(props) {
             style={styles.input}
             onTouchEnd={() => setShowOption(false)}
             onChangeText={text => setComment(text)}
-            placeholder="Nhập j đi .."
+            placeholder="Nhập phản hồi"
             value={comment}
           />
         </View>

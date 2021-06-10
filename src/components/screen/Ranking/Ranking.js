@@ -48,6 +48,7 @@ import Modal, {
   SlideAnimation,
 } from 'react-native-modals';
 import Badge from 'components/common/Badge';
+import { element } from 'prop-types';
 
 function Ranking() {
   const jwtToken = useSelector(getJwtToken);
@@ -57,27 +58,73 @@ function Ranking() {
   const [current, setCurrent] = useState({});
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [title, setTitle] = useState('Bảng xếp hạng');
+  const [idPick, setIdPick] = useState('');
   const userInfo = useSelector(getBasicInfo);
+  const [fieldPickers, setFieldPickers] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+
   const goToProfile = id => {
     navigation.push(navigationConstants.profile, { id: id });
   };
   useEffect(() => {
+    if (idPick == '') return;
+    let isRender = true;
+    setIsLoading(true);
+
+    const fetchData = async () => {
+      await UserService.getRanking(jwtToken, {
+        skip: 0,
+        count: 100,
+        fieldId: idPick,
+      }).then(res => {
+        // res.data.result.leaderboard[0].total_point = Math.random();
+        setList(res.data.result.leaderboard);
+        setCurrent(res.data.result.current_user);
+        setIsLoading(false);
+      });
+    };
+    fetchData();
+    return () => {
+      isRender = false;
+    };
+  }, [idPick]);
+  useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await UserService.getRanking(jwtToken, { skip: 0, count: 100 }).then(
-        res => {
-          setList(res.data.result.leaderboard);
-          setCurrent(res.data.result.current_user);
-          setIsLoading(false);
-        }
-      );
+      await UserService.getAllField(jwtToken)
+        .then(response => {
+          if (isRender) {
+            response.data.result.forEach(element => {
+              element.isPick = false;
+            });
+            response.data.result[0].isPick = true;
+            setFieldPickers(response.data.result);
+            setTitle(response.data.result[0].value);
+            setIdPick(response.data.result[0].oid)
+          }
+        })
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
       isRender = false;
     };
   }, []);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: title,
+      headerShown: true,
+      headerRight: () => (
+        <View style={{ marginRight: 16 }}>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={{ fontSize: 16, color: '#fff' }}>Chọn lĩnh vực</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, title]);
   const renderItem = ({ item }) => {
     return (
       <TouchableOpacity
@@ -326,6 +373,102 @@ function Ranking() {
           </View>
         </View>
       )}
+      <BottomModal
+        visible={modalVisible}
+        swipeDirection={['up', 'down']} // can be string or an array
+        swipeThreshold={100} // default 100
+        useNativeDriver={true}
+        modalTitle={
+          <View style={{ alignSelf: 'center', alignItems: 'center' }}>
+            <Icon name={'grip-lines'} color={main_color} size={16} />
+            <Text>Chọn lĩnh vực cho bài biết</Text>
+          </View>
+        }
+        modalAnimation={
+          new SlideAnimation({
+            initialValue: 0, // optional
+            slideFrom: 'bottom', // optional
+            useNativeDriver: true, // optional
+          })
+        }
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+      >
+        <ModalContent style={{ marginHorizontal: -16 }}>
+          <View>
+            <View
+              style={{ flexWrap: 'wrap', flexDirection: 'row', padding: 8 }}
+            >
+              {fieldPickers.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    fieldPickers.forEach(field => {
+                      field.isPick = false;
+                      if (field.oid == item.oid) {
+                        field.isPick = true;
+                        setTitle(item.value);
+                        setIdPick(item.oid);
+                      }
+                    });
+
+                    setFieldPickers(fieldPickers.filter(item => item));
+                  }}
+                >
+                  <View
+                    style={{
+                      backgroundColor: item.isPick ? main_2nd_color : '#ccc',
+                      padding: 8,
+                      borderRadius: 100,
+                      margin: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: item.isPick ? '#fff' : main_2nd_color,
+                        fontSize: 16,
+                      }}
+                    >
+                      {item.value}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(false);
+              }}
+            >
+              <View
+                style={{
+                  justifyContent: 'center',
+                  backgroundColor: main_color,
+                  marginHorizontal: 16,
+                  marginBottom: -8,
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                }}
+              >
+                <Text
+                  style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
+                >
+                  Xác nhận
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </ModalContent>
+      </BottomModal>
     </View>
   );
 }
