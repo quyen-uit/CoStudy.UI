@@ -15,14 +15,22 @@ class PostService {
   static async getPostById(jwtToken, id) {
     return await getAPI(jwtToken).get(api + `Post/` + id);
   }
+  // static async getTimeline(jwtToken, skip, count) {
+  //   // return await getAPI(jwtToken).post(api + `Post/timeline/skip/${skip}/count/${count}`);
+  //   return await getAPI(jwtToken).post(api + `Post/timeline`, {
+  //     skip: skip,
+  //     count: count,
+  //   });
+  // }
   static async getTimeline(jwtToken, skip, count) {
     // return await getAPI(jwtToken).post(api + `Post/timeline/skip/${skip}/count/${count}`);
-    return await getAPI(jwtToken).post(api + `Post/timeline`, {
+    return await getAPI(jwtToken).post(api + `Post/news-feed`, {
       skip: skip,
       count: count,
+      from_date: '2020-06-11T12:57:49.993Z' ,
+      to_date: '2025-06-11T12:57:49.993Z'
     });
   }
-
   static async getSavedPost(jwtToken, params) {
     return await getAPI(jwtToken).get(
       api + `Post/save?skip=${params.skip}&count=${params.count}`
