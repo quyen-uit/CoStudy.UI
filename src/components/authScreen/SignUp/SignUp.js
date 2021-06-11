@@ -42,7 +42,7 @@ function SignUp() {
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
   const navigation = useNavigation();
-  const [date, setDate] = useState(new Date(1598051730000));
+  const [date, setDate] = useState(new Date(2000,1,1));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
   const [visibleAlert, setVisibleAlert] = useState(false);

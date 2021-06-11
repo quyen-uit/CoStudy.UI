@@ -81,13 +81,18 @@ function NewsFeed() {
     setModalVisible(value);
   });
   React.useEffect(() => {
-    //ConnectyCube.destroySession().catch(error => {});
-    // ConnectyCube.logout().catch((error) => {});
-    
-    ConnectyCube.createSession()
+    //ConnectyCube.logout().catch((error) => {});
+    try {
+      ConnectyCube.destroySession().catch(error => {});
+    } catch (err) {
+      console.log('detroy session fail');
+    }
+    ConnectyCube.createSession({
+      login: userInfo.email,
+      password: 'connectycube',
+    })
       .then(session => {
-        console.log(session);
-        ConnectyCube.chat.connect({
+         ConnectyCube.chat.connect({
           userId: userInfo.call_id,
           password: 'connectycube',
         });
@@ -117,7 +122,10 @@ function NewsFeed() {
           if (res.data.result.length < 1) setPickFieldVisible(true);
         })
         .catch(err => console.log(err));
-      await axios.post(api + 'Accounts/refresh-token?refreshToken=' + userInfo.refresh_token)
+      await axios
+        .post(
+          api + 'Accounts/refresh-token?refreshToken=' + userInfo.refresh_token
+        )
         .then(res => dispatch(update(res.data.result.jwtToken)))
         .catch(err => console.log(err));
     };

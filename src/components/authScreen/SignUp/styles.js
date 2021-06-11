@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 56,
     justifyContent: 'center',
     marginVertical: 10,
-  },
+   },
   icon: {
     paddingLeft: 12,
     position: 'absolute',

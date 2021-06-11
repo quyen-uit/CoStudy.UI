@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
+  Keyboard,
   Image,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -22,6 +23,7 @@ import { main_color, touch_color } from 'constants/colorCommon';
 import moment from 'moment';
 import FollowService from 'controllers/FollowService';
 import ChatService from 'controllers/ChatService';
+import { TextInput } from 'react-native';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -72,16 +74,14 @@ function UserCard({ item }) {
         .catch(error => console.log(error));
     }
   };
-  const goToConversation = async (item) => {
-    await ChatService.createConversation(jwtToken, item.to_id).then(
-      res => {
-        navigation.replace(navigationConstants.conversation, {
-          id: res.data.result.oid,
-          avatar: item.to_avatar,
-          name: item.to_name,
-        });
-      }
-    );
+  const goToConversation = async item => {
+    await ChatService.createConversation(jwtToken, item.to_id).then(res => {
+      navigation.replace(navigationConstants.conversation, {
+        id: res.data.result.oid,
+        avatar: item.to_avatar,
+        name: item.to_name,
+      });
+    });
   };
   return (
     <Card containerStyle={styles.cardContainer}>
@@ -123,7 +123,6 @@ function UserCard({ item }) {
           </View>
           {route.params?.isChat ? (
             <TouchableOpacity
-         
               onPress={() => {
                 goToConversation(item);
               }}
@@ -136,7 +135,7 @@ function UserCard({ item }) {
                   padding: 4,
                   paddingHorizontal: 8,
                   borderRadius: 8,
-                 }}
+                }}
               >
                 Nhắn tin
               </Text>
@@ -186,7 +185,8 @@ function Following() {
   const [isLoading, setIsLoading] = useState(true);
   const jwtToken = useSelector(getJwtToken);
   const route = useRoute();
-
+  const [search, setSearch] = useState('');
+  const [isSearch, setIsSearch] = useState(false);
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
@@ -194,11 +194,13 @@ function Following() {
         id: route.params.id,
         skip: 0,
         count: 99,
+        keyword: search,
       })
         .then(res => {
           if (!isOut) {
             setList(res.data.result);
             setIsLoading(false);
+            setIsSearch(false);
           }
         })
         .catch(error => console.log(error));
@@ -207,14 +209,51 @@ function Following() {
     return () => {
       isOut = true;
     };
-  }, []);
+  }, [isSearch]);
   const renderItem = ({ item }) => {
     return <UserCard item={item} />;
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
+      <View style={{  justifyContent: 'center', marginBottom: 4 }}>
+        <TextInput
+          style={{
+            alignSelf: 'stretch',
+            backgroundColor: '#fff',
+            borderRadius: 100,
+            margin: 8,
+            marginBottom: 0,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+          }}
+          onChangeText={text => setSearch(text)}
+          value={search}
+          placeholder={'Tìm theo tên...'}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            alignSelf: 'flex-end',
+            right: 16,
+            top: 16,
+          }}
+        >
+          <TouchableOpacity
+            onPress={async () => {
+              Keyboard.dismiss();
+              // setKeyword(search);
+              //await onSearch();
+              setIsSearch(true);
+              setIsLoading(true);
+            }}
+          >
+            <Icon name={'search'} size={20} color={'#000'} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {list.length == 0 ? (
-        <Text style={{ alignSelf: 'center', marginTop: 100 }}>
+        <Text style={{ alignSelf: 'center', position: 'absolute', top: 100 }}>
           Bạn chưa theo dõi ai
         </Text>
       ) : null}

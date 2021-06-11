@@ -15,7 +15,7 @@ class FollowService {
       skip: params.skip,
       count: params.count,
       user_id: params.id,
-      keyword: '',
+      keyword: typeof params.keyword == 'undefined' ? '' : params.keyword,
     });
   }
   // static async getFollowingByUserId(jwtToken, params){
@@ -29,7 +29,7 @@ class FollowService {
       skip: params.skip,
       count: params.count,
       user_id: params.id,
-      keyword: '',
+      keyword: typeof params.keyword == 'undefined' ? '' : params.keyword,
     });
   }
   static async follow(jwtToken, id) {

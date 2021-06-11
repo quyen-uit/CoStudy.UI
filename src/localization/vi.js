@@ -12,7 +12,7 @@ export default {
   signupHint: 'Bạn chưa có tài khoản?',
   forgotPassword: 'Quên mật khẩu',
   username: 'Tên tài khoản',
-  usernameHint: 'Nhập tên tài khoản',
+  usernameHint: 'Nhập email hoặc số điện thoại',
   password: 'Mật khẩu',
   passwordHint: 'Nhập mật khẩu',
   firstName: 'Họ',

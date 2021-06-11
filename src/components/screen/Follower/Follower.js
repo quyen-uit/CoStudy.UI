@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
+  TextInput
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Follower/styles';
@@ -22,6 +23,7 @@ import { main_color, touch_color } from 'constants/colorCommon';
 import moment from 'moment';
 import FollowService from 'controllers/FollowService';
 import UserService from 'controllers/UserService';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -139,7 +141,8 @@ function Follower() {
   const route = useRoute();
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
-
+  const [search, setSearch] = useState('');
+  const [isSearch, setIsSearch] = useState(false);
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
@@ -147,6 +150,7 @@ function Follower() {
         id: route.params.id,
         skip: 0,
         count: 99,
+        keyword: search
       })
         .then(async res => {
           await FollowService.getFollowingByUserId(jwtToken, {
@@ -165,6 +169,7 @@ function Follower() {
               Promise.all(promises).then(() => {
                 setIsLoading(false);
                 setList(res.data.result);
+                setIsSearch(false);
               });
             }
           });
@@ -175,12 +180,49 @@ function Follower() {
     return () => {
       isOut = true;
     };
-  }, []);
+  }, [isSearch]);
   const renderItem = ({ item }) => {
     return <UserCard item={item} />;
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
+       <View style={{  justifyContent: 'center', marginBottom: 4 }}>
+        <TextInput
+          style={{
+            alignSelf: 'stretch',
+            backgroundColor: '#fff',
+            borderRadius: 100,
+            margin: 8,
+            marginBottom: 0,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+          }}
+          onChangeText={text => setSearch(text)}
+          value={search}
+          placeholder={'Tìm theo tên...'}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            alignSelf: 'flex-end',
+            right: 16,
+            top: 16,
+          }}
+        >
+          <TouchableOpacity
+            onPress={async () => {
+              Keyboard.dismiss();
+              // setKeyword(search);
+              //await onSearch();
+              setIsSearch(true);
+              setIsLoading(true);
+            }}
+          >
+            <Icon name={'search'} size={20} color={'#000'} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {list.length == 0 ? (
         <Text style={{ alignSelf: 'center', marginTop: 100 }}>
           Bạn chưa có người theo dõi

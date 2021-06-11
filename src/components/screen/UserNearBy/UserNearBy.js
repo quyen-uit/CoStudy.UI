@@ -104,7 +104,7 @@ function UserCard({ item }) {
             </TouchableOpacity>
             <View style={{ flexShrink: 1 }}>
               <Text style={styles.txtAuthor}>{item.full_name}</Text>
-              <Text style={styles.txtContent}>{item.distance}m</Text>
+              <Text style={styles.txtContent}>{+(Math.round(item.distance/1000 + "e+2")  + "e-2")}km</Text>
             </View>
           </View>
           {item.user_id == userInfo.id ? null : (
