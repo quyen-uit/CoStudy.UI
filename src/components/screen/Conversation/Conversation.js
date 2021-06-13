@@ -354,6 +354,7 @@ function Conversation(props) {
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
   const [message, setMessage] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const flatListRef = useRef();
   const [chosing, setChosing] = useState(false);
@@ -361,10 +362,47 @@ function Conversation(props) {
   const [isSending, setSending] = useState(false);
   const conversation_id = route.params.id;
   const [visible, setIsVisible] = useState(false);
+  const [deleteVisible, setDeleteVisible] = useState(false);
+  const navigation = useNavigation();
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ margin: 16 }}>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <FontAwesome5 name={'ellipsis-h'} size={24} color={'#fff'} />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
   const onViewImage = useCallback((value, uri) => {
     setIsVisible(true);
     setImgMessage(uri);
   });
+  const onDelete = useCallback(value => {
+    setModalVisible(false);
+    setDeleteVisible(true);
+  });
+  const deleteConversation = async () => {
+    ToastAndroid.show('Đang xóa...', 1000);
+    setIsLoading(true);
+    setDeleteVisible(false);
+    await ChatService.deleteConversation(conversation_id)
+      .then(res => {
+        setIsLoading(true);
+        navigation.goBack();
+        setTimeout(
+          () => ToastAndroid.show('Đã xóa cuộc trò chuyện này.', 1000),
+          1000
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        setIsLoading(false);
+
+        ToastAndroid.show('Xóa thất bại.', 1000);
+      });
+  };
   const onDeleteCallBack = React.useCallback(async id => {
     let tmp = listMes.filter(i => i.oid !== id);
 
@@ -414,9 +452,9 @@ function Conversation(props) {
       if (res.message_type == 1) {
         res.content = [{ image_hash: res.content[0].ImageHash }];
       } else if (res.message_type == 3) {
-        res.content.string_contents[0].content = res.content.string_contents[0].Content;
+        res.content.string_contents[0].content =
+          res.content.string_contents[0].Content;
       }
-
 
       setListMes([res, ...listMes]);
       // const tmp = {
@@ -471,11 +509,12 @@ function Conversation(props) {
 
   const sendMessage = async () => {
     setSending(true);
+    flatList.current.scrollToOffset({ animated: true, offset: 0 })
     const tmp = {
       id: '',
       sender_id: userInfo.id,
       media_content: [],
-      content: [message],
+      content: [message.trim()],
       message_type: 0,
       created_date: new Date(),
       modified_date: new Date(),
@@ -486,7 +525,7 @@ function Conversation(props) {
 
     await ChatService.createMessage(jwtToken, {
       conversation_id: conversation_id,
-      message: message,
+      message: message.trim(),
     })
       .then(response => {
         // setListMes([...listMes, response.data.result]);
@@ -711,11 +750,16 @@ function Conversation(props) {
       })
       .catch(err => console.log(err));
   };
+
+  const flatList = React.useRef(null)
+
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
-          style={{ marginBottom: 64 }}
+        ref={flatList}
+         
+          style={{ marginBottom: 56 }}
           onEndReached={() => {
             if (isEnd) return;
             if (listMes.length > 14) {
@@ -741,7 +785,7 @@ function Conversation(props) {
           keyExtractor={(item, index) => index.toString()}
         />
       </SafeAreaView>
-      <View style={styles.containerInput}>
+      <View style={{...styles.containerInput,height: 56, width: deviceWidth}}>
         {showOption ? (
           <View style={styles.grOption}>
             <TouchableOpacity style={styles.btnInputOption}>
@@ -913,6 +957,49 @@ function Conversation(props) {
           />
         </View>
       ) : null}
+      <ChatOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        onDelete={onDelete}
+      />
+      <Modal
+        visible={deleteVisible}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setDeleteVisible(false)}
+            />
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Xóa"
+              onPress={() => {
+                deleteConversation();
+                setDeleteVisible(false);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn muốn xóa hội thoại này?
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

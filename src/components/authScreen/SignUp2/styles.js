@@ -16,6 +16,8 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 56,
+
   },
   footer: {},
   imgLogo: {
@@ -23,8 +25,7 @@ const styles = StyleSheet.create({
   },
   btnSignUp: {
     borderRadius: 32,
-    marginHorizontal: 56,
-    backgroundColor: main_2nd_color,
+     backgroundColor: main_2nd_color,
     alignSelf: 'stretch',
     paddingVertical: 12,
     marginTop: 16,

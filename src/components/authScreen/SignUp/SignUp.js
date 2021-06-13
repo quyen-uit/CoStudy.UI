@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  Dimensions
+  Dimensions,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -41,8 +41,11 @@ function SignUp() {
   const [last, setLast] = useState('');
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
+  const [school, setSchool] = useState('');
+  const [subject, setSubject] = useState('');
+
   const navigation = useNavigation();
-  const [date, setDate] = useState(new Date(2000,1,1));
+  const [date, setDate] = useState(new Date(2000, 1, 1));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
   const [visibleAlert, setVisibleAlert] = useState(false);
@@ -61,13 +64,10 @@ function SignUp() {
     if (first == '' || last == '') {
       showAlert('Thông báo', 'Vui lòng nhập đầy đủ họ và tên.');
       return;
-    } 
-    else if (district == '' || city == '')
-    {
+    } else if (district == '' || city == '') {
       showAlert('Thông báo', 'Vui lòng chọn thông tin nơi ở.');
       return;
-    }
-    else {
+    } else {
       navigation.navigate(navigationConstants.signup2, {
         first: first,
         last: last,
@@ -75,7 +75,7 @@ function SignUp() {
         city: city,
         district: district,
         isGoogle: route.params?.isGoogle ? true : false,
-        emailGG: route.params?.email ? route.params?.email : ''
+        emailGG: route.params?.email ? route.params?.email : '',
       });
     }
   };
@@ -92,27 +92,32 @@ function SignUp() {
       <View style={styles.container}>
         <Text style={styles.txtTitle}>{strings.signup}</Text>
         <View style={styles.formContainer}>
-          <TextField
-            accessibilityHint={strings.firstName}
-            accessibilityLabel={strings.firstName.toLowerCase()}
-            onChangeText={setFirst}
-            placeholder={strings.firstName}
-            value={first}
-            icon={'user-check'}
-          />
-          <TextField
-            accessibilityHint={strings.lastName}
-            accessibilityLabel={strings.lastName}
-            onChangeText={setLast}
-            placeholder={strings.lastName}
-            value={last}
-            icon={'user-edit'}
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+            <View style={{width: deviceWidth / 2 - 60, marginRight: 5}}>
+              <TextField
+                accessibilityHint={strings.firstName}
+                accessibilityLabel={strings.firstName.toLowerCase()}
+                onChangeText={setFirst}
+                placeholder={strings.firstName}
+                value={first}
+                icon={'user-check'}
+              />
+            </View>
+            <View style={{ marginLeft: 5, width: deviceWidth / 2 - 60}}>
+            <TextField
+              accessibilityHint={strings.lastName}
+              accessibilityLabel={strings.lastName}
+              onChangeText={setLast}
+              placeholder={strings.lastName}
+              value={last}
+              icon={'user-edit'}
+            />
+            </View>
+          </View>
           <TouchableOpacity
             style={{
               alignSelf: 'stretch',
-              marginHorizontal: 56,
-              backgroundColor: '#fff',
+               backgroundColor: '#fff',
               borderRadius: 32,
               justifyContent: 'center',
               marginVertical: 12,
@@ -177,34 +182,45 @@ function SignUp() {
               <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
             </View>
           </View>
+          <TextField
+            onChangeText={setSchool}
+            placeholder={'Trường'}
+            value={school}
+            icon={'school'}
+          />
+          <TextField
+            onChangeText={setSubject}
+            placeholder={'Chuyên ngành'}
+            value={subject}
+            icon={'graduation-cap'}
+          />
           <TouchableOpacity style={styles.btnSignUp} onPress={() => onNext()}>
             <Text style={styles.txtSignUp}>{strings.next}</Text>
           </TouchableOpacity>
         </View>
 
         <Modal
-        visible={visibleAlert}
-        width={deviceWidth - 56}
-        footer={
-          <ModalFooter>
-            <ModalButton
-              textStyle={{ fontSize: 14, color: main_color }}
-              text="Hủy"
-              onPress={() => setVisibleAlert(false)}
-            />
-             
-          </ModalFooter>
-        }
-      >
-        <ModalContent>
-          <View>
-            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
-              {bodyAlert}
-            </Text>
-          </View>
-        </ModalContent>
-      </Modal>
-           {show && (
+          visible={visibleAlert}
+          width={deviceWidth - 56}
+          footer={
+            <ModalFooter>
+              <ModalButton
+                textStyle={{ fontSize: 14, color: main_color }}
+                text="Hủy"
+                onPress={() => setVisibleAlert(false)}
+              />
+            </ModalFooter>
+          }
+        >
+          <ModalContent>
+            <View>
+              <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+                {bodyAlert}
+              </Text>
+            </View>
+          </ModalContent>
+        </Modal>
+        {show && (
           <DateTimePicker
             testID="dateTimePicker"
             value={date}

@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 56
   },
   footer: {},
   imgLogo: {
@@ -23,11 +24,10 @@ const styles = StyleSheet.create({
   },
   btnSignUp: {
     borderRadius: 32,
-    marginHorizontal: 56,
-    backgroundColor: main_2nd_color,
+     backgroundColor: main_2nd_color,
     alignSelf: 'stretch',
     paddingVertical: 12,
-    marginTop: 16,
+    marginTop: 12,
     elevation: 10,
   },
   txtSignUp: {
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     elevation: 10,
     fontWeight: 'bold',
-    marginTop: 40
+    marginTop: 10
   },
   picker: {
     backgroundColor: '#fff',
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
     paddingLeft: 48,
     fontSize: 16,
     alignSelf: 'stretch',
-    marginHorizontal: 56,
-    justifyContent: 'center',
+     justifyContent: 'center',
     marginVertical: 10,
+    height: 50
    },
   icon: {
     paddingLeft: 12,

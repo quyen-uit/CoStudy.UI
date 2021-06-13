@@ -13,7 +13,7 @@ class ChatService {
   // }
 
   static async deleteConversation(jwtToken, id) {
-    return await getAPI(jwtToken).delete(api + 'Message/conversation/' + id);
+    return await getAPI(jwtToken).delete(api + 'Conversation/' + id);
   }
 
   static async getCurrentConversation(jwtToken) {

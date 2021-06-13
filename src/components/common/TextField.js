@@ -10,7 +10,6 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 const styles = StyleSheet.create({
   container: {
    alignSelf: 'stretch',
-   marginHorizontal: 56,
    marginVertical: 10,
    justifyContent: 'center',
    },

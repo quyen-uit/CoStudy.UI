@@ -262,13 +262,13 @@ function AppNavigator() {
             alignSelf: 'center',
           },
 
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
+          // headerRight: () => (
+          //   <View style={styles.headerRight}>
+          //     <TouchableOpacity onPress={() => alert('search is clicked')}>
+          //       <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+          //     </TouchableOpacity>
+          //   </View>
+          // ),
         })}
       />
       <Stack.Screen

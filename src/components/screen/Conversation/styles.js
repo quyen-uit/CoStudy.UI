@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     position: 'absolute',
     bottom: 0,
-    left: 0
-  },
+    left: 0,
+   },
   container: {
     padding: 0,
     margin: 8,

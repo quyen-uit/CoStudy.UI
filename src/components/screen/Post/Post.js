@@ -386,6 +386,7 @@ function Post(props) {
       });
   };
   const postComment = async () => {
+
     Keyboard.dismiss();
     let img = '';
     let image = '';
@@ -393,6 +394,8 @@ function Post(props) {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
+    flatList.current.scrollToOffset({ animated: true, offset: 0 })
+
     if (isEdit) {
       updateComment();
       return;
@@ -474,11 +477,13 @@ function Post(props) {
         console.log(error);
       });
   };
+  const flatList = React.useRef(null)
 
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
+          ref={flatList}
           extraData={comments}
           showsVerticalScrollIndicator={false}
           style={{ marginBottom: 50 }}

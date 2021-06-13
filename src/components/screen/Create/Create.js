@@ -145,7 +145,7 @@ function Create() {
                 setListImg(
                   resPost.data.result.image_contents.map(item => ({
                     path: item.image_hash,
-                    discription: item.discription,
+                    discription: item.discription.trim(),
                     isEdit: true,
                   }))
                 );
@@ -215,9 +215,11 @@ function Create() {
     setIsLoading(true);
     if (title == '') {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập tiêu đề');
+      setIsLoading(false);
       return;
     } else if (content == '') {
       Alert.alert('Thiếu thông tin', 'Vui lòng nhập nội dung');
+      setIsLoading(false);
       return;
     }
     ToastAndroid.show('Bài viết đang đăng...', ToastAndroid.SHORT);
@@ -244,7 +246,7 @@ function Create() {
                   list = [
                     ...list,
                     {
-                      discription: image.discription,
+                      discription: image.discription.trim(),
                       image_hash: url,
                     },
                   ];
@@ -256,7 +258,7 @@ function Create() {
         } else {
           list = [
             ...list,
-            { discription: image.discription, image_hash: image.path },
+            { discription: image.discription.trim(), image_hash: image.path },
           ];
         }
       });
@@ -318,8 +320,8 @@ function Create() {
     navigation.navigate(navigationConstants.tabNav, {
       screen: navigationConstants.newsfeed,
       params: {
-        title: title,
-        content: content,
+        title: title.trim(),
+        content: content.trim(),
         listImg: listImg,
         fields: tempFields,
       },
@@ -493,7 +495,7 @@ function Create() {
                       </TouchableOpacity>
 
                       <TextInput
-                        onChangeText={text => (item.discription = text)}
+                        onChangeText={text => (item.discription = text.trim())}
                         placeholder={'Nhập mô tả..'}
                       />
                     </View>

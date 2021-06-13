@@ -231,6 +231,8 @@ function Comment(props) {
       Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
+    flatList.current.scrollToOffset({ animated: true, offset: 0 })
+
     setSending(true);
     const tmp = {
       content: comment,
@@ -278,10 +280,14 @@ function Comment(props) {
         console.log(error);
       });
   };
+  const flatList = React.useRef(null)
+
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
+          ref={flatList}
+
           showsVerticalScrollIndicator={false}
           extraData={replies}
           style={{ marginBottom: 54, paddingBottom: 12 }}
