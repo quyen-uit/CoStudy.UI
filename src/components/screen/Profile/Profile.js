@@ -107,7 +107,10 @@ function Profile({ userId }) {
   const route = useRoute();
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({
+    address: curUser.address,
+    additional_infos: [],
+  });
   //const [data,setData] = useState();
   const [fields, setFields] = useState([]);
   ///image view
@@ -184,11 +187,15 @@ function Profile({ userId }) {
           )
             .then(res => {
               setFields(res.data.result.fields);
-              ToastAndroid.show('Cập nhật thành công.', ToastAndroid.SHORT);
             })
             .catch(err => console.log(err));
-          Promise.all([postAPI, updateField]).then(res => {
+          const updateInfo = await UserService.updateInfo(curUser.jwtToken, {
+            school: route.params.school,
+            subject: route.params.subject,
+          }).then(res => setData(res.data.result));
+          Promise.all([postAPI, updateField, updateInfo]).then(res => {
             setIsLoading(false);
+            ToastAndroid.show('Cập nhật thành công.', ToastAndroid.SHORT);
             dispatch(update(curUser.jwtToken));
           });
         }
@@ -468,7 +475,11 @@ function Profile({ userId }) {
                 });
             }}
           >
-            {isMe ? <Icon name={'edit'} size={24} color={'#fff'} /> : <Icon name={'edit'} size={24} color={main_color} />}
+            {isMe ? (
+              <Icon name={'edit'} size={24} color={'#fff'} />
+            ) : (
+              <Icon name={'edit'} size={24} color={main_color} />
+            )}
           </TouchableOpacity>
         </View>
       ),
@@ -599,9 +610,37 @@ function Profile({ userId }) {
                       </TouchableOpacity>
                     ))}
                   </View>
-                  <GroupInfor name={user.school} icon={'school'} />
-                  <GroupInfor name={user.specialized} icon={'user-cog'} />
-                  <GroupInfor name={user.graduation} icon={'graduation-cap'} />
+                  {data ? (
+                    <View>
+                      <GroupInfor
+                        name={data.address.district + ', ' + data.address.city}
+                        icon={'city'}
+                      />
+
+                      {data.additional_infos.length > 0 ? (
+                        <View>
+                          {data.additional_infos[0].information_value != '' ? (
+                            <GroupInfor
+                              name={
+                                'Trường ' +
+                                data.additional_infos[0].information_value
+                              }
+                              icon={'school'}
+                            />
+                          ) : null}
+                          {data.additional_infos[1].information_value != '' ? (
+                            <GroupInfor
+                              name={
+                                'Chuyên ngành ' +
+                                data.additional_infos[1].information_value
+                              }
+                              icon={'graduation-cap'}
+                            />
+                          ) : null}
+                        </View>
+                      ) : null}
+                    </View>
+                  ) : null}
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate(navigationConstants.profileDetail, {

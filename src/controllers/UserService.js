@@ -33,6 +33,12 @@ class UserService {
   static async updateUser(jwtToken, params) {
     return await getAPI(jwtToken).put(api + 'User/update', params);
   }
+  static async updateInfo(jwtToken, params) {
+    return await getAPI(jwtToken).post(api + 'User/additionalinfos', [
+      { information_name: 'school', information_value: params.school },
+      { information_name: 'subject', information_value: params.subject },
+    ]);
+  }
   static async updateLocation(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'User/update-address', params);
   }
@@ -58,11 +64,14 @@ class UserService {
   }
   static async getRanking(jwtToken, params) {
     return await getAPI(jwtToken).get(
-      api + `Level/leader-board?FieldId=${params.fieldId}&Skip=${params.skip}&Count=${params.count}`
+      api +
+        `Level/leader-board?FieldId=${params.fieldId}&Skip=${params.skip}&Count=${params.count}`
     );
   }
   static async getNewToken(jwtToken, refresh_token) {
-    return await getAPI(jwtToken).post(api + 'Accounts/refresh-token?refreshToken=' + refresh_token );
+    return await getAPI(jwtToken).post(
+      api + 'Accounts/refresh-token?refreshToken=' + refresh_token
+    );
   }
 
   static async addCallId(jwtToken, params) {

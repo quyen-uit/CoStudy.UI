@@ -41,8 +41,7 @@ function SignUp() {
   const [last, setLast] = useState('');
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
-  const [school, setSchool] = useState('');
-  const [subject, setSubject] = useState('');
+
 
   const navigation = useNavigation();
   const [date, setDate] = useState(new Date(2000, 1, 1));
@@ -92,32 +91,26 @@ function SignUp() {
       <View style={styles.container}>
         <Text style={styles.txtTitle}>{strings.signup}</Text>
         <View style={styles.formContainer}>
-          <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
-            <View style={{width: deviceWidth / 2 - 60, marginRight: 5}}>
-              <TextField
-                accessibilityHint={strings.firstName}
-                accessibilityLabel={strings.firstName.toLowerCase()}
-                onChangeText={setFirst}
-                placeholder={strings.firstName}
-                value={first}
-                icon={'user-check'}
-              />
-            </View>
-            <View style={{ marginLeft: 5, width: deviceWidth / 2 - 60}}>
-            <TextField
-              accessibilityHint={strings.lastName}
-              accessibilityLabel={strings.lastName}
-              onChangeText={setLast}
-              placeholder={strings.lastName}
-              value={last}
-              icon={'user-edit'}
-            />
-            </View>
-          </View>
+          <TextField
+            accessibilityHint={strings.firstName}
+            accessibilityLabel={strings.firstName.toLowerCase()}
+            onChangeText={setFirst}
+            placeholder={strings.firstName}
+            value={first}
+            icon={'user-check'}
+          />
+          <TextField
+            accessibilityHint={strings.lastName}
+            accessibilityLabel={strings.lastName}
+            onChangeText={setLast}
+            placeholder={strings.lastName}
+            value={last}
+            icon={'user-edit'}
+          />
           <TouchableOpacity
             style={{
               alignSelf: 'stretch',
-               backgroundColor: '#fff',
+              backgroundColor: '#fff',
               borderRadius: 32,
               justifyContent: 'center',
               marginVertical: 12,
@@ -182,7 +175,7 @@ function SignUp() {
               <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
             </View>
           </View>
-          <TextField
+          {/* <TextField
             onChangeText={setSchool}
             placeholder={'Trường'}
             value={school}
@@ -193,7 +186,7 @@ function SignUp() {
             placeholder={'Chuyên ngành'}
             value={subject}
             icon={'graduation-cap'}
-          />
+          /> */}
           <TouchableOpacity style={styles.btnSignUp} onPress={() => onNext()}>
             <Text style={styles.txtSignUp}>{strings.next}</Text>
           </TouchableOpacity>

@@ -403,7 +403,7 @@ function Post(props) {
     const tmp = {
       author_avatar: userInfo.avatar,
       author_name: userInfo.first_name + userInfo.last_name,
-      content: comment,
+      content: comment.trim(),
       created_date: new Date(),
       downvote_count: 0,
       id: '',
@@ -450,7 +450,7 @@ function Post(props) {
     }
 
     await CommentService.createComment(jwtToken, {
-      comment: comment,
+      comment: comment.trim(),
       img: img,
       oid: post.oid,
     })

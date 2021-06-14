@@ -1,5 +1,6 @@
-import { main_2nd_color, main_color } from 'constants/colorCommon';
 import { StyleSheet } from 'react-native';
+// eslint-disable-next-line camelcase
+import { main_2nd_color, main_color } from 'constants/colorCommon';
 
 const styles = StyleSheet.create({
   container: {
@@ -17,7 +18,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 56,
-
   },
   footer: {},
   imgLogo: {

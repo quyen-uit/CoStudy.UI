@@ -235,7 +235,7 @@ function Comment(props) {
 
     setSending(true);
     const tmp = {
-      content: comment,
+      content: comment.trim(),
       author_id: userInfo.id,
       status: 0,
       created_date: new Date(),
@@ -253,7 +253,7 @@ function Comment(props) {
 
     ToastAndroid.show('Đang trả lời..', ToastAndroid.SHORT);
     await CommentService.createReply(jwtToken, {
-      comment: comment,
+      comment: comment.trim(),
       oid: data.oid,
     })
       .then(response => {

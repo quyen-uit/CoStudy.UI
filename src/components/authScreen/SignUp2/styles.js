@@ -1,12 +1,14 @@
-import { main_2nd_color, main_color } from 'constants/colorCommon';
 import { StyleSheet } from 'react-native';
+
+// eslint-disable-next-line camelcase
+import { main_2nd_color, main_color } from 'constants/colorCommon';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
     backgroundColor: main_color,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   otherContainer: {
     flexDirection: 'row',
@@ -17,7 +19,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 56,
-
   },
   footer: {},
   imgLogo: {
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
   },
   btnSignUp: {
     borderRadius: 32,
-     backgroundColor: main_2nd_color,
+    backgroundColor: main_2nd_color,
     alignSelf: 'stretch',
     paddingVertical: 12,
     marginTop: 16,
@@ -52,8 +53,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     elevation: 10,
     fontWeight: 'bold',
-    marginBottom: 40
-   },
+    marginBottom: 40,
+  },
   picker: {
     backgroundColor: '#fff',
     borderRadius: 32,

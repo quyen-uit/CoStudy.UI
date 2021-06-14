@@ -194,6 +194,16 @@ function ProfileDetail({ userId }) {
             value={data.phone_number}
           />
           <Field
+            icon={'school'}
+            title={'Trường'}
+            value={data.additional_infos[0].information_value}
+          />
+          <Field
+            icon={'graduation-cap'}
+            title={'Chuyên ngành'}
+            value={data.additional_infos[1].information_value}
+          />
+          <Field
             icon={'location-arrow'}
             title={'Quận/Huyện'}
             value={data.address ? data.address.district : null}
