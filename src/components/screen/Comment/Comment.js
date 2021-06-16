@@ -38,6 +38,12 @@ import navigationConstants from 'constants/navigation';
 import CommentService from 'controllers/CommentService';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Comment(props) {
@@ -60,7 +66,12 @@ function Comment(props) {
   const [comment_count, setCommentCount] = useState(route.params.replies);
   const [sending, setSending] = useState(false);
   const navigation = useNavigation();
-
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   const onEditCallBack = useCallback((isEdit, id) => {
     setIsEdit(isEdit);
     setReplyId(id);
@@ -152,8 +163,8 @@ function Comment(props) {
   const updateReply = async () => {
     Keyboard.dismiss();
 
-    if (comment == '') {
-      Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+    if (comment.trim() == '') {
+     showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
     setSending(true);
@@ -227,11 +238,11 @@ function Comment(props) {
     }
     Keyboard.dismiss();
 
-    if (comment == '') {
-      Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+    if (comment.trim() == '') {
+      showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
-    flatList.current.scrollToOffset({ animated: true, offset: 0 })
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
 
     setSending(true);
     const tmp = {
@@ -280,14 +291,13 @@ function Comment(props) {
         console.log(error);
       });
   };
-  const flatList = React.useRef(null)
+  const flatList = React.useRef(null);
 
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
           ref={flatList}
-
           showsVerticalScrollIndicator={false}
           extraData={replies}
           style={{ marginBottom: 54, paddingBottom: 12 }}
@@ -566,6 +576,27 @@ function Comment(props) {
           </TouchableOpacity>
         )}
       </View>
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

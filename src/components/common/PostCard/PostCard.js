@@ -221,6 +221,9 @@ function PostCard(props) {
             >
               {post.field.map((item, index) => (
                 <TouchableOpacity
+                  onPress={()=>{
+                    navigation.navigate(navigationConstants.search, {fieldId: item.field_id})
+                  }}
                   key={index}
                   >
                   <Badge item={{name: item.level_name, description: item.field_name}}/>

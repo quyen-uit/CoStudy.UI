@@ -15,6 +15,7 @@ import {
   SafeAreaView,
   TextInput,
   RefreshControl,
+  Keyboard
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Conversation/styles';
@@ -364,6 +365,12 @@ function Conversation(props) {
   const [visible, setIsVisible] = useState(false);
   const [deleteVisible, setDeleteVisible] = useState(false);
   const navigation = useNavigation();
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -403,6 +410,7 @@ function Conversation(props) {
         ToastAndroid.show('Xóa thất bại.', 1000);
       });
   };
+ 
   const onDeleteCallBack = React.useCallback(async id => {
     let tmp = listMes.filter(i => i.oid !== id);
 
@@ -508,8 +516,15 @@ function Conversation(props) {
   }, []);
 
   const sendMessage = async () => {
+    Keyboard.dismiss();
+
+    if(message.trim().length < 1)
+    {
+      showAlert('Thông báo', 'Bạn chưa nhập tin nhắn..');
+      return;
+    }
     setSending(true);
-    flatList.current.scrollToOffset({ animated: true, offset: 0 })
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
     const tmp = {
       id: '',
       sender_id: userInfo.id,
@@ -751,14 +766,13 @@ function Conversation(props) {
       .catch(err => console.log(err));
   };
 
-  const flatList = React.useRef(null)
+  const flatList = React.useRef(null);
 
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
-        ref={flatList}
-         
+          ref={flatList}
           style={{ marginBottom: 56 }}
           onEndReached={() => {
             if (isEnd) return;
@@ -785,7 +799,9 @@ function Conversation(props) {
           keyExtractor={(item, index) => index.toString()}
         />
       </SafeAreaView>
-      <View style={{...styles.containerInput,height: 56, width: deviceWidth}}>
+      <View
+        style={{ ...styles.containerInput, height: 56, width: deviceWidth }}
+      >
         {showOption ? (
           <View style={styles.grOption}>
             <TouchableOpacity style={styles.btnInputOption}>
@@ -996,6 +1012,27 @@ function Conversation(props) {
           <View>
             <Text style={{ fontSize: 16, alignSelf: 'center' }}>
               Bạn muốn xóa hội thoại này?
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
             </Text>
           </View>
         </ModalContent>

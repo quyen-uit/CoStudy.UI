@@ -12,6 +12,8 @@ class CommentService {
         PostId: params.oid,
         Skip: params.skip,
         Count: params.count,
+        Filter: 0,
+        ArrangeType: 1
       }
     );
   }

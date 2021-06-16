@@ -56,7 +56,12 @@ import { update } from 'actions/UserActions';
 import Badge from 'components/common/Badge';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Post(props) {
@@ -122,6 +127,12 @@ function Post(props) {
   const [idModal, setIdModal] = useState(null);
   const [isEdit, setIsEdit] = useState(false);
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
 
   const onPostVisibleCallBack = React.useCallback(value => {
     setPostModalVisible(value);
@@ -386,15 +397,14 @@ function Post(props) {
       });
   };
   const postComment = async () => {
-
     Keyboard.dismiss();
     let img = '';
     let image = '';
-    if (comment == '') {
-      Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+    if (comment.trim() == '') {
+      showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
-    flatList.current.scrollToOffset({ animated: true, offset: 0 })
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
 
     if (isEdit) {
       updateComment();
@@ -416,7 +426,7 @@ function Post(props) {
       upvote_count: 0,
       opacity: 0.5,
       vote: 0,
-      author_field: null
+      author_field: null,
     };
     // setComments(comments.concat(tmp));
     setComments([tmp, ...comments]);
@@ -460,7 +470,7 @@ function Post(props) {
         response.data.result.opacity = 1;
         response.data.result.vote = 0;
         // setComments(comments.concat(response.data.result));
-        setComments([response.data.result,...comments]);
+        setComments([response.data.result, ...comments]);
         setSending(false);
         setCommentCount(commentCount + 1);
         if (typeof route.params.onComment == 'function')
@@ -477,7 +487,7 @@ function Post(props) {
         console.log(error);
       });
   };
-  const flatList = React.useRef(null)
+  const flatList = React.useRef(null);
 
   return (
     <View style={styles.largeContainer}>
@@ -626,7 +636,14 @@ function Post(props) {
                 <View style={styles.containerTag}>
                   {post.field
                     ? post.field.map((item, index) => (
-                        <TouchableOpacity key={index}>
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => {
+                            navigation.navigate(navigationConstants.search, {
+                              fieldId: item.field_id,
+                            });
+                          }}
+                        >
                           <Badge
                             item={{
                               name: item.level_name,
@@ -1009,6 +1026,27 @@ function Post(props) {
         onVisible={onVisibleCallBack}
         onEdit={onEditCallBack}
       />
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

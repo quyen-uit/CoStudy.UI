@@ -1,4 +1,4 @@
-import { useTheme, useNavigation } from '@react-navigation/native';
+import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
 import { Card } from 'react-native-elements';
 import moment from 'moment';
 import React, { useState, useEffect } from 'react';
@@ -28,6 +28,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { TextInput } from 'react-native-gesture-handler';
 import PostCard from '../../common/PostCard';
 import { Badge } from 'react-native-elements';
+import ImageView from 'react-native-image-viewing';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -151,7 +152,7 @@ function Search() {
   const { colors } = useTheme();
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
-
+  const route = useRoute();
   const navigation = useNavigation();
   const [isFirst, setIsFirst] = useState(true);
 
@@ -191,6 +192,14 @@ function Search() {
   const [modalPostVisible, setModalPostVisible] = useState(false);
   const [idModal, setIdModal] = useState(null);
   const [savedModal, setSavedModal] = useState();
+  ///image view
+  const [imgView, setImgView] = useState();
+  const [visible, setIsVisible] = useState(false);
+  const onViewImage = React.useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
+
   const onModal = React.useCallback((value, id, saved) => {
     setModalPostVisible(value);
     setIdModal(id);
@@ -210,18 +219,32 @@ function Search() {
     return () =>
       BackHandler.removeEventListener('hardwareBackPress', backAction);
   }, []);
+  useEffect(() => {
+    reset();
 
+    return () => {};
+  }, [isPostSearch]);
+  useEffect(() => {
+    setIsLoading(true);
+    onSearch();
+
+    return () => {};
+  }, [route.params?.fieldId]);
   useEffect(() => {
     let isRender = true;
+    if (route.params?.fieldId) setIsLoading(true);
     const fetchData = async () => {
       await UserService.getAllField(jwtToken)
         .then(response => {
           if (isRender) {
             response.data.result.forEach(element => {
               element.isPick = false;
+              if (route.params?.fieldId) {
+                if (element.oid == route.params.fieldId) element.isPick = true;
+              }
             });
             setFieldPickers(response.data.result);
-            setIsLoading(false);
+             setIsLoading(false);
           }
         })
         .catch(error => console.log(error));
@@ -231,6 +254,17 @@ function Search() {
       isRender = false;
     };
   }, []);
+  useEffect(() => {
+    let count = 0;
+    if (filterComment != -1) count += 1;
+    else if (filterVote != -1) count += 1;
+    else if (filterTime != -1) count += 1;
+    fieldPickers.forEach(i => {
+      if (i.isPick) count += 1;
+    });
+    setCountFilter(count);
+    return () => {};
+  }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
   // useEffect(() => {
   //   let tmp = 0;
   //   if (filterComment > 0) tmp = tmp + 1;
@@ -404,7 +438,7 @@ function Search() {
   };
   const getFieldPick = () => {
     let temp = [];
-    fieldPickers.forEach(x => {
+     fieldPickers.forEach(x => {
       if (x.isPick) temp.push({ field_id: x.oid });
     });
     return temp;
@@ -576,7 +610,7 @@ function Search() {
     setAmoutField(0);
     setFilterTime(-1);
     setFilterVote(-1);
-
+    setCountFilter(0);
     //??
     fieldPickers.forEach(element => {
       element.isPick = false;
@@ -585,7 +619,7 @@ function Search() {
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard post={item} onModal={onModal} />;
+    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} />;
   };
   const renderUserCard = ({ item }) => {
     return <UserCard item={item} />;
@@ -696,7 +730,6 @@ function Search() {
             showsVerticalScrollIndicator={false}
             data={users}
             style={{ flexGrow: 0, marginBottom: 200 }}
-             
             renderItem={item => renderUserCard(item)}
             keyExtractor={(item, index) => index.toString()}
             ListHeaderComponent={() => (
@@ -789,7 +822,7 @@ function Search() {
                 )}
               </View>
             ) : (
-              <Text style={styles.md_txtHeader}>Lượt comment</Text>
+              <Text style={styles.md_txtHeader}>Số lượt trả lời</Text>
             )}
           </View>
         }
@@ -841,9 +874,10 @@ function Search() {
                         />
                         <Text style={styles.md_txtchoose}>
                           {' '}
-                          Từ{' '}
-                          {moment(rangeDate.startDate).format('DD-MM-YYYY')}{' '}đến{' '}
-                          {moment(rangeDate.endDate).format('DD-MM-YYYY')}
+                          Từ {moment(rangeDate.startDate).format(
+                            'DD-MM-YYYY'
+                          )}{' '}
+                          đến {moment(rangeDate.endDate).format('DD-MM-YYYY')}
                         </Text>
                       </View>
                       <View style={{ flexDirection: 'row' }}></View>
@@ -888,8 +922,15 @@ function Search() {
                   </View>
                 </TouchableOpacity>
               </View>
-              <View style={{backgroundColor: main_2nd_color, marginTop: -4, paddingLeft: 4, paddingBottom: 2}}>
-                <Text style={{color: '#fff'}}>Sắp xếp theo</Text>
+              <View
+                style={{
+                  backgroundColor: main_2nd_color,
+                  marginTop: -4,
+                  paddingLeft: 4,
+                  paddingBottom: 2,
+                }}
+              >
+                <Text style={{ color: '#fff' }}>Sắp xếp theo</Text>
               </View>
               {isPostSearch ? (
                 <View>
@@ -950,7 +991,7 @@ function Search() {
                           size={20}
                           color={main_color}
                         />
-                        <Text style={styles.md_txtfield}>Số lượt vote</Text>
+                        <Text style={styles.md_txtfield}>Số lượt upvote</Text>
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <Text style={styles.md_txtchoose}>
@@ -1122,11 +1163,11 @@ function Search() {
                         color={main_color}
                       />
                       {isPostSearch ? (
-                        <Text style={styles.md_txtfield}>
+                        <Text style={{ ...styles.md_txtfield, color: '#000' }}>
                           Bài đăng mới nhất
                         </Text>
                       ) : (
-                        <Text style={styles.md_txtfield}>
+                        <Text style={{ ...styles.md_txtfield, color: '#000' }}>
                           Số bài đăng giảm dần
                         </Text>
                       )}
@@ -1222,11 +1263,11 @@ function Search() {
                         color={main_color}
                       />
                       {isPostSearch ? (
-                        <Text style={styles.md_txtfield}>
+                        <Text style={{ ...styles.md_txtfield, color: '#000' }}>
                           Số upvote giảm dần
                         </Text>
                       ) : (
-                        <Text style={styles.md_txtfield}>
+                        <Text style={{ ...styles.md_txtfield, color: '#000' }}>
                           Lượt theo dõi giảm dần
                         </Text>
                       )}
@@ -1336,8 +1377,8 @@ function Search() {
                         size={20}
                         color={main_color}
                       />
-                      <Text style={styles.md_txtfield}>
-                        Số comment giảm dần
+                      <Text style={{ ...styles.md_txtfield, color: '#000' }}>
+                        Số lượt trả lời giảm dần
                       </Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
@@ -1368,7 +1409,7 @@ function Search() {
                         color={main_color}
                       />
                       <Text style={styles.md_txtfield}>
-                        Số comment tăng dần
+                        Số lượt trả lời tăng dần
                       </Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
@@ -1505,6 +1546,13 @@ function Search() {
         saved={savedModal}
         id={idModal}
         onVisible={onVisibleCallBack}
+      />
+
+      <ImageView
+        images={[{ uri: imgView }]}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
       />
     </View>
   );
