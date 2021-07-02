@@ -224,7 +224,7 @@ class VideoScreen extends React.Component {
     CallService.setSpeakerphoneOn(remoteStreams.length > 0);
 
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'black' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <AwesomeAlert
           show={isIncomingCall}
           showProgress={true}

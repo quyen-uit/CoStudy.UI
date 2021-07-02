@@ -11,7 +11,7 @@ export default {
   signup: 'Đăng kí',
   signupHint: 'Bạn chưa có tài khoản?',
   forgotPassword: 'Quên mật khẩu',
-  username: 'Tên tài khoản',
+  username: 'Nhập email hoặc số điện thoại',
   usernameHint: 'Nhập email hoặc số điện thoại',
   password: 'Mật khẩu',
   passwordHint: 'Nhập mật khẩu',

@@ -65,7 +65,7 @@ function ChatOptionModal({ ...rest }) {
         </TouchableHighlight>
         
         
-        <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+        {/* <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
           <View style={styles.optionContainer}>
             <Icon name={'eye'} color={main_color} size={24} />
             <Text style={styles.txtOption}>Đánh dấu chưa đọc</Text>
@@ -81,7 +81,7 @@ function ChatOptionModal({ ...rest }) {
             />
             <Text style={styles.txtOption}>Xóa hội thoại</Text>
           </View>
-        </TouchableHighlight>
+        </TouchableHighlight> */}
         <TouchableHighlight
           underlayColor={'#000'}
           onPress={() => {

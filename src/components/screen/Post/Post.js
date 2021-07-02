@@ -16,6 +16,7 @@ import {
   Keyboard,
   Dimensions,
   ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Post/styles';
@@ -69,6 +70,7 @@ function Post(props) {
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
 
+  const [refreshing, setRefreshing] = useState(false);
   const [showOption, setShowOption] = useState(true);
   const route = useRoute();
   const [post, setPost] = useState(route.params.post);
@@ -88,7 +90,7 @@ function Post(props) {
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
   const [sending, setSending] = useState(false);
-
+  const [stop, setStop] = useState(false);
   React.useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -182,6 +184,9 @@ function Post(props) {
 
   useEffect(() => {
     setIsLoading(true);
+    setStop(false);
+    if(refreshing)
+      setRefreshing(false);
     let isOut = false;
     const fetchData = async () => {
       await CommentService.getCommentByPostId(jwtToken, {
@@ -208,9 +213,14 @@ function Post(props) {
     return () => {
       isOut = true;
     };
-  }, []);
+  }, [refreshing]);
 
   const fetchMore = async () => {
+    if(stop)
+    {
+      setIsEnd(false);
+      return;
+    }
     await CommentService.getCommentByPostId(jwtToken, {
       oid: post.oid,
       skip: skip,
@@ -227,7 +237,11 @@ function Post(props) {
           });
           setComments(comments.concat(response.data.result));
         }
+        else 
+        {
+          setStop(true);
         setIsEnd(false);
+        }
       })
       .catch(error => console.log(error));
   };
@@ -708,8 +722,26 @@ function Post(props) {
               </View>
             </Card>
           )}
-          ListFooterComponent={() =>
-            isEnd ? (
+          refreshControl={
+            <RefreshControl
+              colors={[main_color]}
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+              }}
+            />
+          }          ListFooterComponent={() =>
+            stop ? (
+              <Text
+                style={{
+                  alignSelf: 'center',
+                  color: '#4f4f4f',
+                  marginBottom: 8,
+                }}
+              >
+                Không còn bình luận.
+              </Text>
+            ) : isEnd ? (
               <View style={{ marginVertical: 12 }}>
                 <ActivityIndicator size={'large'} color={main_color} />
               </View>

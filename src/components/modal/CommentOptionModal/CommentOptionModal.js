@@ -52,7 +52,7 @@ function CommentOptionModal({ ...rest }) {
       }
     >
       <ModalContent style={styles.content}>
-        <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+        {/* <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
           <View style={styles.optionContainer}>
             <Icon
               name={'reply'}
@@ -62,7 +62,7 @@ function CommentOptionModal({ ...rest }) {
             />
             <Text style={styles.txtOption}>Trả lời</Text>
           </View>
-        </TouchableHighlight>
+        </TouchableHighlight> */}
         <TouchableHighlight underlayColor={'#000'} onPress={() => onEdit()}>
           <View style={styles.optionContainer}>
             <Icon name={'edit'} color={main_color} size={24} />

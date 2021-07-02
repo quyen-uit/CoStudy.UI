@@ -44,7 +44,7 @@ function NotifyOptionModal({ ...rest }) {
       }
     >
       <ModalContent style={styles.content}>
-        <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+        <TouchableHighlight underlayColor={'#000'} onPress={() => rest.onDelete()}>
           <View style={styles.optionContainer}>
             <Icon
               name={'times'}
@@ -55,7 +55,7 @@ function NotifyOptionModal({ ...rest }) {
             <Text style={styles.txtOption}>Xóa thông báo</Text>
           </View>
         </TouchableHighlight>
-        <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
+        {/* <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
           <View style={styles.optionContainer}>
             <Icon name={'eye'} color={main_color} size={24} />
             <Text style={styles.txtOption}>Đánh dấu chưa đọc</Text>
@@ -76,7 +76,7 @@ function NotifyOptionModal({ ...rest }) {
             />
             <Text style={styles.txtOption}>Báo cáo</Text>
           </View>
-        </TouchableHighlight>
+        </TouchableHighlight> */}
       </ModalContent>
     </BottomModal>
   );

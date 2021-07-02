@@ -57,18 +57,21 @@ const PostOptionModal = ({ ...rest }) => {
   const navigation = useNavigation();
   const [modalOrder, setModalOrder] = useState(1);
   useEffect(() => {
-     if (rest.id != null) {
+    if (rest.id != null) {
+      setSaved(typeof rest.saved == 'undefined' ? null : rest.saved);
       PostService.getPostById(curUser.jwtToken, rest.id)
         .then(res => {
-          if (res.data.result.author_id == curUser.oid) setIsMe(true); else setIsMe(false);
+          if (res.data.result.author_id == curUser.oid) setIsMe(true);
+          else setIsMe(false);
         })
         .catch(err => console.log(err));
     }
     return () => {};
-  }, [rest.id,isMe]);
+  }, [rest.id, isMe, saved]);
 
   useEffect(() => {
     setList([]);
+    let tmpList = [];
     const fetch = async () => {
       await ChatService.getCurrentConversation(jwtToken).then(res => {
         res.data.result.conversations.forEach(item => {
@@ -83,8 +86,9 @@ const PostOptionModal = ({ ...rest }) => {
             tmp.avatar = item.conversation.participants[0].member_avatar;
           }
 
-          setList([...list, tmp]);
+          tmpList.push(tmp);
         });
+        setList(tmpList);
         setIsLoading(false);
         // name, conversation_id, avatar,
       });
@@ -127,22 +131,22 @@ const PostOptionModal = ({ ...rest }) => {
     rest.onVisible(false);
     setIsSaving(true);
     // if (saved) {
-      await PostService.savePost(curUser.jwtToken, rest.id)
-        .then(response => {
-          if (response.data.result.is_save) {
-            ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
-            setIsSaving(false);
-            setSaved(true);
-          } else {
-            setSaved(false);
-            setIsSaving(false);
-            ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
-          }
-        })
-        .catch(err => {
-          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+    await PostService.savePost(curUser.jwtToken, rest.id)
+      .then(response => {
+        if (response.data.result.is_save) {
+          ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
-        });
+          setSaved(true);
+        } else {
+          setSaved(false);
+          setIsSaving(false);
+          ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+        }
+      })
+      .catch(err => {
+        ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+        setIsSaving(false);
+      });
     // } else {
     //   await PostService.savePost(curUser.jwtToken, rest.id)
     //     .then(response => {
@@ -255,28 +259,29 @@ const PostOptionModal = ({ ...rest }) => {
               <Text style={styles.txtOption}>Chia sẻ bài viết cho...</Text>
             </View>
           </TouchableHighlight>
-            <TouchableHighlight
-              underlayColor={'#000'}
-              onPress={() => {
-                if (isSaving == false) onSaved();
-                else ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
-              }}
-            >
-              <View style={styles.optionContainer}>
-                <Icon
-                  name={'eye'}
-                  color={saved ? main_color : '#ccc'}
-                  size={24}
-                />
-                <Text style={styles.txtOption}>
-                  {saved
-                    ? 'Xóa khỏi danh sách quan tâm'
-                    : 'Thêm vào danh sách quan tâm'}
-                </Text>
-              </View>
-            </TouchableHighlight>
+          <TouchableHighlight
+            underlayColor={'#000'}
+            onPress={() => {
+              if (isSaving == false) onSaved();
+              else ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
+            }}
+          >
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'eye'}
+                color={saved ? main_color : '#ccc'}
+                size={24}
+              />
+              <Text style={styles.txtOption}>
+                {saved
+                  ? 'Xóa khỏi danh sách quan tâm'
+                  : 'Thêm vào danh sách quan tâm'}
+              </Text>
+            </View>
+          </TouchableHighlight>
           {isMe ? (
-            <TouchableHighlight
+           <View>
+              <TouchableHighlight
               underlayColor={'#000'}
               onPress={() => {
                 rest.onVisible(false);
@@ -295,8 +300,26 @@ const PostOptionModal = ({ ...rest }) => {
                 />
                 <Text style={styles.txtOption}>Sửa bài viết</Text>
               </View>
+            </TouchableHighlight><TouchableHighlight
+              underlayColor={'#000'}
+              onPress={() => {
+                rest.onVisible(false);
+                rest.onDelete(rest.id);
+              }}
+            >
+              <View style={styles.optionContainer}>
+                <Icon
+                  name={'times'}
+                  color={main_color}
+                  size={24}
+                  style={{ marginHorizontal: 2 }}
+                />
+                <Text style={styles.txtOption}>Xóa bài viết</Text>
+              </View>
             </TouchableHighlight>
+           </View>
           ) : null}
+          
           <TouchableHighlight
             underlayColor={'#000'}
             onPress={() => {
@@ -363,6 +386,7 @@ const PostOptionModal = ({ ...rest }) => {
         </ModalContent>
       )}
     </BottomModal>
+    
   );
 };
 

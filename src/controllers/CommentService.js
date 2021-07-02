@@ -7,7 +7,7 @@ class CommentService {
       api +
         'Comment/get/post?PostId=' +
         params.oid +
-        `&Skip=${params.skip}&Count=${params.count}`,
+        `&Skip=${params.skip}&Count=${params.count}&Filter=${0}&ArrangeType=${1}`,
       {
         PostId: params.oid,
         Skip: params.skip,
@@ -19,6 +19,9 @@ class CommentService {
   }
   static async getCommentById(jwtToken, id) {
     return await getAPI(jwtToken).get(api + `Comment/commment/` + id);
+  }
+  static async getReplyById(jwtToken, id) {
+    return await getAPI(jwtToken).get(api + `Comment/reply-comment/` + id);
   }
   static async getAllReply(jwtToken, params) {
     return await getAPI(jwtToken).get(

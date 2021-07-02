@@ -283,7 +283,7 @@ function TabNavigator() {
   }, []);
   return (
     <BottomTab.Navigator
-      swipeEnabled={true}
+      swipeEnabled={false}
       tabBarPosition={'bottom'}
       tabBarOptions={{
         activeTintColor: main_color,
@@ -311,7 +311,7 @@ function TabNavigator() {
         name={list}
         component={ListPost}
         options={{
-          tabBarLabel: list,
+          tabBarLabel: 'Quan tâm',
           tabBarIcon: ({ color }) => (
             <Icon name="list-ul" color={color} size={24} />
           ),

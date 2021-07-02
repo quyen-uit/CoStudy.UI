@@ -40,16 +40,16 @@ function ListPost() {
   const userInfo = useSelector(getBasicInfo);
 
   const dispatch = useDispatch();
-  
- ///image view
- const [imgView, setImgView] = useState();
- const [visible, setIsVisible] = useState(false);
- const onViewImage = React.useCallback((value, uri) => {
-   setIsVisible(true);
-   setImgView(uri);
- });
- 
- const navigation = useNavigation();
+
+  ///image view
+  const [imgView, setImgView] = useState();
+  const [visible, setIsVisible] = useState(false);
+  const onViewImage = React.useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
+
+  const navigation = useNavigation();
   const route = useRoute();
   const GoToPost = () => {
     navigation.navigate(navigationConstants.post);
@@ -60,7 +60,7 @@ function ListPost() {
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
-
+  const [stop, setStop] = useState(false);
   // 0 main , 1 field, 2 time, 3 vote
   const [modalOrder, setModalOrder] = useState(0);
   const [filterTime, setFilterTime] = useState();
@@ -97,10 +97,11 @@ function ListPost() {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setIsEnd(false);
+    setStop(false);
     const fetchData1 = async () => {
       await UserService.getCurrentUser(jwtToken)
         .then(async response => {
-          await PostService.getSavedPost(jwtToken, {skip: 0, count: 5})
+          await PostService.getSavedPost(jwtToken, { skip: 0, count: 5 })
             .then(res => {
               res.data.result.forEach(item => {
                 response.data.result.post_saved.forEach(i => {
@@ -108,10 +109,10 @@ function ListPost() {
                     item.saved = true;
                   } else item.saved = false;
                 });
-                 // set vote
-                 item.vote = 0;
-                 if (item.is_downvote_by_current) item.vote = -1;
-                 else if (item.is_vote_by_current) item.vote = 1;
+                // set vote
+                item.vote = 0;
+                if (item.is_downvote_by_current) item.vote = -1;
+                else if (item.is_vote_by_current) item.vote = 1;
               });
 
               setPosts(res.data.result);
@@ -131,7 +132,7 @@ function ListPost() {
     const fetchData1 = async () => {
       await UserService.getCurrentUser(jwtToken)
         .then(async resUser => {
-          await PostService.getSavedPost(jwtToken, {skip: 0, count: 5})
+          await PostService.getSavedPost(jwtToken, { skip: 0, count: 5 })
             .then(async resPost => {
               resPost.data.result.forEach(item => {
                 resUser.data.result.post_saved.forEach(i => {
@@ -139,10 +140,10 @@ function ListPost() {
                     item.saved = true;
                   } else item.saved = false;
                 });
-                 // set vote
-                 item.vote = 0;
-                 if (item.is_downvote_by_current) item.vote = -1;
-                 else if (item.is_vote_by_current) item.vote = 1;
+                // set vote
+                item.vote = 0;
+                if (item.is_downvote_by_current) item.vote = -1;
+                else if (item.is_vote_by_current) item.vote = 1;
               });
               if (isRender) {
                 setPosts(resPost.data.result);
@@ -228,23 +229,31 @@ function ListPost() {
     };
   }, []);
 
-  
-// }, [route.params?.title]);
+  // }, [route.params?.title]);
   const fetchData = async () => {
+    if (stop) {
+      setIsEnd(false);
+      return;
+    }
     await UserService.getCurrentUser(jwtToken)
       .then(async resUser => {
-        await PostService.getSavedPost(jwtToken, {skip: skip, count: 5})
+        await PostService.getSavedPost(jwtToken, { skip: skip, count: 5 })
           .then(res => {
+            if (res.data.result.length < 1) {
+              setStop(true);
+              setIsEnd(false);
+              return;
+            }
             res.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
                 if (i == item.oid) {
                   item.saved = true;
                 } else item.saved = false;
               });
-               // set vote
-               item.vote = 0;
-               if (item.is_downvote_by_current) item.vote = -1;
-               else if (item.is_vote_by_current) item.vote = 1;
+              // set vote
+              item.vote = 0;
+              if (item.is_downvote_by_current) item.vote = -1;
+              else if (item.is_vote_by_current) item.vote = 1;
             });
             if (isEnd == false) return;
             if (res.data.result.length > 0) {
@@ -281,20 +290,20 @@ function ListPost() {
     setFieldPickers(fieldPickers.filter(item => item));
   };
 
- //modal
- const [modalVisible, setModalVisible] = useState(false);
- const [idModal, setIdModal] = useState();
- const [savedModal, setSavedModal] = useState();
- const onModal = React.useCallback((value, id, saved) => {
-   setModalVisible(value);
-   setIdModal(id);
-   setSavedModal(saved);
- });
- const onVisibleCallBack = React.useCallback(value => {
-   setModalVisible(value);
- });
+  //modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [idModal, setIdModal] = useState();
+  const [savedModal, setSavedModal] = useState();
+  const onModal = React.useCallback((value, id, saved) => {
+    setModalVisible(value);
+    setIdModal(id);
+    setSavedModal(saved);
+  });
+  const onVisibleCallBack = React.useCallback(value => {
+    setModalVisible(value);
+  });
   const renderItem = ({ item }) => {
-    return <PostCard onViewImage={onViewImage} post={item}  onModal={onModal}/>;
+    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} />;
   };
   return (
     <View>
@@ -311,10 +320,7 @@ function ListPost() {
           <TouchableOpacity
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
           >
-            <Image
-              style={styles.imgAvatar}
-              source={{ uri: userInfo.avatar }}
-            />
+            <Image style={styles.imgAvatar} source={{ uri: userInfo.avatar }} />
           </TouchableOpacity>
         </View>
         <View>
@@ -377,7 +383,18 @@ function ListPost() {
               />
             }
             ListFooterComponent={() =>
-              isEnd ? (
+              stop ? (
+                <Text
+                  style={{
+                    alignSelf: 'center',
+                    marginVertical: 4,
+                    color: '#4f4f4f',
+                  }}
+                >
+                  {' '}
+                  Không còn bài viết.{' '}
+                </Text>
+              ) : isEnd ? (
                 <View style={{ marginVertical: 12 }}>
                   <ActivityIndicator size={'large'} color={main_color} />
                 </View>
@@ -387,10 +404,10 @@ function ListPost() {
             }
           />
           <ImageView
-          images={[{ uri: imgView }]}
-          imageIndex={0}
-          visible={visible}
-          onRequestClose={() => setIsVisible(false)}
+            images={[{ uri: imgView }]}
+            imageIndex={0}
+            visible={visible}
+            onRequestClose={() => setIsVisible(false)}
           />
           {isLoading ? (
             <View
@@ -412,7 +429,7 @@ function ListPost() {
           ) : null}
         </SafeAreaView>
       )}
-     <PostOptionModal
+      <PostOptionModal
         visible={modalVisible}
         onSwipeOut={event => {
           setModalVisible(false);
@@ -428,7 +445,7 @@ function ListPost() {
         id={idModal}
         onVisible={onVisibleCallBack}
       />
-      </View>
+    </View>
   );
 }
 

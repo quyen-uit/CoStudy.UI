@@ -56,6 +56,11 @@ function NotifyCard(props) {
       //ToastAndroid.show('Đã đọc.', ToastAndroid.SHORT);
     });
   };
+  const onDeleteCB = React.useCallback(()=>{
+    setVisible(true);
+    setModalVisible(false);
+
+  })
   const goTo = async () => {
     if (notify.notification_type == 0)
       await UserService.getCurrentUser(jwtToken)
@@ -114,6 +119,38 @@ function NotifyCard(props) {
           console.log(error);
         });
     }
+    else if (notify.notification_type == 2) {
+      await CommentService.getReplyById(jwtToken,notify.object_id).then(async reply => {
+        if (reply.data.result.parent_id.is_vote_by_current) reply.data.result.parent_id.vote = 1;
+              else if (reply.data.result.parent_id.is_downvote_by_current) reply.data.result.parent_id.vote = -1;
+              else reply.data.result.parent_id.vote = 0;
+        await CommentService.getCommentById(jwtToken, reply.data.result.parent_id)
+        .then(res => {
+            i = res.data.result;
+          if (i.is_vote_by_current) i.vote = 1;
+          else if (i.is_downvote_by_current) i.vote = -1;
+          else i.vote = 0;
+          props.onLoading(false);
+
+          navigation.navigate(navigationConstants.comment, {
+            comment: i,
+            upvote: i.upvote,
+            downvote: i.downvote,
+            replies: i.comment_count,
+            vote: i.vote,
+            fromNotify: true,
+            reply: reply.data.result
+          });
+        })
+        .catch(error => {
+          props.onLoading(false);
+          console.log(error);
+        });
+      });
+    }
+    else {
+      navigation.push(navigationConstants.profile, { id: notify.object_id });
+    }
   };
   return (
     <Card containerStyle={styles.container}>
@@ -142,7 +179,7 @@ function NotifyCard(props) {
               />
             </TouchableOpacity>
             <View style={{ flexShrink: 1, marginLeft: 64 }}>
-              <Text>{notify.content}</Text>
+              <Text>{notify.content} "{notify.object_thumbnail}"</Text>
 
               <Text style={styles.txtCreateDate}>
                 {moment(new Date()).diff(
@@ -185,6 +222,7 @@ function NotifyCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
+        onDelete = {onDeleteCB}
       />
       <Modal
         visible={visible}
@@ -194,14 +232,17 @@ function NotifyCard(props) {
             <ModalButton
               textStyle={{ fontSize: 14, color: main_color }}
               text="Hủy"
-              onPress={() => setVisible(false)}
+              onPress={() => {
+                setVisible(false);
+              }}
             />
             <ModalButton
               textStyle={{ fontSize: 14, color: 'red' }}
               text="Xóa"
               onPress={() => {
-                props.onDelete(notify.oid);
+                
                 setVisible(false);
+                props.onDelete(notify.oid);
               }}
             />
           </ModalFooter>

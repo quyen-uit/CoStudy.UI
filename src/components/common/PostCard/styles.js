@@ -127,6 +127,8 @@ const styles = StyleSheet.create({
   },
   iconTitle: {
     marginLeft: 8,
+    alignSelf: 'flex-start',
+    marginTop: 4
   },
   flex1: {
     flex: 1,

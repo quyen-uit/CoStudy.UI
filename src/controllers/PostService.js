@@ -38,7 +38,7 @@ class PostService {
   }
 
   static async getPostByUserId(jwtToken, params) {
-    return getAPI(jwtToken).post(api + 'Post/user', {
+    return await getAPI(jwtToken).post(api + 'Post/user', {
       skip: params.skip,
       count: params.count,
       user_id: params.oid,
@@ -48,7 +48,13 @@ class PostService {
   static async savePost(jwtToken, oid) {
     return await getAPI(jwtToken).post(api + 'Post/save/' + oid);
   }
-
+  static async deletePost(jwtToken, oid) {
+    return await getAPI(jwtToken).post(api + 'Post/modified-post-status', {
+      post_id: oid,
+      status: 4
+    });
+  }
+ 
   static async upvote(jwtToken, oid) {
     return await getAPI(jwtToken).post(api + 'Post/upvote/' + oid, { id: oid });
   }

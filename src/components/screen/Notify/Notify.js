@@ -1,6 +1,14 @@
 import { useTheme, useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
-import { Text, View, FlatList, ToastAndroid, ActivityIndicator, Dimensions } from 'react-native';
+import {
+  Text,
+  View,
+  FlatList,
+  ToastAndroid,
+  ActivityIndicator,
+  Dimensions,
+  RefreshControl,
+} from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/Notify/styles';
 import TextStyles from 'helpers/TextStyles';
@@ -22,6 +30,7 @@ function Notify() {
   const userInfo = useSelector(getBasicInfo);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [refreshing, setRefreshing] = useState(false);
   const [list, setList] = useState([]);
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -32,9 +41,9 @@ function Notify() {
 
     return unsubscribe;
   }, [navigation]);
-  const onLoadingCallBack = React.useCallback(value=>{
+  const onLoadingCallBack = React.useCallback(value => {
     setIsLoading(value);
-  })
+  });
   const onDeleteCallBack = React.useCallback(id => {
     let tmp = list.filter(i => i.oid !== id);
 
@@ -57,8 +66,7 @@ function Notify() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification
       );
-      if (res.author_id != userInfo.id)
-      {
+      if (res.author_id != userInfo.id) {
         Toast.show({
           type: 'success',
           position: 'top',
@@ -69,16 +77,19 @@ function Notify() {
           ).content,
           visibilityTime: 2000,
         });
-      console.log(res);
-      setList([
-        {
-          author_avatar: res.author_avatar,
-          content: res.content,
-          created_date: new Date(),
-          // isUnread: true,
-        },
-        ...list,
-      ]);
+        console.log(res);
+        setList([
+          {
+            author_avatar: res.author_avatar,
+            content: res.content,
+            created_date: new Date(),
+            object_thumbnail: res.object_thumbnail,
+            object_id: res.object_id,
+            is_read: false,
+            // isUnread: true,
+          },
+          ...list,
+        ]);
       }
     });
 
@@ -94,7 +105,7 @@ function Notify() {
           res.data.result.sort(
             (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)
           );
-
+          if (refreshing) setRefreshing(false);
           setList(res.data.result);
         })
         .catch(err => console.log(err));
@@ -103,10 +114,16 @@ function Notify() {
     return () => {
       isRender = false;
     };
-  }, []);
+  }, [refreshing]);
 
   const renderItem = ({ item }) => {
-    return <NotifyCard notify={item} onDelete={onDeleteCallBack} onLoading={onLoadingCallBack} />;
+    return (
+      <NotifyCard
+        notify={item}
+        onDelete={onDeleteCallBack}
+        onLoading={onLoadingCallBack}
+      />
+    );
   };
   return (
     <View>
@@ -115,25 +132,34 @@ function Notify() {
         data={list}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl
+            colors={[main_color]}
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+            }}
+          />
+        }
       />
       {isLoading ? (
-          <View
-            style={{
-              position: 'absolute',
-              justifyContent: 'center',
-              backgroundColor: '#cccccc',
-              opacity: 0.5,
-              width: deviceWidth,
-              height: deviceHeight - 20,
-            }}
-          >
-            <ActivityIndicator
-              size="large"
-              color={main_color}
-              style={{ marginBottom: 100 }}
-            />
-          </View>
-        ) : null}
+        <View
+          style={{
+            position: 'absolute',
+            justifyContent: 'center',
+            backgroundColor: '#cccccc',
+            opacity: 0.5,
+            width: deviceWidth,
+            height: deviceHeight - 20,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={main_color}
+            style={{ marginBottom: 100 }}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }

@@ -60,10 +60,13 @@ function NewsFeed() {
   const [refreshing, setRefreshing] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
-
+  const [stop, setStop] = useState(false);
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
+  const [visibleDelete, setVisibleDelete] = useState(false);
+  const [tmp,setTmp] = useState();
+  
   const onViewImage = React.useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
@@ -76,6 +79,23 @@ function NewsFeed() {
     setModalVisible(value);
     setIdModal(id);
     setSavedModal(saved);
+  });
+  const onDelete = async () => {
+   
+    await PostService.deletePost(jwtToken,tmp).then(res => {
+      ToastAndroid.show('Xóa bài viết thành công');
+      
+      setPosts(posts.filter(i=> i.oid != tmp));
+    }).catch(err => {
+      console.log(err);
+      ToastAndroid.show('Bài viết chưa được xóa');
+    })
+  };
+  const onDeleteCallback = React.useCallback(value => {
+    setVisibleDelete(true);
+    setModalVisible(false);
+    setTmp(value);
+    //setIdModal(value);
   });
   const onVisibleCallBack = React.useCallback(value => {
     setModalVisible(value);
@@ -92,7 +112,7 @@ function NewsFeed() {
       password: 'connectycube',
     })
       .then(session => {
-         ConnectyCube.chat.connect({
+        ConnectyCube.chat.connect({
           userId: userInfo.call_id,
           password: 'connectycube',
         });
@@ -134,6 +154,7 @@ function NewsFeed() {
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setIsEnd(false);
+    setStop(false);
     const fetchData1 = async () => {
       await UserService.getCurrentUser(jwtToken)
         .then(async response => {
@@ -254,10 +275,19 @@ function NewsFeed() {
   }, [route.params?.title]);
 
   const fetchData = async () => {
+    if (stop) {
+      setIsEnd(false);
+      return;
+    }
     await UserService.getCurrentUser(jwtToken)
       .then(async resUser => {
         await PostService.getTimeline(jwtToken, skip, 5)
           .then(res => {
+            if (res.data.result.length < 1) {
+              setStop(true);
+              setIsEnd(false);
+              return;
+            }
             res.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
                 if (i == item.oid) {
@@ -304,6 +334,8 @@ function NewsFeed() {
   const renderItem = ({ item }) => {
     return <PostCard post={item} onViewImage={onViewImage} onModal={onModal} />;
   };
+  const flatList = React.useRef(null);
+
   return (
     <View>
       <View
@@ -337,17 +369,19 @@ function NewsFeed() {
       </View>
       <SafeAreaView>
         <FlatList
+          ref={flatList}
+          extraData={posts}
           showsVerticalScrollIndicator={false}
           data={posts}
           style={{ marginBottom: 110 }}
           onEndReached={async () => {
-            if (posts.length > 2) {
-              setIsEnd(true);
-              if (refreshing) {
-                setIsEnd(false);
-                return;
-              }
-              await fetchData();
+            if (posts.length > 1) {
+            setIsEnd(true);
+            if (refreshing) {
+              setIsEnd(false);
+              return;
+            }
+            await fetchData();
             }
           }}
           onEndReachedThreshold={0.1}
@@ -363,7 +397,18 @@ function NewsFeed() {
             />
           }
           ListFooterComponent={() =>
-            isEnd ? (
+            stop ? (
+              <Text
+                style={{
+                  alignSelf: 'center',
+                  marginVertical: 4,
+                  color: '#4f4f4f',
+                }}
+              >
+                {' '}
+                Không còn bài viết.{' '}
+              </Text>
+            ) : isEnd ? (
               <View style={{ marginVertical: 12 }}>
                 <ActivityIndicator size={'large'} color={main_color} />
               </View>
@@ -402,6 +447,7 @@ function NewsFeed() {
         saved={savedModal}
         id={idModal}
         onVisible={onVisibleCallBack}
+        onDelete={onDeleteCallback}
       />
       <Modal
         visible={pickFieldVisible}
@@ -423,6 +469,37 @@ function NewsFeed() {
           <View>
             <Text style={{ fontSize: 16, alignSelf: 'center' }}>
               Bạn chưa chọn lĩnh vực quan tâm nào
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
+      <Modal
+        visible={visibleDelete}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => {
+                setVisibleDelete(false);
+              }}
+            />
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Xóa"
+              onPress={ async () => {
+                await onDelete();
+                setVisibleDelete(false);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn muốn xóa bài đăng này?
             </Text>
           </View>
         </ModalContent>

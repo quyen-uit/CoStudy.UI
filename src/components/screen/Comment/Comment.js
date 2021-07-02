@@ -115,6 +115,7 @@ function Comment(props) {
   };
   useEffect(() => {
     setIsLoading(true);
+
     let isOut = false;
     const fetchData = async () => {
       await CommentService.getAllReply(jwtToken, {
@@ -124,6 +125,7 @@ function Comment(props) {
       })
         .then(async response => {
           if (!isOut) {
+            console.log(route.params.reply);
             const a = response.data.result.map(async i => {
               i.opacity = 1;
               if (i.is_vote_by_current) i.vote = 1;
@@ -132,7 +134,12 @@ function Comment(props) {
             });
             Promise.all(a).then(() => {
               setIsLoading(false);
-              setReplies(response.data.result);
+              if (route.params?.reply) {
+                response.data.result = response.data.result.filter(
+                  i => i.oid != route.params.reply.oid
+                );
+                setReplies([route.params.reply, ...response.data.result]);
+              } else setReplies(response.data.result);
             });
           }
         })
@@ -164,7 +171,7 @@ function Comment(props) {
     Keyboard.dismiss();
 
     if (comment.trim() == '') {
-     showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
+      showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
     }
     setSending(true);

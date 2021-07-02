@@ -132,6 +132,8 @@ function Profile({ userId }) {
   const onVisibleCallBack = React.useCallback(value => {
     setModalVisible(value);
   });
+
+  const [stop, setStop] = useState(false);
   const [avatar, setAvatar] = useState('');
   const [bg, setBg] = useState();
   const [chosing, setChosing] = useState(false);
@@ -274,6 +276,10 @@ function Profile({ userId }) {
   }, [route.params?.id]);
 
   const fetchMore = async () => {
+       if (stop) {
+      setIsEnd(false);
+      return;
+    }
     await UserService.getUserById(curUser.jwtToken, data.oid)
       .then(async resUser => {
         await PostService.getPostByUserId(curUser.jwtToken, {
@@ -282,6 +288,11 @@ function Profile({ userId }) {
           count: 5,
         })
           .then(async resPost => {
+            if (resPost.data.result.length < 1) {
+              setStop(true);
+              setIsEnd(false);
+              return;
+            }
             resPost.data.result.forEach(item => {
               resUser.data.result.post_saved.forEach(i => {
                 if (i == item.oid) {
@@ -746,7 +757,18 @@ function Profile({ userId }) {
               </View>
             )}
             ListFooterComponent={() =>
-              isEnd ? (
+              stop ? (
+                <Text
+                  style={{
+                    alignSelf: 'center',
+                    marginVertical: 4,
+                    color: '#4f4f4f',
+                  }}
+                >
+                  {' '}
+                  Không còn bài viết.{' '}
+                </Text>
+              ) : isEnd ? (
                 <View style={{ marginVertical: 12 }}>
                   <ActivityIndicator size={'large'} color={main_color} />
                 </View>

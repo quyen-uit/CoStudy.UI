@@ -4,6 +4,7 @@ import { store } from '../store/index';
 import { actionTypes, update } from 'actions/UserActions';
 import { BackHandler } from "react-native";
 import { logout } from '../actions/UserActions';
+import { View, StyleSheet, Button, Alert } from "react-native";
 
 export const getAPI = jwtToken => {
   let isRefreshing = false;
@@ -29,10 +30,11 @@ export const getAPI = jwtToken => {
         config,
         response: { status },
       } = error;
-
       const originalRequest = config;
-
-      if (status === 400) {
+      if(status === 400)
+      //   Alert.alert('Thông báo','Có lỗi xảy ra.')
+      // else if (status === 401) 
+      {
          // logout
        store.dispatch(logout(jwtToken));
         // if (!isRefreshing) {
