@@ -68,6 +68,7 @@ function NotifyCard(props) {
             .then(res => {
               if (res.data.code == 404) {
                 //props.onNotExist(post.oid);
+                props.onLoading(false);
                 ToastAndroid.show('Bài viết không tồn tại.', 1000);
                 return;
               }
@@ -105,6 +106,7 @@ function NotifyCard(props) {
         .then(res => {
           if (res.data.code == 404) {
             // props.onNotExist(post.oid);
+            props.onLoading(false);
             ToastAndroid.show('Bình luận không tồn tại.', 1000);
             return;
           }
@@ -142,6 +144,7 @@ function NotifyCard(props) {
             .then(res => {
               if (res.data.code == 404) {
                 //props.onNotExist(post.oid);
+                props.onLoading(false);
                 ToastAndroid.show('Bình luận không tồn tại.', 1000);
                 return;
               }
