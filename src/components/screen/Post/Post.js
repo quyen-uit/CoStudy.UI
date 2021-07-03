@@ -102,6 +102,22 @@ function Post(props) {
       ),
     });
   }, [navigation]);
+  const onNotExist = React.useCallback(id => {
+    setComments(comments.filter(i => i.oid != id));
+ });
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    CommentService.deleteComment(jwtToken, idModal)
+      .then(res => {
+        ToastAndroid.show('Xóa bình luận thành công', 1000);
+        setComments(comments.filter(i => i.oid != idModal));
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Bình luận chưa được xóa', 1000);
+      });
+    setModalVisible(false);
+  });
 
   const resetComment = () => {
     setComment('');
@@ -116,6 +132,7 @@ function Post(props) {
           isInPost={true}
           onViewImage={onViewImage}
           onCommentModal={onCommentModal}
+          onNotExist={onNotExist}
         />
       </View>
     );
@@ -1057,6 +1074,8 @@ function Post(props) {
         id={idModal}
         onVisible={onVisibleCallBack}
         onEdit={onEditCallBack}
+        onDelete={onDeleteCallback}
+        onNotExist={onNotExist}
       />
       <Modal
         visible={visibleAlert}

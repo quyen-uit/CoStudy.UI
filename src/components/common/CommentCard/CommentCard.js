@@ -76,19 +76,25 @@ function CommentCard(props) {
     setDownvote(comment.downvote_count);
     setCommentCount(comment.replies_count);
     setVote(comment.vote);
-  },[comment]);
+  }, [comment]);
   const GoToComment = () => {
     if (isInPost) {
-      navigation.navigate(navigationConstants.comment, {
-        comment: comment,
-        onUpvote: onUpvoteCallback,
-        onDownvote: onDownvoteCallback,
-        onComment: onCommentCallback,
-        upvote: upvote,
-        downvote: downvote,
-        replies: comment_count,
-        vote: vote,
-        onVote: onVoteCallback,
+      CommentService.getCommentById(jwtToken, comment.oid).then(res => {
+        if (res.data.code == 404) {
+          props.onNotExist(comment.oid);
+          ToastAndroid.show('Bình luận không tồn tại.', 1000);
+        } else
+          navigation.navigate(navigationConstants.comment, {
+            comment: comment,
+            onUpvote: onUpvoteCallback,
+            onDownvote: onDownvoteCallback,
+            onComment: onCommentCallback,
+            upvote: upvote,
+            downvote: downvote,
+            replies: comment_count,
+            vote: vote,
+            onVote: onVoteCallback,
+          });
       });
     }
   };
@@ -129,7 +135,7 @@ function CommentCard(props) {
       .catch(err => console.log(err));
   };
   return (
-    <View key={comment.oid} >
+    <View key={comment.oid}>
       <View style={styles.containerComment}>
         <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
@@ -156,7 +162,7 @@ function CommentCard(props) {
                 <Text style={styles.txtAuthor}>{comment.author_name} </Text>
 
                 <View>
-                  { comment.author_field != null ? (
+                  {comment.author_field != null ? (
                     <Badge
                       item={{
                         name: comment.author_field.level_name,

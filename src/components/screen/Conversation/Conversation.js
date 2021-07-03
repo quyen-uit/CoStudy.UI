@@ -15,7 +15,7 @@ import {
   SafeAreaView,
   TextInput,
   RefreshControl,
-  Keyboard
+  Keyboard,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Conversation/styles';
@@ -53,6 +53,7 @@ import ImageView from 'react-native-image-viewing';
 
 import ChatService from 'controllers/ChatService';
 import navigationConstants from 'constants/navigation';
+import PostService from 'controllers/PostService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -114,18 +115,28 @@ function RightMessage({ item, onViewImage, onDelete }) {
           ) : item.message_type == 3 ? (
             <TouchableOpacity
               onPress={() => {
-                // if (item.content.is_vote_by_current)
-                navigation.navigate(navigationConstants.post, {
-                  post: item.content,
-                  vote: item.content.is_vote_by_current
-                    ? 1
-                    : item.content.is_downvote_by_curren
-                    ? -1
-                    : 0,
-                  upvote: item.content.upvote,
-                  commentCount: item.content.comment_count,
-                  downvote: item.content.downvote,
-                });
+                PostService.getPostById(jwtToken, item.oid)
+                  .then(res => {
+                    if (res.data.code == 404) {
+                      //props.onNotExist(post.oid);
+                      ToastAndroid.show('Bài viết không tồn tại.', 1000);
+                    }
+                    //if (item.content.is_vote_by_current)
+                    // if (item.content.is_vote_by_current)
+                    else
+                      navigation.navigate(navigationConstants.post, {
+                        post: item.content,
+                        vote: item.content.is_vote_by_current
+                          ? 1
+                          : item.content.is_downvote_by_curren
+                          ? -1
+                          : 0,
+                        upvote: item.content.upvote,
+                        commentCount: item.content.comment_count,
+                        downvote: item.content.downvote,
+                      });
+                  })
+                  .catch(err => console.log(err));
               }}
               style={styles.boxRightMessage}
             >
@@ -269,18 +280,27 @@ function LeftMessage({ item, onViewImage, avatar }) {
           ) : item.message_type == 3 ? (
             <TouchableOpacity
               onPress={() => {
-                //if (item.content.is_vote_by_current)
-                navigation.navigate(navigationConstants.post, {
-                  post: item.content,
-                  vote: item.content.is_vote_by_current
-                    ? 1
-                    : item.content.is_downvote_by_curren
-                    ? -1
-                    : 0,
-                  upvote: item.content.upvote,
-                  commentCount: item.content.comment_count,
-                  downvote: item.content.downvote,
-                });
+                PostService.getPostById(jwtToken, item.oid)
+                  .then(res => {
+                    if (res.data.code == 404) {
+                      //props.onNotExist(post.oid);
+                      ToastAndroid.show('Bài viết không tồn tại.', 1000);
+                    }
+                    //if (item.content.is_vote_by_current)
+                    else
+                      navigation.navigate(navigationConstants.post, {
+                        post: item.content,
+                        vote: item.content.is_vote_by_current
+                          ? 1
+                          : item.content.is_downvote_by_curren
+                          ? -1
+                          : 0,
+                        upvote: item.content.upvote,
+                        commentCount: item.content.comment_count,
+                        downvote: item.content.downvote,
+                      });
+                  })
+                  .catch(err => console.log(err));
               }}
               style={styles.boxMessage}
             >
@@ -410,7 +430,7 @@ function Conversation(props) {
         ToastAndroid.show('Xóa thất bại.', 1000);
       });
   };
- 
+
   const onDeleteCallBack = React.useCallback(async id => {
     let tmp = listMes.filter(i => i.oid !== id);
 
@@ -518,8 +538,7 @@ function Conversation(props) {
   const sendMessage = async () => {
     Keyboard.dismiss();
 
-    if(message.trim().length < 1)
-    {
+    if (message.trim().length < 1) {
       showAlert('Thông báo', 'Bạn chưa nhập tin nhắn..');
       return;
     }

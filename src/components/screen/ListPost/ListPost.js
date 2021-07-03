@@ -68,7 +68,23 @@ function ListPost() {
   const [filterComment, setFilterComment] = useState();
   const [amountField, setAmountField] = useState(0);
   const [fieldPickers, setFieldPickers] = useState([]);
-
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    PostService.deletePost(jwtToken, idModal).then(res => {
+      ToastAndroid.show('Xóa bài viết thành công',1000);
+      
+      setPosts(posts.filter(i=> i.oid != idModal));
+    }).catch(err => {
+      console.log(err);
+      ToastAndroid.show('Bài viết chưa được xóa',1000);
+    });
+    setModalVisible(false);
+     //setTmp(value);
+     //setIdModal(value);
+   });
+   const onNotExist = React.useCallback(id => {
+     setPosts(posts.filter(i => i.oid != id));
+  });
   React.useEffect(() => {
     console.log('dispatch update user');
     dispatch(update(jwtToken));
@@ -303,8 +319,9 @@ function ListPost() {
     setModalVisible(value);
   });
   const renderItem = ({ item }) => {
-    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} />;
+    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} onNotExist={onNotExist}/>;
   };
+  const flatList = React.useRef(null);
   return (
     <View>
       <View
@@ -357,6 +374,8 @@ function ListPost() {
       ) : (
         <SafeAreaView>
           <FlatList
+          ref={flatList}
+          extraData={posts}
             showsVerticalScrollIndicator={false}
             data={posts}
             style={{ marginBottom: 110 }}
@@ -444,6 +463,8 @@ function ListPost() {
         saved={savedModal}
         id={idModal}
         onVisible={onVisibleCallBack}
+        onDelete={onDeleteCallback}
+        onNotExist={onNotExist}
       />
     </View>
   );

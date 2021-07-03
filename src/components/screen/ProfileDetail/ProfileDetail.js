@@ -109,7 +109,11 @@ function ProfileDetail({ userId }) {
                 });
             }}
           >
-            {isMe ? <Icon name={'edit'} size={24} color={'#fff'} /> : <Icon name={'edit'} size={24} color={main_color} />}
+            {isMe ? (
+              <Icon name={'edit'} size={24} color={'#fff'} />
+            ) : (
+              <Icon name={'edit'} size={24} color={main_color} />
+            )}
           </TouchableOpacity>
         </View>
       ),
@@ -196,12 +200,20 @@ function ProfileDetail({ userId }) {
           <Field
             icon={'school'}
             title={'Trường'}
-            value={data.additional_infos[0].information_value}
+            value={
+              data.additional_infos.length < 1
+                ? ''
+                : data.additional_infos[0].information_value
+            }
           />
           <Field
             icon={'graduation-cap'}
             title={'Chuyên ngành'}
-            value={data.additional_infos[1].information_value}
+            value={
+              data.additional_infos.length < 1
+                ? ''
+                : data.additional_infos[1].information_value
+            }
           />
           <Field
             icon={'location-arrow'}

@@ -17,6 +17,8 @@ import { useSelector } from 'react-redux';
 // import Modal from 'react-native-modal';
 import { useNavigation } from '@react-navigation/native';
 import Modal, {
+  ModalFooter,
+  ModalButton,
   ModalContent,
   BottomModal,
   SlideAnimation,
@@ -56,13 +58,20 @@ const PostOptionModal = ({ ...rest }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigation = useNavigation();
   const [modalOrder, setModalOrder] = useState(1);
+  const [visibleDelete, setVisibleDelete] = useState(false);
+
   useEffect(() => {
     if (rest.id != null) {
       setSaved(typeof rest.saved == 'undefined' ? null : rest.saved);
       PostService.getPostById(curUser.jwtToken, rest.id)
         .then(res => {
-          if (res.data.result.author_id == curUser.oid) setIsMe(true);
-          else setIsMe(false);
+          if (res.data.code == 404) {
+            rest.onNotExist(post.oid);
+            ToastAndroid.show('Bài viết không tồn tại.', 1000);
+          } else {
+            if (res.data.result.author_id == curUser.oid) setIsMe(true);
+            else setIsMe(false);
+          }
         })
         .catch(err => console.log(err));
     }
@@ -280,46 +289,46 @@ const PostOptionModal = ({ ...rest }) => {
             </View>
           </TouchableHighlight>
           {isMe ? (
-           <View>
+            <View>
               <TouchableHighlight
-              underlayColor={'#000'}
-              onPress={() => {
-                rest.onVisible(false);
-                navigation.navigate(navigationConstants.create, {
-                  postId: rest.id,
-                  isEdit: true,
-                });
-              }}
-            >
-              <View style={styles.optionContainer}>
-                <Icon
-                  name={'edit'}
-                  color={main_color}
-                  size={24}
-                  style={{ marginHorizontal: 2 }}
-                />
-                <Text style={styles.txtOption}>Sửa bài viết</Text>
-              </View>
-            </TouchableHighlight><TouchableHighlight
-              underlayColor={'#000'}
-              onPress={() => {
-                rest.onVisible(false);
-                rest.onDelete(rest.id);
-              }}
-            >
-              <View style={styles.optionContainer}>
-                <Icon
-                  name={'times'}
-                  color={main_color}
-                  size={24}
-                  style={{ marginHorizontal: 2 }}
-                />
-                <Text style={styles.txtOption}>Xóa bài viết</Text>
-              </View>
-            </TouchableHighlight>
-           </View>
+                underlayColor={'#000'}
+                onPress={() => {
+                  rest.onVisible(false);
+                  navigation.navigate(navigationConstants.create, {
+                    postId: rest.id,
+                    isEdit: true,
+                  });
+                }}
+              >
+                <View style={styles.optionContainer}>
+                  <Icon
+                    name={'edit'}
+                    color={main_color}
+                    size={24}
+                    style={{ marginHorizontal: 2 }}
+                  />
+                  <Text style={styles.txtOption}>Sửa bài viết</Text>
+                </View>
+              </TouchableHighlight>
+              <TouchableHighlight
+                underlayColor={'#000'}
+                onPress={() => {
+                  setVisibleDelete(true);
+                }}
+              >
+                <View style={styles.optionContainer}>
+                  <Icon
+                    name={'times'}
+                    color={main_color}
+                    size={24}
+                    style={{ marginHorizontal: 2 }}
+                  />
+                  <Text style={styles.txtOption}> Xóa bài đăng</Text>
+                </View>
+              </TouchableHighlight>
+            </View>
           ) : null}
-          
+
           <TouchableHighlight
             underlayColor={'#000'}
             onPress={() => {
@@ -336,7 +345,7 @@ const PostOptionModal = ({ ...rest }) => {
                 size={24}
                 style={{ marginHorizontal: 2 }}
               />
-              <Text style={styles.txtOption}>Báo cáo</Text>
+              <Text style={styles.txtOption}> Báo cáo</Text>
             </View>
           </TouchableHighlight>
         </ModalContent>
@@ -385,8 +394,40 @@ const PostOptionModal = ({ ...rest }) => {
           ) : null}
         </ModalContent>
       )}
+      <Modal
+        visible={visibleDelete}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => {
+                setVisibleDelete(false);
+                rest.onVisible(false);
+              }}
+            />
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Xóa"
+              onPress={() => {
+                setVisibleDelete(false);
+                rest.onVisible(false);
+                rest.onDelete(rest.id);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn muốn xóa bài đăng này?
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </BottomModal>
-    
   );
 };
 

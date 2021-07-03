@@ -23,6 +23,7 @@ class CommentService {
   static async getReplyById(jwtToken, id) {
     return await getAPI(jwtToken).get(api + `Comment/reply-comment/` + id);
   }
+
   static async getAllReply(jwtToken, params) {
     return await getAPI(jwtToken).get(
       api +
@@ -68,6 +69,12 @@ class CommentService {
     return await getAPI(jwtToken).post(api + 'Comment/reply', {
       content: params.comment,
       parent_id: params.oid,
+    });
+  }
+  static async deleteComment(jwtToken, oid) {
+    return await getAPI(jwtToken).put(api + 'Comment/modified-comment-status', {
+      comment_id: oid,
+      status: 4
     });
   }
   static async updateReply(jwtToken, params) {

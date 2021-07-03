@@ -145,6 +145,25 @@ function Profile({ userId }) {
   const [isMe, setIsMe] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    PostService.deletePost(curUser.jwtToken, idModal)
+      .then(res => {
+        ToastAndroid.show('Xóa bài viết thành công', 1000);
+
+        setPosts(posts.filter(i => i.oid != idModal));
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Bài viết chưa được xóa', 1000);
+      });
+    setModalVisible(false);
+    //setTmp(value);
+    //setIdModal(value);
+  });
+  const onNotExist = React.useCallback(id => {
+     setPosts(posts.filter(i => i.oid != id));
+  });
   const onFollow = async () => {
     setLoading(true);
     if (isFollowing) {
@@ -276,7 +295,7 @@ function Profile({ userId }) {
   }, [route.params?.id]);
 
   const fetchMore = async () => {
-       if (stop) {
+    if (stop) {
       setIsEnd(false);
       return;
     }
@@ -317,7 +336,14 @@ function Profile({ userId }) {
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} />;
+    return (
+      <PostCard
+        onViewImage={onViewImage}
+        post={item}
+        onModal={onModal}
+        onNotExist={onNotExist}
+      />
+    );
   };
   // const renderBadge = item => {
   //   return (
@@ -496,11 +522,14 @@ function Profile({ userId }) {
       ),
     });
   }, [navigation, data]);
+  const flatList = React.useRef(null);
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
         <SafeAreaView>
           <FlatList
+            ref={flatList}
+            extraData={posts}
             style={{ flexGrow: 0 }}
             onEndReached={async () => {
               if (posts.length > 4 && !isEnd) {
@@ -623,10 +652,14 @@ function Profile({ userId }) {
                   </View>
                   {data ? (
                     <View>
-                      <GroupInfor
-                        name={data.address.district + ', ' + data.address.city}
-                        icon={'city'}
-                      />
+                      {data.address.district ? (
+                        <GroupInfor
+                          name={
+                            data.address.district + ', ' + data.address.city
+                          }
+                          icon={'city'}
+                        />
+                      ) : null}
 
                       {data.additional_infos.length > 0 ? (
                         <View>
@@ -905,6 +938,9 @@ function Profile({ userId }) {
         saved={savedModal}
         id={idModal}
         onVisible={onVisibleCallBack}
+        onDelete={onDeleteCallback}
+        onNotExist={onNotExist}
+
       />
     </View>
   );

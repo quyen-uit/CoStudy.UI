@@ -56,17 +56,21 @@ function NotifyCard(props) {
       //ToastAndroid.show('Đã đọc.', ToastAndroid.SHORT);
     });
   };
-  const onDeleteCB = React.useCallback(()=>{
+  const onDeleteCB = React.useCallback(() => {
     setVisible(true);
     setModalVisible(false);
-
-  })
+  });
   const goTo = async () => {
     if (notify.notification_type == 0)
       await UserService.getCurrentUser(jwtToken)
         .then(async response => {
           await PostService.getPostById(jwtToken, notify.object_id)
             .then(res => {
+              if (res.data.code == 404) {
+                //props.onNotExist(post.oid);
+                ToastAndroid.show('Bài viết không tồn tại.', 1000);
+                return;
+              }
               let item = res.data.result;
               response.data.result.post_saved.forEach(i => {
                 if (i == item.oid) {
@@ -96,37 +100,15 @@ function NotifyCard(props) {
           props.onLoading(false);
           console.log(error);
         });
-      else if (notify.notification_type == 1) {
+    else if (notify.notification_type == 1) {
       await CommentService.getCommentById(jwtToken, notify.object_id)
         .then(res => {
-            i = res.data.result;
-          if (i.is_vote_by_current) i.vote = 1;
-          else if (i.is_downvote_by_current) i.vote = -1;
-          else i.vote = 0;
-          props.onLoading(false);
-
-          navigation.navigate(navigationConstants.comment, {
-            comment: i,
-            upvote: i.upvote,
-            downvote: i.downvote,
-            replies: i.comment_count,
-            vote: i.vote,
-            fromNotify: true
-          });
-        })
-        .catch(error => {
-          props.onLoading(false);
-          console.log(error);
-        });
-    }
-    else if (notify.notification_type == 2) {
-      await CommentService.getReplyById(jwtToken,notify.object_id).then(async reply => {
-        if (reply.data.result.parent_id.is_vote_by_current) reply.data.result.parent_id.vote = 1;
-              else if (reply.data.result.parent_id.is_downvote_by_current) reply.data.result.parent_id.vote = -1;
-              else reply.data.result.parent_id.vote = 0;
-        await CommentService.getCommentById(jwtToken, reply.data.result.parent_id)
-        .then(res => {
-            i = res.data.result;
+          if (res.data.code == 404) {
+            // props.onNotExist(post.oid);
+            ToastAndroid.show('Bình luận không tồn tại.', 1000);
+            return;
+          }
+          i = res.data.result;
           if (i.is_vote_by_current) i.vote = 1;
           else if (i.is_downvote_by_current) i.vote = -1;
           else i.vote = 0;
@@ -139,16 +121,55 @@ function NotifyCard(props) {
             replies: i.comment_count,
             vote: i.vote,
             fromNotify: true,
-            reply: reply.data.result
           });
         })
         .catch(error => {
           props.onLoading(false);
           console.log(error);
         });
-      });
-    }
-    else {
+    } else if (notify.notification_type == 2) {
+      await CommentService.getReplyById(jwtToken, notify.object_id).then(
+        async reply => {
+          if (reply.data.result.parent_id.is_vote_by_current)
+            reply.data.result.parent_id.vote = 1;
+          else if (reply.data.result.parent_id.is_downvote_by_current)
+            reply.data.result.parent_id.vote = -1;
+          else reply.data.result.parent_id.vote = 0;
+          await CommentService.getCommentById(
+            jwtToken,
+            reply.data.result.parent_id
+          )
+            .then(res => {
+              if (res.data.code == 404) {
+                //props.onNotExist(post.oid);
+                ToastAndroid.show('Bình luận không tồn tại.', 1000);
+                return;
+              }
+              i = res.data.result;
+              if (i.is_vote_by_current) i.vote = 1;
+              else if (i.is_downvote_by_current) i.vote = -1;
+              else i.vote = 0;
+              props.onLoading(false);
+
+              navigation.navigate(navigationConstants.comment, {
+                comment: i,
+                upvote: i.upvote,
+                downvote: i.downvote,
+                replies: i.comment_count,
+                vote: i.vote,
+                fromNotify: true,
+                reply: reply.data.result,
+              });
+            })
+            .catch(error => {
+              props.onLoading(false);
+              console.log(error);
+            });
+        }
+      );
+    } else {
+      props.onLoading(false);
+
       navigation.push(navigationConstants.profile, { id: notify.object_id });
     }
   };
@@ -179,7 +200,25 @@ function NotifyCard(props) {
               />
             </TouchableOpacity>
             <View style={{ flexShrink: 1, marginLeft: 64 }}>
-              <Text>{notify.content} "{notify.object_thumbnail}"</Text>
+              {notify.object_thumbnail != '' && notify.object_thumbnail ? (
+                <Text numberOfLines={3}>
+                  {notify.content}
+                  {notify.notification_type == 0
+                    ? 'Bài viết của bạn'
+                    : notify.notification_type == 1
+                    ? 'Bình luận của bạn:'
+                    : notify.notification_type == 2
+                    ? 'Phản hồi của bạn:'
+                    : ''}{' '}
+                  "
+                  {notify.object_thumbnail.length < 80
+                    ? `${notify.object_thumbnail}`
+                    : `${notify.object_thumbnail.substring(0, 200)}...`}
+                  "
+                </Text>
+              ) : (
+                <Text numberOfLines={3}>{notify.content}</Text>
+              )}
 
               <Text style={styles.txtCreateDate}>
                 {moment(new Date()).diff(
@@ -222,7 +261,7 @@ function NotifyCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
-        onDelete = {onDeleteCB}
+        onDelete={onDeleteCB}
       />
       <Modal
         visible={visible}
@@ -240,7 +279,6 @@ function NotifyCard(props) {
               textStyle={{ fontSize: 14, color: 'red' }}
               text="Xóa"
               onPress={() => {
-                
                 setVisible(false);
                 props.onDelete(notify.oid);
               }}

@@ -42,7 +42,7 @@ import { RotationGestureHandler } from 'react-native-gesture-handler';
 import Badge from '../Badge';
 function PostCard(props) {
   const post = props.post;
-   const userId = props.userId;
+  const userId = props.userId;
   const [isVote, setIsVote] = useState(false);
   const navigation = useNavigation();
   const [author, setAuthor] = useState();
@@ -61,29 +61,37 @@ function PostCard(props) {
   const onDownvoteCallback = useCallback(value => setDownvote(value));
   const onCommentCallback = useCallback(value => setComment(value));
   const onVoteCallback = useCallback(value => setVote(value));
-  useEffect(()=>{
+  useEffect(() => {
     setComment(post.comments_count);
     setUpvote(post.upvote);
     setDownvote(post.downvote);
-    setVote(post.vote)
-   },[post.comments_count, post.vote, post.upvote, post.downvote])
+    setVote(post.vote);
+  }, [post.comments_count, post.vote, post.upvote, post.downvote]);
 
   useEffect(() => {
     const fetchData = async () => {};
     fetchData();
   }, []);
   const GoToPost = () => {
-    navigation.navigate(navigationConstants.post, {
-      post: post,
-      vote: vote,
-      upvote: upvote,
-      commentCount: comment,
-      downvote: downvote,
-      onUpvote: onUpvoteCallback,
-      onDownvote: onDownvoteCallback,
-      onComment: onCommentCallback,
-      onVote: onVoteCallback,
-    });
+    PostService.getPostById(jwtToken, post.oid)
+      .then(res => {
+        if (res.data.code == 404) {
+          props.onNotExist(post.oid);
+          ToastAndroid.show('Bài viết không tồn tại.', 1000);
+        } else
+          navigation.navigate(navigationConstants.post, {
+            post: post,
+            vote: vote,
+            upvote: upvote,
+            commentCount: comment,
+            downvote: downvote,
+            onUpvote: onUpvoteCallback,
+            onDownvote: onDownvoteCallback,
+            onComment: onCommentCallback,
+            onVote: onVoteCallback,
+          });
+      })
+      .catch(err => console.log(err));
   };
 
   const onUpvote = async () => {
@@ -98,8 +106,9 @@ function PostCard(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await PostService.upvote(jwtToken, post.oid)
-      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+    await PostService.upvote(jwtToken, post.oid).then(response =>
+      ToastAndroid.show('Đã upvote', ToastAndroid.SHORT)
+    );
   };
   const onDownvote = async () => {
     if (vote == -1) {
@@ -113,13 +122,14 @@ function PostCard(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await PostService.downvote(jwtToken, post.oid)
-      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
+    await PostService.downvote(jwtToken, post.oid).then(response =>
+      ToastAndroid.show('Đã downvote', ToastAndroid.SHORT)
+    );
   };
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: post.author_id });
   };
- 
+
   return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
@@ -173,7 +183,8 @@ function PostCard(props) {
                 underlayColor={touch_color}
                 style={styles.btn3Dot}
                 onPress={() => {
-                  props.onModal(true, post.oid, post.saved)}}
+                  props.onModal(true, post.oid, post.saved);
+                }}
               >
                 <View style={styles.btnOption}>
                   <FontAwesome name={'ellipsis-v'} size={24} color="#c4c4c4" />
@@ -214,23 +225,32 @@ function PostCard(props) {
             </TouchableOpacity>
           ) : null}
 
-          {post.field ? (<View style={styles.containerTag}>
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-            >
-              {post.field.map((item, index) => (
-                <TouchableOpacity
-                  onPress={()=>{
-                    navigation.navigate(navigationConstants.search, {fieldId: item.field_id})
-                  }}
-                  key={index}
+          {post.field ? (
+            <View style={styles.containerTag}>
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+              >
+                {post.field.map((item, index) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate(navigationConstants.search, {
+                        fieldId: item.field_id,
+                      });
+                    }}
+                    key={index}
                   >
-                  <Badge item={{name: item.level_name, description: item.field_name}}/>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>):null}
+                    <Badge
+                      item={{
+                        name: item.level_name,
+                        description: item.field_name,
+                      }}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
         </View>
       </TouchableHighlight>
       <View style={styles.footer}>

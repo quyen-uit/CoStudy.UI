@@ -64,9 +64,7 @@ function NewsFeed() {
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
-  const [visibleDelete, setVisibleDelete] = useState(false);
-  const [tmp,setTmp] = useState();
-  
+
   const onViewImage = React.useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
@@ -80,21 +78,26 @@ function NewsFeed() {
     setIdModal(id);
     setSavedModal(saved);
   });
-  const onDelete = async () => {
-   
-    await PostService.deletePost(jwtToken,tmp).then(res => {
-      ToastAndroid.show('Xóa bài viết thành công');
-      
-      setPosts(posts.filter(i=> i.oid != tmp));
-    }).catch(err => {
-      console.log(err);
-      ToastAndroid.show('Bài viết chưa được xóa');
-    })
+  const onDelete = () => {
+    PostService.deletePost(jwtToken, idModal)
+      .then(res => {
+        ToastAndroid.show('Xóa bài viết thành công', 1000);
+
+        setPosts(posts.filter(i => i.oid != idModal));
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Bài viết chưa được xóa', 1000);
+      });
   };
+  const onNotExist = React.useCallback(id => {
+     setPosts(posts.filter(i => i.oid != id));
+  });
   const onDeleteCallback = React.useCallback(value => {
-    setVisibleDelete(true);
+    // setVisibleDelete(true);
+    onDelete();
     setModalVisible(false);
-    setTmp(value);
+    //setTmp(value);
     //setIdModal(value);
   });
   const onVisibleCallBack = React.useCallback(value => {
@@ -332,7 +335,14 @@ function NewsFeed() {
     //   .catch(error => console.log(error));
   };
   const renderItem = ({ item }) => {
-    return <PostCard post={item} onViewImage={onViewImage} onModal={onModal} />;
+    return (
+      <PostCard
+        post={item}
+        onViewImage={onViewImage}
+        onModal={onModal}
+        onNotExist={onNotExist}
+      />
+    );
   };
   const flatList = React.useRef(null);
 
@@ -376,12 +386,12 @@ function NewsFeed() {
           style={{ marginBottom: 110 }}
           onEndReached={async () => {
             if (posts.length > 1) {
-            setIsEnd(true);
-            if (refreshing) {
-              setIsEnd(false);
-              return;
-            }
-            await fetchData();
+              setIsEnd(true);
+              if (refreshing) {
+                setIsEnd(false);
+                return;
+              }
+              await fetchData();
             }
           }}
           onEndReachedThreshold={0.1}
@@ -448,6 +458,7 @@ function NewsFeed() {
         id={idModal}
         onVisible={onVisibleCallBack}
         onDelete={onDeleteCallback}
+        onNotExist={onNotExist}
       />
       <Modal
         visible={pickFieldVisible}
@@ -469,37 +480,6 @@ function NewsFeed() {
           <View>
             <Text style={{ fontSize: 16, alignSelf: 'center' }}>
               Bạn chưa chọn lĩnh vực quan tâm nào
-            </Text>
-          </View>
-        </ModalContent>
-      </Modal>
-      <Modal
-        visible={visibleDelete}
-        width={deviceWidth - 56}
-        footer={
-          <ModalFooter>
-            <ModalButton
-              textStyle={{ fontSize: 14, color: main_color }}
-              text="Hủy"
-              onPress={() => {
-                setVisibleDelete(false);
-              }}
-            />
-            <ModalButton
-              textStyle={{ fontSize: 14, color: 'red' }}
-              text="Xóa"
-              onPress={ async () => {
-                await onDelete();
-                setVisibleDelete(false);
-              }}
-            />
-          </ModalFooter>
-        }
-      >
-        <ModalContent>
-          <View>
-            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
-              Bạn muốn xóa bài đăng này?
             </Text>
           </View>
         </ModalContent>
