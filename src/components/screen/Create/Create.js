@@ -539,7 +539,7 @@ function Create() {
               <Text style={styles.txtField}>Lĩnh vực</Text>
             </View>
           </TouchableHighlight>
-          <TouchableHighlight
+          {/* <TouchableHighlight
             underlayColor={touch_color}
             style={styles.btnInputOption}
           >
@@ -547,7 +547,7 @@ function Create() {
               <Icon name={'square-root-alt'} size={24} color={main_color} />
               <Text style={styles.txtField}>Công thức</Text>
             </View>
-          </TouchableHighlight>
+          </TouchableHighlight> */}
           <TouchableHighlight
             underlayColor={touch_color}
             style={styles.btnInputOption}

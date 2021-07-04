@@ -148,6 +148,7 @@ function ChatCard(props) {
         onVisible={onVisible}
         callId={chat.call_id}
         name={chat.name}
+        conversationId={chat.id}
       />
       <Modal
         visible={visible}

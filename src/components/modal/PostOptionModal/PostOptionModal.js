@@ -76,7 +76,7 @@ const PostOptionModal = ({ ...rest }) => {
         .catch(err => console.log(err));
     }
     return () => {};
-  }, [rest.id, isMe, saved]);
+  }, [rest.id, isMe, saved, rest.saved]);
 
   useEffect(() => {
     setList([]);
@@ -144,11 +144,15 @@ const PostOptionModal = ({ ...rest }) => {
       .then(response => {
         if (response.data.result.is_save) {
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
+          if (typeof rest.onSaveInPost != 'undefined') rest.onSaveInPost(true);
+
           setIsSaving(false);
           setSaved(true);
         } else {
           setSaved(false);
           setIsSaving(false);
+          if (typeof rest.onUnsave != 'undefined') rest.onUnsave(rest.id);
+          if (typeof rest.onSaveInPost != 'undefined') rest.onSaveInPost(false);
           ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
         }
       })

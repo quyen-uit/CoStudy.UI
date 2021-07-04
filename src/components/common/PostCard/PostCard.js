@@ -55,18 +55,26 @@ function PostCard(props) {
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
   const [comment, setComment] = useState(post.comments_count);
-
+  const [saved, setSaved] = useState(post.is_save_by_current);
   const [vote, setVote] = useState(post.vote);
   const onUpvoteCallback = useCallback(value => setUpvote(value));
   const onDownvoteCallback = useCallback(value => setDownvote(value));
   const onCommentCallback = useCallback(value => setComment(value));
   const onVoteCallback = useCallback(value => setVote(value));
+  const onSaveCallBack = useCallback(value => setSaved(value));
   useEffect(() => {
     setComment(post.comments_count);
     setUpvote(post.upvote);
     setDownvote(post.downvote);
     setVote(post.vote);
-  }, [post.comments_count, post.vote, post.upvote, post.downvote]);
+    setSaved(post.is_save_by_current);
+  }, [
+    post.comments_count,
+    post.vote,
+    post.upvote,
+    post.downvote,
+    post.is_save_by_current,
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {};
@@ -79,17 +87,21 @@ function PostCard(props) {
           props.onNotExist(post.oid);
           ToastAndroid.show('Bài viết không tồn tại.', 1000);
         } else
-          navigation.navigate(navigationConstants.post, {
-            post: post,
-            vote: vote,
-            upvote: upvote,
-            commentCount: comment,
-            downvote: downvote,
-            onUpvote: onUpvoteCallback,
-            onDownvote: onDownvoteCallback,
-            onComment: onCommentCallback,
-            onVote: onVoteCallback,
-          });
+          {
+            post.saved = res.data.result.is_save_by_current;
+            navigation.navigate(navigationConstants.post, {
+              post: post,
+              vote: vote,
+              upvote: upvote,
+              commentCount: comment,
+              downvote: downvote,
+              onUpvote: onUpvoteCallback,
+              onDownvote: onDownvoteCallback,
+              onComment: onCommentCallback,
+              onVote: onVoteCallback,
+              onSave: onSaveCallBack
+            });
+          }
       })
       .catch(err => console.log(err));
   };
@@ -183,7 +195,7 @@ function PostCard(props) {
                 underlayColor={touch_color}
                 style={styles.btn3Dot}
                 onPress={() => {
-                  props.onModal(true, post.oid, post.saved);
+                  props.onModal(true, post.oid, saved);
                 }}
               >
                 <View style={styles.btnOption}>
@@ -194,12 +206,12 @@ function PostCard(props) {
           </View>
           <View>
             <View style={styles.rowFlexStart}>
-              <FontAwesome
+              {/* <FontAwesome
                 style={styles.iconTitle}
                 name={'angle-double-right'}
                 size={20}
                 color={main_color}
-              />
+              /> */}
               <Text style={styles.txtTitle}>{post.title}</Text>
             </View>
             <Text style={styles.txtContent} numberOfLines={3}>

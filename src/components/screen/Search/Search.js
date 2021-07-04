@@ -461,14 +461,17 @@ function Search() {
       });
 
       let fields = getFieldPick();
+      console.log(rangeDate);
       await UserService.getCurrentUser(jwtToken)
         .then(async response => {
           await PostService.filterPost(jwtToken, {
             skip: 0,
             count: 3,
             search: search,
-            startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
-            endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+            // startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+            // endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+            startDate: rangeDate.startDate,
+            endDate: rangeDate.endDate,
             sortObject: sortObject,
             sortType: sortType,
             fields: fields,
@@ -540,8 +543,10 @@ function Search() {
             skip: 0,
             count: 3,
             search: search,
-            startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
-            endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+            // startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+            // endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+            startDate: rangeDate.startDate,
+            endDate: rangeDate.endDate,
             sortObject: sortObject,
             sortType: sortType,
             fields: fields,

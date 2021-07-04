@@ -38,7 +38,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderColor: '#c4c4c4',
     marginRight: 8,
-    position: 'absolute'
+    position: 'absolute',
+    borderWidth: 0.5,
   },
 
   // text

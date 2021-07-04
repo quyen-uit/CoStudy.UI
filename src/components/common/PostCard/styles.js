@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   txtContent: {
     fontSize: 15,
-    marginLeft: 16,
+    marginLeft: 8,
     marginRight: 8,
   },
   txtTag: {

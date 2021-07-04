@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginHorizontal: 8,
+    marginLeft: 16,
   },
   txtContent: {
     fontSize: 15,

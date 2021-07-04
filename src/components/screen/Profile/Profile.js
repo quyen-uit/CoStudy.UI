@@ -162,7 +162,7 @@ function Profile({ userId }) {
     //setIdModal(value);
   });
   const onNotExist = React.useCallback(id => {
-     setPosts(posts.filter(i => i.oid != id));
+    setPosts(posts.filter(i => i.oid != id));
   });
   const onFollow = async () => {
     setLoading(true);
@@ -266,11 +266,12 @@ function Profile({ userId }) {
           })
             .then(async resPost => {
               resPost.data.result.forEach(item => {
-                resUser.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
-                });
+                // resUser.data.result.post_saved.forEach(i => {
+                //   if (i == item.oid) {
+                //     item.saved = true;
+                //   } else item.saved = false;
+                // });
+                item.saved = item.is_save_by_current;
                 // set vote
                 item.vote = 0;
                 if (item.is_downvote_by_current) item.vote = -1;
@@ -313,11 +314,12 @@ function Profile({ userId }) {
               return;
             }
             resPost.data.result.forEach(item => {
-              resUser.data.result.post_saved.forEach(i => {
-                if (i == item.oid) {
-                  item.saved = true;
-                } else item.saved = false;
-              });
+              // resUser.data.result.post_saved.forEach(i => {
+              //   if (i == item.oid) {
+              //     item.saved = true;
+              //   } else item.saved = false;
+              // });
+              item.saved = item.is_save_by_current;
               // set vote
               item.vote = 0;
               if (item.is_downvote_by_current) item.vote = -1;
@@ -738,42 +740,44 @@ function Profile({ userId }) {
                     </View>
                   )}
                 </View>
-                <View style={styles.containerNew}>
-                  <View style={styles.grNew}>
-                    <View style={styles.flex1}>
-                      <Image
-                        style={styles.imgAvatar}
-                        source={
-                          avatar == ''
-                            ? require('../../../assets/test.png')
-                            : { uri: avatar }
+                {isMe ? (
+                  <View style={styles.containerNew}>
+                    <View style={styles.grNew}>
+                      <View style={styles.flex1}>
+                        <Image
+                          style={styles.imgAvatar}
+                          source={
+                            avatar == ''
+                              ? require('../../../assets/test.png')
+                              : { uri: avatar }
+                          }
+                        />
+                      </View>
+                      <TouchableHighlight
+                        onPress={() =>
+                          navigation.navigate(navigationConstants.create, {
+                            isEdit: false,
+                          })
                         }
-                      />
+                        underlayColor={touch_color}
+                        style={styles.btnBoxNew}
+                      >
+                        <Text style={styles.txtNew}>
+                          Bạn có câu hỏi gì mới, {data ? data.first_name : null}{' '}
+                          {data ? data.last_name : null}?
+                        </Text>
+                      </TouchableHighlight>
                     </View>
-                    <TouchableHighlight
-                      onPress={() =>
-                        navigation.navigate(navigationConstants.create, {
-                          isEdit: false,
-                        })
-                      }
-                      underlayColor={touch_color}
-                      style={styles.btnBoxNew}
-                    >
-                      <Text style={styles.txtNew}>
-                        Bạn có câu hỏi gì mới, {data ? data.first_name : null}{' '}
-                        {data ? data.last_name : null}?
-                      </Text>
-                    </TouchableHighlight>
+                    <View style={styles.grOption}>
+                      <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
+                      <GroupOption
+                        icon={'square-root-alt'}
+                        option={'Công thức'}
+                      />
+                      <GroupOption icon={'images'} option={'Hình ảnh'} />
+                    </View>
                   </View>
-                  <View style={styles.grOption}>
-                    <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
-                    <GroupOption
-                      icon={'square-root-alt'}
-                      option={'Công thức'}
-                    />
-                    <GroupOption icon={'images'} option={'Hình ảnh'} />
-                  </View>
-                </View>
+                ) :null}
                 {posts.length == 0 ? (
                   <Text
                     style={{
@@ -940,7 +944,6 @@ function Profile({ userId }) {
         onVisible={onVisibleCallBack}
         onDelete={onDeleteCallback}
         onNotExist={onNotExist}
-
       />
     </View>
   );

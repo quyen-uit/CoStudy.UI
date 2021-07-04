@@ -11,6 +11,9 @@ import Modal, {
 import styles from './styles';
 import navigationConstants from 'constants/navigation';
 import { useNavigation } from '@react-navigation/core';
+import ChatService from 'controllers/ChatService';
+import { useSelector } from 'react-redux';
+import { getJwtToken } from 'selectors/UserSelectors';
 
 // const chat = {
 //   title: 'Đây là title',
@@ -20,15 +23,18 @@ import { useNavigation } from '@react-navigation/core';
 // }
 function ChatOptionModal({ ...rest }) {
   const navigation = useNavigation();
+  const jwtToken = useSelector(getJwtToken);
   return (
     <BottomModal
       {...rest}
       swipeDirection={['down']} // can be string or an array
       swipeThreshold={100} // default 100
       useNativeDriver={true}
-      modalAnimation={new SlideAnimation({
-        slideFrom: 'bottom',
-      })}
+      modalAnimation={
+        new SlideAnimation({
+          slideFrom: 'bottom',
+        })
+      }
       modalTitle={
         <Icon
           name={'chevron-down'}
@@ -46,11 +52,23 @@ function ChatOptionModal({ ...rest }) {
       }
     >
       <ModalContent style={styles.content}>
-      <TouchableHighlight
+        <TouchableHighlight
           underlayColor={'#000'}
-          onPress={() => {
+          onPress={ () => {
             rest.onVisible(false);
-            navigation.navigate(navigationConstants.video,{opponent_id: rest.callId, opponent_name: rest.name, isCalling: false });
+            ChatService.createMessage(jwtToken, {
+              conversation_id: rest.conversationId,
+              message: 'Cuộc gọi video.',
+            })
+              .then(res => {
+                console.log('call success');
+              })
+              .catch(err => console.log(err));
+            navigation.navigate(navigationConstants.video, {
+              opponent_id: rest.callId,
+              opponent_name: rest.name,
+              isCalling: false,
+            });
           }}
         >
           <View style={styles.optionContainer}>
@@ -63,8 +81,7 @@ function ChatOptionModal({ ...rest }) {
             <Text style={styles.txtOption}>Gọi video</Text>
           </View>
         </TouchableHighlight>
-        
-        
+
         {/* <TouchableHighlight underlayColor={'#000'} onPress={() => alert('a')}>
           <View style={styles.optionContainer}>
             <Icon name={'eye'} color={main_color} size={24} />

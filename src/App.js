@@ -17,6 +17,8 @@ import 'react-native-gesture-handler';
 import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
 import { AuthService } from 'components/videocall/services';
+import { Provider as PaperProvider } from 'react-native-paper';
+
 enableScreens();
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -74,9 +76,12 @@ function App() {
   };
   return (
     <Provider store={store}>
+          <PaperProvider>
+
       <Navigation theme={LightTheme} />
       <Toast config={toastConfig} ref={ref => Toast.setRef(ref)} />
       <ModalPortal />
+      </PaperProvider>
     </Provider>
   );
 }

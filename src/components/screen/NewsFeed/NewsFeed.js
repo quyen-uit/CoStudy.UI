@@ -164,11 +164,12 @@ function NewsFeed() {
           await PostService.getTimeline(jwtToken, 0, 5)
             .then(res => {
               res.data.result.forEach(item => {
-                response.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
-                });
+                // response.data.result.post_saved.forEach(i => {
+                //   if (i == item.oid) {
+                //     item.saved = true;
+                //   } else item.saved = false;
+                // });
+                item.saved = item.is_save_by_current;
                 // set vote
                 item.vote = 0;
                 if (item.is_downvote_by_current) item.vote = -1;
@@ -195,11 +196,13 @@ function NewsFeed() {
           await PostService.getTimeline(jwtToken, 0, 5)
             .then(async resPost => {
               resPost.data.result.forEach(item => {
-                resUser.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
-                });
+                // resUser.data.result.post_saved.forEach(i => {
+                //   if (i == item.oid) {
+                //     item.saved = true;
+                //   } else item.saved = false;
+                // });
+                item.saved = item.is_save_by_current;
+
                 // set vote
                 item.vote = 0;
                 if (item.is_downvote_by_current) item.vote = -1;
@@ -292,11 +295,13 @@ function NewsFeed() {
               return;
             }
             res.data.result.forEach(item => {
-              resUser.data.result.post_saved.forEach(i => {
-                if (i == item.oid) {
-                  item.saved = true;
-                } else item.saved = false;
-              });
+              // resUser.data.result.post_saved.forEach(i => {
+              //   if (i == item.oid) {
+              //     item.saved = true;
+              //   } else item.saved = false;
+              // });
+              item.saved = item.is_save_by_current;
+
               // set vote
               item.vote = 0;
               if (item.is_downvote_by_current) item.vote = -1;

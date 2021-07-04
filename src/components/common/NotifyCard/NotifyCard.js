@@ -51,7 +51,7 @@ function NotifyCard(props) {
     goTo();
     await NotifyService.readNotify(jwtToken, notify.oid).then(res => {
       setisRead(true);
-      props.onLoading(true);
+      props.onLoading(false);
 
       //ToastAndroid.show('Đã đọc.', ToastAndroid.SHORT);
     });
@@ -73,11 +73,12 @@ function NotifyCard(props) {
                 return;
               }
               let item = res.data.result;
-              response.data.result.post_saved.forEach(i => {
-                if (i == item.oid) {
-                  item.saved = true;
-                } else item.saved = false;
-              });
+              // response.data.result.post_saved.forEach(i => {
+              //   if (i == item.oid) {
+              //     item.saved = true;
+              //   } else item.saved = false;
+              // });
+              item.saved = item.is_save_by_current;
               // set vote
               item.vote = 0;
               if (item.is_downvote_by_current) item.vote = -1;
@@ -89,6 +90,7 @@ function NotifyCard(props) {
                 upvote: item.upvote,
                 commentCount: item.comments_count,
                 downvote: item.downvote,
+                //saved: item.is_save_by_current
                 // onUpvote: onUpvoteCallback,
                 // onDownvote: onDownvoteCallback,
                 // onComment: onCommentCallback,
@@ -172,7 +174,6 @@ function NotifyCard(props) {
       );
     } else {
       props.onLoading(false);
-
       navigation.push(navigationConstants.profile, { id: notify.object_id });
     }
   };

@@ -18,6 +18,9 @@ class NotifyService {
   static async deleteById(jwtToken,id){
     return await getAPI(jwtToken).delete(api + 'Noftication/' + id);
   }
+  static async deleteAll(jwtToken){
+    return await getAPI(jwtToken).delete(api + 'Noftication/delete-all');
+  }
   // ???
   static async readNotify(jwtToken,id){
     return await getAPI(jwtToken).put(api + 'Noftication/read?id=' + id);

@@ -68,22 +68,27 @@ function ListPost() {
   const [filterComment, setFilterComment] = useState();
   const [amountField, setAmountField] = useState(0);
   const [fieldPickers, setFieldPickers] = useState([]);
+  const onUnsaveCallback = React.useCallback(id => {
+    setPosts(posts.filter(i => i.oid != id));
+  });
   const onDeleteCallback = React.useCallback(value => {
     // setVisibleDelete(true);
-    PostService.deletePost(jwtToken, idModal).then(res => {
-      ToastAndroid.show('Xóa bài viết thành công',1000);
-      
-      setPosts(posts.filter(i=> i.oid != idModal));
-    }).catch(err => {
-      console.log(err);
-      ToastAndroid.show('Bài viết chưa được xóa',1000);
-    });
+    PostService.deletePost(jwtToken, idModal)
+      .then(res => {
+        ToastAndroid.show('Xóa bài viết thành công', 1000);
+
+        setPosts(posts.filter(i => i.oid != idModal));
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Bài viết chưa được xóa', 1000);
+      });
     setModalVisible(false);
-     //setTmp(value);
-     //setIdModal(value);
-   });
-   const onNotExist = React.useCallback(id => {
-     setPosts(posts.filter(i => i.oid != id));
+    //setTmp(value);
+    //setIdModal(value);
+  });
+  const onNotExist = React.useCallback(id => {
+    setPosts(posts.filter(i => i.oid != id));
   });
   React.useEffect(() => {
     console.log('dispatch update user');
@@ -120,11 +125,12 @@ function ListPost() {
           await PostService.getSavedPost(jwtToken, { skip: 0, count: 5 })
             .then(res => {
               res.data.result.forEach(item => {
-                response.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
-                });
+                // response.data.result.post_saved.forEach(i => {
+                //   if (i == item.oid) {
+                //     item.saved = true;
+                //   } else item.saved = false;
+                // });
+                item.saved = item.is_save_by_current;
                 // set vote
                 item.vote = 0;
                 if (item.is_downvote_by_current) item.vote = -1;
@@ -319,7 +325,14 @@ function ListPost() {
     setModalVisible(value);
   });
   const renderItem = ({ item }) => {
-    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} onNotExist={onNotExist}/>;
+    return (
+      <PostCard
+        onViewImage={onViewImage}
+        post={item}
+        onModal={onModal}
+        onNotExist={onNotExist}
+      />
+    );
   };
   const flatList = React.useRef(null);
   return (
@@ -374,8 +387,8 @@ function ListPost() {
       ) : (
         <SafeAreaView>
           <FlatList
-          ref={flatList}
-          extraData={posts}
+            ref={flatList}
+            extraData={posts}
             showsVerticalScrollIndicator={false}
             data={posts}
             style={{ marginBottom: 110 }}
@@ -465,6 +478,7 @@ function ListPost() {
         onVisible={onVisibleCallBack}
         onDelete={onDeleteCallback}
         onNotExist={onNotExist}
+        onUnsave={onUnsaveCallback}
       />
     </View>
   );

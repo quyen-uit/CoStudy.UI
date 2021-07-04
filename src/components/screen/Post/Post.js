@@ -16,7 +16,7 @@ import {
   Keyboard,
   Dimensions,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Post/styles';
@@ -104,7 +104,7 @@ function Post(props) {
   }, [navigation]);
   const onNotExist = React.useCallback(id => {
     setComments(comments.filter(i => i.oid != id));
- });
+  });
   const onDeleteCallback = React.useCallback(value => {
     // setVisibleDelete(true);
     CommentService.deleteComment(jwtToken, idModal)
@@ -156,7 +156,9 @@ function Post(props) {
   const onPostVisibleCallBack = React.useCallback(value => {
     setPostModalVisible(value);
   });
-
+  const onSaveCallBack = useCallback(value => {
+    setSaved(value)
+  })
   const onCommentModal = useCallback((value, id) => {
     setModalVisible(value);
     setIdModal(id);
@@ -202,8 +204,7 @@ function Post(props) {
   useEffect(() => {
     setIsLoading(true);
     setStop(false);
-    if(refreshing)
-      setRefreshing(false);
+    if (refreshing) setRefreshing(false);
     let isOut = false;
     const fetchData = async () => {
       await CommentService.getCommentByPostId(jwtToken, {
@@ -233,8 +234,7 @@ function Post(props) {
   }, [refreshing]);
 
   const fetchMore = async () => {
-    if(stop)
-    {
+    if (stop) {
       setIsEnd(false);
       return;
     }
@@ -253,11 +253,9 @@ function Post(props) {
             else i.vote = 0;
           });
           setComments(comments.concat(response.data.result));
-        }
-        else 
-        {
+        } else {
           setStop(true);
-        setIsEnd(false);
+          setIsEnd(false);
         }
       })
       .catch(error => console.log(error));
@@ -268,10 +266,14 @@ function Post(props) {
     await PostService.savePost(jwtToken, post.oid)
       .then(response => {
         if (response.data.result.is_save) {
+          if(typeof route.params.onSave == 'function' )
+            route.params.onSave(true);
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
           setSaved(true);
         } else {
+          if(typeof route.params.onSave == 'function' )
+            route.params.onSave(false);
           setSaved(false);
           setIsSaving(false);
           ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
@@ -615,13 +617,20 @@ function Post(props) {
                   </View>
                 </View>
                 <View>
-                  <View style={styles.rowFlexStart}>
-                    <FontAwesome
+                  <View
+                    style={{
+                      flexWrap: 'wrap',
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {/* <FontAwesome
                       style={styles.iconTitle}
                       name={'angle-double-right'}
                       size={20}
                       color={main_color}
-                    />
+                    /> */}
                     <Text style={styles.txtTitle}>{post.title}</Text>
                   </View>
                   <Text style={styles.txtContent}>
@@ -747,7 +756,8 @@ function Post(props) {
                 setRefreshing(true);
               }}
             />
-          }          ListFooterComponent={() =>
+          }
+          ListFooterComponent={() =>
             stop ? (
               <Text
                 style={{
@@ -1058,6 +1068,8 @@ function Post(props) {
         visible={postModalVisible}
         id={post.oid}
         onVisible={onPostVisibleCallBack}
+        saved={saved}
+        onSaveInPost={onSaveCallBack}
       />
       <CommentOptionModal
         visible={modalVisible}

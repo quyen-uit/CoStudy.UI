@@ -372,7 +372,7 @@ function TabNavigator() {
           tabBarLabel: notify,
           tabBarIcon: ({ color }) => (
             <View>
-              <Icon name="envelope" color={color} size={24} />
+              <Icon name="bell" color={color} size={24} />
               {countNotify.count > 0 ? (
                 <Badge
                   status="success"

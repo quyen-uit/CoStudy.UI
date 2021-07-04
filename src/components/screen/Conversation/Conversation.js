@@ -57,11 +57,13 @@ import PostService from 'controllers/PostService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
-function RightMessage({ item, onViewImage, onDelete }) {
+function RightMessage({ item, onViewImage, onDelete, onLoading }) {
   const [showTime, setShowTime] = useState(false);
   const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
+  const jwtToken = useSelector(getJwtToken);
+
   // const onUpvoteCallback = useCallback();
   // const onDownvoteCallback = useCallback();
   // const onCommentCallback = useCallback();
@@ -72,7 +74,7 @@ function RightMessage({ item, onViewImage, onDelete }) {
   });
   return (
     <TouchableOpacity
-      onLongPress={() => setModalVisible(true)}
+      //onLongPress={() => setModalVisible(true)}
       onPress={() => setShowTime(!showTime)}
     >
       <View style={styles.containerRightMessage}>
@@ -115,26 +117,28 @@ function RightMessage({ item, onViewImage, onDelete }) {
           ) : item.message_type == 3 ? (
             <TouchableOpacity
               onPress={() => {
-                PostService.getPostById(jwtToken, item.oid)
+                onLoading(true);
+                PostService.getPostById(jwtToken, item.content.oid)
                   .then(res => {
+                    onLoading(false);
                     if (res.data.code == 404) {
                       //props.onNotExist(post.oid);
                       ToastAndroid.show('Bài viết không tồn tại.', 1000);
-                    }
-                    //if (item.content.is_vote_by_current)
-                    // if (item.content.is_vote_by_current)
-                    else
+                    } else {
+                      res.data.result.saved =
+                        res.data.result.is_save_by_current;
                       navigation.navigate(navigationConstants.post, {
-                        post: item.content,
-                        vote: item.content.is_vote_by_current
+                        post: res.data.result,
+                        vote: res.data.result.is_vote_by_current
                           ? 1
-                          : item.content.is_downvote_by_curren
+                          : res.data.result.is_downvote_by_current
                           ? -1
                           : 0,
-                        upvote: item.content.upvote,
-                        commentCount: item.content.comment_count,
-                        downvote: item.content.downvote,
+                        upvote: res.data.result.upvote,
+                        commentCount: res.data.result.comments_count,
+                        downvote: res.data.result.downvote,
                       });
+                    }
                   })
                   .catch(err => console.log(err));
               }}
@@ -243,10 +247,10 @@ function RightMessage({ item, onViewImage, onDelete }) {
     </TouchableOpacity>
   );
 }
-function LeftMessage({ item, onViewImage, avatar }) {
+function LeftMessage({ item, onViewImage, avatar, onLoading }) {
   const [showTime, setShowTime] = useState(false);
   const navigation = useNavigation();
-
+  const jwtToken = useSelector(getJwtToken);
   return (
     <TouchableOpacity onPress={() => setShowTime(!showTime)}>
       <View>
@@ -280,25 +284,28 @@ function LeftMessage({ item, onViewImage, avatar }) {
           ) : item.message_type == 3 ? (
             <TouchableOpacity
               onPress={() => {
+                onLoading(true);
                 PostService.getPostById(jwtToken, item.oid)
                   .then(res => {
+                    onLoading(false);
                     if (res.data.code == 404) {
                       //props.onNotExist(post.oid);
                       ToastAndroid.show('Bài viết không tồn tại.', 1000);
-                    }
-                    //if (item.content.is_vote_by_current)
-                    else
+                    } else {
+                      res.data.result.saved =
+                        res.data.result.is_save_by_current;
                       navigation.navigate(navigationConstants.post, {
-                        post: item.content,
-                        vote: item.content.is_vote_by_current
+                        post: res.data.result,
+                        vote: res.data.result.is_vote_by_current
                           ? 1
-                          : item.content.is_downvote_by_curren
+                          : res.data.result.is_downvote_by_current
                           ? -1
                           : 0,
-                        upvote: item.content.upvote,
-                        commentCount: item.content.comment_count,
-                        downvote: item.content.downvote,
+                        upvote: res.data.result.upvote,
+                        commentCount: res.data.result.comments_count,
+                        downvote: res.data.result.downvote,
                       });
+                    }
                   })
                   .catch(err => console.log(err));
               }}
@@ -405,6 +412,9 @@ function Conversation(props) {
   const onViewImage = useCallback((value, uri) => {
     setIsVisible(true);
     setImgMessage(uri);
+  });
+  const onLoading = useCallback(value => {
+    setIsLoading(value);
   });
   const onDelete = useCallback(value => {
     setModalVisible(false);
@@ -601,6 +611,7 @@ function Conversation(props) {
           item={item}
           onViewImage={onViewImage}
           onDelete={onDeleteCallBack}
+          onLoading={onLoading}
         />
       );
     else
@@ -609,6 +620,7 @@ function Conversation(props) {
           item={item}
           onViewImage={onViewImage}
           avatar={route.params.avatar}
+          onLoading={onLoading}
         />
       );
   };
