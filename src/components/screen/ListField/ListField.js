@@ -22,6 +22,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/ListField/styles';
 import { getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
+import Point from 'components/common/Point';
 import {
   badge_level1,
   badge_level2,
@@ -31,7 +32,8 @@ import {
   main_2nd_color,
   main_color,
   touch_color,
-} from 'constants/colorCommon';import PostCard from '../../common/PostCard';
+} from 'constants/colorCommon';
+import PostCard from '../../common/PostCard';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
@@ -120,9 +122,13 @@ function ListField() {
           padding: 8,
         }}
       >
-        <Text style={{ fontSize: 16, color: item.color }}>
-          {index + 1}. {item.field_name} - {item.point}đ
-        </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 16, color: item.color }}>
+            {index + 1}. {item.field_name}
+          </Text>
+          <Icon name={'angle-double-right'} style={{marginHorizontal: 4, marginTop: 2}} color={main_color}/>
+          <Point point={item.point} color={'#000'} />
+        </View>
         <Image source={item.icon} />
       </View>
     );

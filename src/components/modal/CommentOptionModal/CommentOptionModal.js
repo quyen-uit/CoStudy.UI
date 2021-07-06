@@ -107,7 +107,7 @@ function CommentOptionModal({ ...rest }) {
             >
               <View style={styles.optionContainer}>
                 <Icon name={'times'} color={main_color} size={24} />
-                <Text style={styles.txtOption}>   Xóa bình luận</Text>
+                <Text style={styles.txtOption}>Xóa bình luận</Text>
               </View>
             </TouchableHighlight>
           </View>
@@ -160,7 +160,7 @@ function CommentOptionModal({ ...rest }) {
         <ModalContent>
           <View>
             <Text style={{ fontSize: 16, alignSelf: 'center' }}>
-              Bạn muốn xóa bài đăng này?
+              Bạn muốn xóa bình luận này?
             </Text>
           </View>
         </ModalContent>

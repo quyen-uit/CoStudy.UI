@@ -69,7 +69,7 @@ function NotifyCard(props) {
               if (res.data.code == 404) {
                 //props.onNotExist(post.oid);
                 props.onLoading(false);
-                ToastAndroid.show('Bài viết không tồn tại.', 1000);
+                ToastAndroid.show('Bài đăng không tồn tại.', 1000);
                 return;
               }
               let item = res.data.result;
@@ -134,6 +134,12 @@ function NotifyCard(props) {
     } else if (notify.notification_type == 2) {
       await CommentService.getReplyById(jwtToken, notify.object_id).then(
         async reply => {
+          if (reply.data.code == 404) {
+            //props.onNotExist(post.oid);
+            props.onLoading(false);
+            ToastAndroid.show('Phản hồi không tồn tại.', 1000);
+            return;
+          }
           if (reply.data.result.parent_id.is_vote_by_current)
             reply.data.result.parent_id.vote = 1;
           else if (reply.data.result.parent_id.is_downvote_by_current)
@@ -172,7 +178,7 @@ function NotifyCard(props) {
             });
         }
       );
-    } else {
+    } else if (notify.notification_type == 3)  {
       props.onLoading(false);
       navigation.push(navigationConstants.profile, { id: notify.object_id });
     }
@@ -208,7 +214,7 @@ function NotifyCard(props) {
                 <Text numberOfLines={3}>
                   {notify.content}
                   {notify.notification_type == 0
-                    ? 'Bài viết của bạn'
+                    ? 'Bài đăng của bạn'
                     : notify.notification_type == 1
                     ? 'Bình luận của bạn:'
                     : notify.notification_type == 2

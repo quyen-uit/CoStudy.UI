@@ -33,10 +33,7 @@ import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import 'react-native-get-random-values';
 import UserService from 'controllers/UserService';
-
-import { v4 as uuidv4 } from 'uuid';
-import storage from '@react-native-firebase/storage';
-import Toast from 'react-native-toast-message';
+import Point from 'components/common/Point';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -47,8 +44,6 @@ import Modal, {
   BottomModal,
   SlideAnimation,
 } from 'react-native-modals';
-import Badge from 'components/common/Badge';
-import { element } from 'prop-types';
 
 function Ranking() {
   const jwtToken = useSelector(getJwtToken);
@@ -101,7 +96,7 @@ function Ranking() {
             response.data.result[0].isPick = true;
             setFieldPickers(response.data.result);
             setTitle(response.data.result[0].value);
-            setIdPick(response.data.result[0].oid)
+            setIdPick(response.data.result[0].oid);
           }
         })
         .catch(error => console.log(error));
@@ -114,12 +109,12 @@ function Ranking() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: title,
+      title: 'Bảng xếp hạng',
       headerShown: true,
       headerRight: () => (
         <View style={{ marginRight: 16 }}>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={{ fontSize: 16, color: '#fff' }}>Chọn lĩnh vực</Text>
+            <Text style={{ fontSize: 16, color: '#fff' }}>Thay đổi</Text>
           </TouchableOpacity>
         </View>
       ),
@@ -159,12 +154,12 @@ function Ranking() {
             >
               {item.user_name}
             </Text>
-            <Text>{item.total_point}đ</Text>
+            <Point point={item.total_point} color={'#000'} />
           </View>
         </View>
         <View style={{ alignItems: 'center' }}>
           <Text style={{ color: main_2nd_color }}>Hạng</Text>
-          <Text style={{ color: main_2nd_color }}>{item.index}</Text>
+          <Text style={{ color: main_2nd_color, fontWeight: 'bold', fontSize: 18 }}>{item.index}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -189,78 +184,175 @@ function Ranking() {
           />
         </View>
       ) : (
-        <View style={{ flex: 1 }}>
-          <Image
+        <View style={{ flex: 1, backgroundColor: main_color }}>
+          {/* <Image
             style={{
               width: deviceWidth,
               height: deviceHeight / 2,
               position: 'absolute',
             }}
             source={require('../../../assets/ranking_background.jpg')}
-          />
-          <View style={{ flex: 2 }}>
+          /> */}
+          <Text
+            style={{
+              alignSelf: 'center',
+              fontSize: 18,
+              marginTop: 4,
+              marginBottom: 32,
+              color: 'white',
+            }}
+          >
+            {title}
+          </Text>
+          <View style={{ paddingBottom: 8 }}>
             <View
               style={{
-                height: deviceHeight / 2 - 100,
                 flexDirection: 'row',
               }}
             >
-              <View style={{ marginTop: 80, ...styles.col }}>
+              <View style={{ ...styles.col, marginTop: 32 }}>
                 <TouchableOpacity onPress={() => goToProfile(list[1].id)}>
                   <Image
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
+                      width: 64,
+                      height: 64,
+                      borderRadius: 32,
                       borderColor: main_color,
                       borderWidth: 1,
                     }}
                     source={{ uri: list[1].user_avatar }}
                   />
+                  <View
+                    style={{
+                      backgroundColor: main_2nd_color,
+                      width: 20,
+                      height: 20,
+                      borderRadius: 12,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      position: 'absolute',
+                      right: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>2</Text>
+                  </View>
                 </TouchableOpacity>
                 <Text style={{ marginTop: 4, color: '#fff' }}>
                   {list[1].user_name}
                 </Text>
-                <Text
-                  style={{ marginVertical: 2, fontSize: 12, color: '#fff' }}
-                >
-                  {list[1].total_point}đ
-                </Text>
-                <Text
-                  style={{ backgroundColor: '#0CE570', ...styles.indexCol }}
-                >
-                  2
-                </Text>
+                <Point point={list[1].total_point} />
               </View>
-              <View style={{ marginTop: 40, ...styles.col }}>
-                <TouchableOpacity onPress={() => goToProfile(list[0].id)}>
-                  <Image
+              <View style={{ ...styles.col }}>
+                <View>
+                  <TouchableOpacity onPress={() => goToProfile(list[0].id)}>
+                    <Image
+                      style={{
+                        width: 88,
+                        height: 88,
+                        borderRadius: 44,
+                        borderColor: main_color,
+                        borderWidth: 1,
+                      }}
+                      source={{ uri: list[0].user_avatar }}
+                    />
+                    <Image
+                      style={{
+                        width: 64,
+                        height: 48,
+                        position: 'absolute',
+                        top: -24,
+                        right: -20,
+                        transform: [{ rotate: '408deg' }],
+                      }}
+                      source={require('../../../assets/crown.png')}
+                    />
+                  </TouchableOpacity>
+                  <View
                     style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 24,
-                      borderColor: main_color,
-                      borderWidth: 1,
+                      backgroundColor: '#ede437',
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      position: 'absolute',
+                      right: 0,
+                      bottom: 0,
                     }}
-                    source={{ uri: list[0].user_avatar }}
-                  />
-                </TouchableOpacity>
+                  >
+                    <Text style={{ color: 'white' }}>1</Text>
+                  </View>
+                </View>
                 <Text style={{ marginTop: 4, color: '#fff' }}>
                   {list[0].user_name}
                 </Text>
-                <Text
-                  style={{ marginVertical: 2, fontSize: 12, color: '#fff' }}
-                >
-                  {list[0].total_point}đ
-                </Text>
-                <Text
-                  style={{ backgroundColor: '#FE5C29', ...styles.indexCol }}
-                >
-                  1
-                </Text>
+                <Point point={list[0].total_point} />
               </View>
-              <View style={{ marginTop: 100, ...styles.col }}>
+              <View style={{ ...styles.col, marginTop: 32 }}>
                 <TouchableOpacity onPress={() => goToProfile(list[2].id)}>
+                  <Image
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 32,
+                      borderColor: main_color,
+                      borderWidth: 1,
+                    }}
+                    source={{ uri: list[2].user_avatar }}
+                  />
+                  <View
+                    style={{
+                      backgroundColor: '#4ced37',
+                      width: 20,
+                      height: 20,
+                      borderRadius: 12,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      position: 'absolute',
+                      right: 0,
+                      bottom: 0,
+                    }}
+                  >
+                    <Text style={{ color: 'white' }}>3</Text>
+                  </View>
+                </TouchableOpacity>
+                <Text style={{ marginTop: 4, color: '#fff' }}>
+                  {list[2].user_name}
+                </Text>
+                <Point point={list[2].total_point} />
+              </View>
+            </View>
+          </View>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: '#fff',
+              alignItems: 'center',
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              paddingTop: 4,
+            }}
+          >
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              data={list}
+              renderItem={item => renderItem(item)}
+              keyExtractor={(item, index) => index.toString()}
+              ListHeaderComponent={() => (
+                <View
+                  style={{
+                    borderRadius: 8,
+                    marginBottom: 8,
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignSelf: 'center',
+                    alignItems: 'center',
+                    backgroundColor: main_color,
+                  }}
+                >
                   <Image
                     style={{
                       width: 40,
@@ -269,107 +361,27 @@ function Ranking() {
                       borderColor: main_color,
                       borderWidth: 1,
                     }}
-                    source={{ uri: list[2].user_avatar }}
+                    source={{ uri: current.user_avatar }}
                   />
-                </TouchableOpacity>
-                <Text style={{ marginTop: 4, color: '#fff' }}>
-                  {list[2].user_name}
-                </Text>
-                <Text
-                  style={{ marginVertical: 2, fontSize: 12, color: '#fff' }}
-                >
-                  {list[2].total_point}đ
-                </Text>
-                <Text
-                  style={{ backgroundColor: '#CCF429', ...styles.indexCol }}
-                >
-                  3
-                </Text>
-              </View>
-            </View>
-          </View>
-          <View
-            style={{
-              flex: 3,
-              backgroundColor: '#fff',
-              alignItems: 'center',
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              paddingTop: 16,
-            }}
-          >
-            <View
-              style={{
-                borderRadius: 8,
-                marginBottom: 8,
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                flexDirection: 'row',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: main_color,
-              }}
-            >
-              <Image
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  borderColor: main_color,
-                  borderWidth: 1,
-                }}
-                source={{ uri: current.user_avatar }}
-              />
-              <View style={{ marginLeft: 8, marginRight: 16 }}>
-                <Text
-                  style={{ fontSize: 18, fontWeight: 'bold', color: '#fff' }}
-                >
-                  Bạn
-                </Text>
-                <Text style={{ color: '#fff' }}>{current.total_point}đ</Text>
-              </View>
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ color: '#fff' }}>Hạng</Text>
-                <Text style={{ color: '#fff' }}>{current.index}</Text>
-              </View>
-            </View>
-            <SafeAreaView>
-              <FlatList
-                showsVerticalScrollIndicator={false}
-                data={list}
-                // onEndReached={async () => {
-                //   if (posts.length > 2) {
-                //     setIsEnd(true);
-                //     if (refreshing) {
-                //       setIsEnd(false);
-                //       return;
-                //     }
-                //     await fetchData();
-                //   }
-                // }}
-                // onEndReachedThreshold={0.1}
-                renderItem={item => renderItem(item)}
-                keyExtractor={(item, index) => index.toString()}
-                // refreshControl={
-                //   <RefreshControl
-                //     colors={[main_color]}
-                //     refreshing={refreshing}
-                //     onRefresh={() => {
-                //       onRefresh();
-                //     }}
-                //   />
-                // }
-                // ListFooterComponent={() =>
-                //   isEnd ? (
-                //     <View style={{ marginVertical: 12 }}>
-                //       <ActivityIndicator size={'large'} color={main_color} />
-                //     </View>
-                //   ) : (
-                //     <View style={{ margin: 4 }}></View>
-                //   )
-                // }
-              />
-            </SafeAreaView>
+                  <View style={{ marginLeft: 8, marginRight: 16 }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        color: '#fff',
+                      }}
+                    >
+                      Bạn
+                    </Text>
+                    <Point point={current.total_point} />
+                  </View>
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ color: '#fff' }}>Hạng</Text>
+                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>{current.index}</Text>
+                  </View>
+                </View>
+              )}
+            />
           </View>
         </View>
       )}

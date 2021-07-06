@@ -149,13 +149,13 @@ function Profile({ userId }) {
     // setVisibleDelete(true);
     PostService.deletePost(curUser.jwtToken, idModal)
       .then(res => {
-        ToastAndroid.show('Xóa bài viết thành công', 1000);
+        ToastAndroid.show('Xóa bài đăng thành công', 1000);
 
         setPosts(posts.filter(i => i.oid != idModal));
       })
       .catch(err => {
         console.log(err);
-        ToastAndroid.show('Bài viết chưa được xóa', 1000);
+        ToastAndroid.show('Bài đăng chưa được xóa', 1000);
       });
     setModalVisible(false);
     //setTmp(value);
@@ -803,7 +803,7 @@ function Profile({ userId }) {
                   }}
                 >
                   {' '}
-                  Không còn bài viết.{' '}
+                  Không còn bài đăng.{' '}
                 </Text>
               ) : isEnd ? (
                 <View style={{ marginVertical: 12 }}>

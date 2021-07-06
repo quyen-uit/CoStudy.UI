@@ -85,7 +85,7 @@ function PostCard(props) {
       .then(res => {
         if (res.data.code == 404) {
           props.onNotExist(post.oid);
-          ToastAndroid.show('Bài viết không tồn tại.', 1000);
+          ToastAndroid.show('Bài đăng không tồn tại.', 1000);
         } else
           {
             post.saved = res.data.result.is_save_by_current;
@@ -108,7 +108,7 @@ function PostCard(props) {
 
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã upvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
@@ -124,7 +124,7 @@ function PostCard(props) {
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã downvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);

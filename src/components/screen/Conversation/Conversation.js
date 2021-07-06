@@ -123,7 +123,7 @@ function RightMessage({ item, onViewImage, onDelete, onLoading }) {
                     onLoading(false);
                     if (res.data.code == 404) {
                       //props.onNotExist(post.oid);
-                      ToastAndroid.show('Bài viết không tồn tại.', 1000);
+                      ToastAndroid.show('Bài đăng không tồn tại.', 1000);
                     } else {
                       res.data.result.saved =
                         res.data.result.is_save_by_current;
@@ -290,7 +290,7 @@ function LeftMessage({ item, onViewImage, avatar, onLoading }) {
                     onLoading(false);
                     if (res.data.code == 404) {
                       //props.onNotExist(post.oid);
-                      ToastAndroid.show('Bài viết không tồn tại.', 1000);
+                      ToastAndroid.show('Bài đăng không tồn tại.', 1000);
                     } else {
                       res.data.result.saved =
                         res.data.result.is_save_by_current;

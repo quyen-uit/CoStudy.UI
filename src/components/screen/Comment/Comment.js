@@ -44,6 +44,8 @@ import {
   ModalButton,
   ModalContent,
 } from 'react-native-modals';
+import ImageView from 'react-native-image-viewing';
+
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Comment(props) {
@@ -68,6 +70,9 @@ function Comment(props) {
   const navigation = useNavigation();
   const [visibleAlert, setVisibleAlert] = useState(false);
   const [bodyAlert, setBodyAlert] = useState('');
+    ///image view
+    const [imgView, setImgView] = useState();
+    const [visible, setIsVisible] = useState(false);
   const showAlert = (title, body) => {
     setBodyAlert(body);
     setVisibleAlert(true);
@@ -102,14 +107,26 @@ function Comment(props) {
       route.params?.onVote(vote);
     }
   }, [downvote]);
+ 
+  const onNotExist = React.useCallback(id => {
+    setReplies(replies.filter(i => i.oid != id));
+    if (typeof route.params?.onComment == 'function')
+    route.params?.onComment(comment_count - 1);
+    setCommentCount(comment_count - 1);
 
+  });
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: data.author_id });
   };
   const renderItem = ({ item }) => {
     return (
       <View style={{ opacity: item.opacity }}>
-        <ReplyCard comment={item} onEdit={onEditCallBack} />
+        <ReplyCard
+          comment={item}
+          onEdit={onEditCallBack}
+          onViewImage={onViewImage}
+           onNotExist={onNotExist}
+        />
       </View>
     );
   };
@@ -377,7 +394,10 @@ function Comment(props) {
                                 if (res.data.code == 404) {
                                   //props.onNotExist(post.oid);
                                   setIsLoading(false);
-                                  ToastAndroid.show('Bài viết không tồn tại.', 1000);
+                                  ToastAndroid.show(
+                                    'Bài đăng không tồn tại.',
+                                    1000
+                                  );
                                   return;
                                 }
                                 let item = res.data.result;
@@ -432,15 +452,19 @@ function Comment(props) {
                 </View>
 
                 {data.image ? (
-                  <Image
-                    style={{
-                      width: '100%',
-                      height: 400,
-                      alignSelf: 'center',
-                      marginVertical: 8,
-                    }}
-                    source={{ uri: data.image }}
-                  />
+                  <TouchableOpacity
+                    onPress={() => onViewImage(true, data.image)}
+                  >
+                    <Image
+                      style={{
+                        width: '100%',
+                        height: 400,
+                        alignSelf: 'center',
+                        marginVertical: 8,
+                      }}
+                      source={{ uri: data.image }}
+                    />
+                  </TouchableOpacity>
                 ) : null}
 
                 <View style={styles.footer}>
@@ -613,6 +637,12 @@ function Comment(props) {
           </View>
         </ModalContent>
       </Modal>
+      <ImageView
+        images={[{ uri: imgView }]}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
+      />
     </View>
   );
 }

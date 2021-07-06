@@ -61,22 +61,25 @@ const PostOptionModal = ({ ...rest }) => {
   const [visibleDelete, setVisibleDelete] = useState(false);
 
   useEffect(() => {
+    if(rest.visible == false) return;
     if (rest.id != null) {
-      setSaved(typeof rest.saved == 'undefined' ? null : rest.saved);
-      PostService.getPostById(curUser.jwtToken, rest.id)
+      //setSaved(typeof rest.saved == 'undefined' ? null : rest.saved);
+      const fetch = async () => await PostService.getPostById(curUser.jwtToken, rest.id)
         .then(res => {
           if (res.data.code == 404) {
             rest.onNotExist(post.oid);
-            ToastAndroid.show('Bài viết không tồn tại.', 1000);
+            ToastAndroid.show('Bài đăng không tồn tại.', 1000);
           } else {
+            setSaved(res.data.result.is_save_by_current);
             if (res.data.result.author_id == curUser.oid) setIsMe(true);
             else setIsMe(false);
           }
         })
         .catch(err => console.log(err));
+       fetch();
     }
     return () => {};
-  }, [rest.id, isMe, saved, rest.saved]);
+  }, [rest.id, isMe, saved, rest.saved, rest.visible]);
 
   useEffect(() => {
     setList([]);
@@ -269,7 +272,7 @@ const PostOptionModal = ({ ...rest }) => {
                 size={24}
                 style={{ marginHorizontal: 5 }}
               />
-              <Text style={styles.txtOption}>Chia sẻ bài viết cho...</Text>
+              <Text style={styles.txtOption}>Chia sẻ bài đăng cho...</Text>
             </View>
           </TouchableHighlight>
           <TouchableHighlight
@@ -311,7 +314,7 @@ const PostOptionModal = ({ ...rest }) => {
                     size={24}
                     style={{ marginHorizontal: 2 }}
                   />
-                  <Text style={styles.txtOption}>Sửa bài viết</Text>
+                  <Text style={styles.txtOption}>Sửa bài đăng</Text>
                 </View>
               </TouchableHighlight>
               <TouchableHighlight

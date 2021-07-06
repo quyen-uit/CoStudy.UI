@@ -1,5 +1,5 @@
 import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Text,
@@ -60,6 +60,19 @@ function ReplyCard(props) {
   const onEditCallBack = React.useCallback( isEdit => {
     setModalVisible(false);
     props.onEdit(isEdit, comment.oid);
+  });
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    CommentService.deleteReply(jwtToken, comment.oid)
+      .then(res => {
+        ToastAndroid.show('Xóa phản hồi thành công', 1000);
+        props.onNotExist(comment.oid);
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Phản hồi chưa được xóa', 1000);
+      });
+    setModalVisible(false);
   });
   const onVisibleCallBack = React.useCallback( isEdit => {
     setModalVisible(false);
@@ -186,6 +199,7 @@ function ReplyCard(props) {
         onEdit={onEditCallBack}
         id={comment.oid}
         onVisible={onVisibleCallBack}
+        onDelete={onDeleteCallback}
       />
     </View>
   );

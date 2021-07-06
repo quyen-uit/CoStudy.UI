@@ -54,7 +54,11 @@ const Stack = createStackNavigator();
 function HomeNavigator() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name={home} component={Home} />
+      <Stack.Screen
+        name={home}
+        component={Home}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
@@ -120,10 +124,7 @@ function ChatNavigator() {
           headerLeft: () => (
             <View style={styles.headerLeft}>
               <TouchableOpacity
-                onPress={() =>
-                  navigation.dispatch(DrawerActions.openDrawer())
-                
-                }
+                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
               >
                 <Image
                   style={styles.imgAvatar}
@@ -138,7 +139,7 @@ function ChatNavigator() {
                 onPress={() =>
                   navigation.push(navigationConstants.following, {
                     id: curUser.oid,
-                    isChat: true
+                    isChat: true,
                   })
                 }
               >
@@ -172,10 +173,7 @@ function NotifyNavigator() {
           headerLeft: () => (
             <View style={styles.headerLeft}>
               <TouchableOpacity
-                onPress={() =>
-                  navigation.dispatch(DrawerActions.openDrawer())
-                
-                }
+                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
               >
                 <Image
                   style={styles.imgAvatar}

@@ -104,6 +104,9 @@ function Post(props) {
   }, [navigation]);
   const onNotExist = React.useCallback(id => {
     setComments(comments.filter(i => i.oid != id));
+    if (typeof route.params.onComment == 'function')
+      route.params.onComment(commentCount - 1);
+    setCommentCount(commentCount - 1);
   });
   const onDeleteCallback = React.useCallback(value => {
     // setVisibleDelete(true);
@@ -111,6 +114,9 @@ function Post(props) {
       .then(res => {
         ToastAndroid.show('Xóa bình luận thành công', 1000);
         setComments(comments.filter(i => i.oid != idModal));
+        if (typeof route.params.onComment == 'function')
+          route.params.onComment(commentCount - 1);
+        setCommentCount(commentCount - 1);
       })
       .catch(err => {
         console.log(err);
@@ -156,9 +162,28 @@ function Post(props) {
   const onPostVisibleCallBack = React.useCallback(value => {
     setPostModalVisible(value);
   });
+  const onDelete = async () => {
+    await PostService.deletePost(jwtToken, post.oid)
+      .then(res => {
+        ToastAndroid.show('Xóa bài đăng thành công', 1000);
+        navigation.goBack();
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('bài đăng chưa được xóa', 1000);
+      });
+  };
+
+  const onDeletePostCallback = React.useCallback(async value => {
+    // setVisibleDelete(true);
+    await onDelete();
+    setPostModalVisible(false);
+    //setTmp(value);
+    //setIdModal(value);
+  });
   const onSaveCallBack = useCallback(value => {
-    setSaved(value)
-  })
+    setSaved(value);
+  });
   const onCommentModal = useCallback((value, id) => {
     setModalVisible(value);
     setIdModal(id);
@@ -266,13 +291,13 @@ function Post(props) {
     await PostService.savePost(jwtToken, post.oid)
       .then(response => {
         if (response.data.result.is_save) {
-          if(typeof route.params.onSave == 'function' )
+          if (typeof route.params.onSave == 'function')
             route.params.onSave(true);
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
           setSaved(true);
         } else {
-          if(typeof route.params.onSave == 'function' )
+          if (typeof route.params.onSave == 'function')
             route.params.onSave(false);
           setSaved(false);
           setIsSaving(false);
@@ -298,7 +323,7 @@ function Post(props) {
   };
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã upvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
@@ -315,7 +340,7 @@ function Post(props) {
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã downvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
@@ -505,9 +530,10 @@ function Post(props) {
         // setComments(comments.concat(response.data.result));
         setComments([response.data.result, ...comments]);
         setSending(false);
-        setCommentCount(commentCount + 1);
         if (typeof route.params.onComment == 'function')
           route.params.onComment(commentCount + 1);
+        setCommentCount(commentCount + 1);
+
         Toast.show({
           type: 'success',
           position: 'top',
@@ -1070,6 +1096,7 @@ function Post(props) {
         onVisible={onPostVisibleCallBack}
         saved={saved}
         onSaveInPost={onSaveCallBack}
+        onDelete={onDeletePostCallback}
       />
       <CommentOptionModal
         visible={modalVisible}

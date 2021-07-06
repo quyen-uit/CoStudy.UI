@@ -65,14 +65,15 @@ function NewsFeed() {
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
 
-  const onViewImage = React.useCallback((value, uri) => {
-    setIsVisible(true);
-    setImgView(uri);
-  });
   //modal
   const [modalVisible, setModalVisible] = useState(false);
   const [idModal, setIdModal] = useState(null);
   const [savedModal, setSavedModal] = useState();
+ 
+  const onViewImage = React.useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
   const onModal = React.useCallback((value, id, saved) => {
     setModalVisible(value);
     setIdModal(id);
@@ -81,17 +82,17 @@ function NewsFeed() {
   const onDelete = () => {
     PostService.deletePost(jwtToken, idModal)
       .then(res => {
-        ToastAndroid.show('Xóa bài viết thành công', 1000);
+        ToastAndroid.show('Xóa bài đăng thành công', 1000);
 
         setPosts(posts.filter(i => i.oid != idModal));
       })
       .catch(err => {
         console.log(err);
-        ToastAndroid.show('Bài viết chưa được xóa', 1000);
+        ToastAndroid.show('bài đăng chưa được xóa', 1000);
       });
   };
   const onNotExist = React.useCallback(id => {
-     setPosts(posts.filter(i => i.oid != id));
+    setPosts(posts.filter(i => i.oid != id));
   });
   const onDeleteCallback = React.useCallback(value => {
     // setVisibleDelete(true);
@@ -159,31 +160,31 @@ function NewsFeed() {
     setIsEnd(false);
     setStop(false);
     const fetchData1 = async () => {
-      await UserService.getCurrentUser(jwtToken)
-        .then(async response => {
-          await PostService.getTimeline(jwtToken, 0, 5)
-            .then(res => {
-              res.data.result.forEach(item => {
-                // response.data.result.post_saved.forEach(i => {
-                //   if (i == item.oid) {
-                //     item.saved = true;
-                //   } else item.saved = false;
-                // });
-                item.saved = item.is_save_by_current;
-                // set vote
-                item.vote = 0;
-                if (item.is_downvote_by_current) item.vote = -1;
-                else if (item.is_vote_by_current) item.vote = 1;
-              });
+      // await UserService.getCurrentUser(jwtToken)
+      //   .then(async response => {
+      await PostService.getTimeline(jwtToken, 0, 5)
+        .then(res => {
+          res.data.result.forEach(item => {
+            // response.data.result.post_saved.forEach(i => {
+            //   if (i == item.oid) {
+            //     item.saved = true;
+            //   } else item.saved = false;
+            // });
+            item.saved = item.is_save_by_current;
+            // set vote
+            item.vote = 0;
+            if (item.is_downvote_by_current) item.vote = -1;
+            else if (item.is_vote_by_current) item.vote = 1;
+          });
 
-              setPosts(res.data.result);
-              setRefreshing(false);
+          setPosts(res.data.result);
+          setRefreshing(false);
 
-              setSkip(5);
-            })
-            .catch(error => console.log(error));
+          setSkip(5);
         })
         .catch(error => console.log(error));
+      // })
+      // .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -191,87 +192,87 @@ function NewsFeed() {
   useEffect(() => {
     let isRender = true;
     const fetchData1 = async () => {
-      await UserService.getCurrentUser(jwtToken)
-        .then(async resUser => {
-          await PostService.getTimeline(jwtToken, 0, 5)
-            .then(async resPost => {
-              resPost.data.result.forEach(item => {
-                // resUser.data.result.post_saved.forEach(i => {
-                //   if (i == item.oid) {
-                //     item.saved = true;
-                //   } else item.saved = false;
-                // });
-                item.saved = item.is_save_by_current;
+      // await UserService.getCurrentUser(jwtToken)
+      //   .then(async resUser => {
+      await PostService.getTimeline(jwtToken, 0, 5)
+        .then(async resPost => {
+          resPost.data.result.forEach(item => {
+            // resUser.data.result.post_saved.forEach(i => {
+            //   if (i == item.oid) {
+            //     item.saved = true;
+            //   } else item.saved = false;
+            // });
+            item.saved = item.is_save_by_current;
 
-                // set vote
-                item.vote = 0;
-                if (item.is_downvote_by_current) item.vote = -1;
-                else if (item.is_vote_by_current) item.vote = 1;
-              });
-              if (isRender) {
-                setPosts(resPost.data.result);
-                setIsLoading(false);
-                setSkip(5);
-                if (route.params?.title) {
-                  let list = [];
-                  let promises = route.params.listImg.map(async image => {
-                    const uri = image.path;
-                    const filename = uuidv4();
-                    const uploadUri =
-                      Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-                    const task = storage()
-                      .ref('post/' + userInfo.id + '/' + filename)
-                      .putFile(uploadUri);
-                    // set progress state
-                    task.on('state_changed', snapshot => {});
-                    try {
-                      await task.then(async response => {
-                        await storage()
-                          .ref(response.metadata.fullPath)
-                          .getDownloadURL()
-                          .then(url => {
-                            list = [
-                              ...list,
-                              {
-                                discription: image.discription,
-                                image_hash: url,
-                              },
-                            ];
-                          });
+            // set vote
+            item.vote = 0;
+            if (item.is_downvote_by_current) item.vote = -1;
+            else if (item.is_vote_by_current) item.vote = 1;
+          });
+          if (isRender) {
+            setPosts(resPost.data.result);
+            setIsLoading(false);
+            setSkip(5);
+            if (route.params?.title) {
+              let list = [];
+              let promises = route.params.listImg.map(async image => {
+                const uri = image.path;
+                const filename = uuidv4();
+                const uploadUri =
+                  Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+                const task = storage()
+                  .ref('post/' + userInfo.id + '/' + filename)
+                  .putFile(uploadUri);
+                // set progress state
+                task.on('state_changed', snapshot => {});
+                try {
+                  await task.then(async response => {
+                    await storage()
+                      .ref(response.metadata.fullPath)
+                      .getDownloadURL()
+                      .then(url => {
+                        list = [
+                          ...list,
+                          {
+                            discription: image.discription,
+                            image_hash: url,
+                          },
+                        ];
                       });
-                    } catch (e) {
-                      console.error(e);
-                    }
                   });
-
-                  Promise.all(promises).then(async () => {
-                    await PostService.createPost(jwtToken, {
-                      title: route.params.title,
-                      content: route.params.content,
-                      list: list,
-                      fields: route.params.fields,
-                    })
-                      .then(response1 => {
-                        Toast.show({
-                          type: 'success',
-                          position: 'top',
-                          text1: 'Đăng bài thành công.',
-                          visibilityTime: 2000,
-                        });
-                        let tmp = response1.data.result;
-                        tmp.vote = 0;
-                        tmp.saved = false;
-
-                        if (isRender) setPosts([tmp, ...resPost.data.result]);
-                      })
-                      .catch(error => console.log(error));
-                  });
+                } catch (e) {
+                  console.error(e);
                 }
-              }
-            })
-            .catch(error => console.log(error));
+              });
+
+              Promise.all(promises).then(async () => {
+                await PostService.createPost(jwtToken, {
+                  title: route.params.title,
+                  content: route.params.content,
+                  list: list,
+                  fields: route.params.fields,
+                })
+                  .then(response1 => {
+                    Toast.show({
+                      type: 'success',
+                      position: 'top',
+                      text1: 'Đăng bài thành công.',
+                      visibilityTime: 2000,
+                    });
+                    let tmp = response1.data.result;
+                    tmp.vote = 0;
+                    tmp.saved = false;
+
+                    if (isRender) setPosts([tmp, ...resPost.data.result]);
+                  })
+                  .catch(error => console.log(error));
+              });
+            }
+          }
         })
         .catch(error => console.log(error));
+      // })
+      // .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -285,50 +286,50 @@ function NewsFeed() {
       setIsEnd(false);
       return;
     }
-    await UserService.getCurrentUser(jwtToken)
-      .then(async resUser => {
-        await PostService.getTimeline(jwtToken, skip, 5)
-          .then(res => {
-            if (res.data.result.length < 1) {
-              setStop(true);
-              setIsEnd(false);
-              return;
-            }
-            res.data.result.forEach(item => {
-              // resUser.data.result.post_saved.forEach(i => {
-              //   if (i == item.oid) {
-              //     item.saved = true;
-              //   } else item.saved = false;
-              // });
-              item.saved = item.is_save_by_current;
+    // await UserService.getCurrentUser(jwtToken)
+    //   .then(async resUser => {
+    await PostService.getTimeline(jwtToken, skip, 5)
+      .then(res => {
+        if (res.data.result.length < 1) {
+          setStop(true);
+          setIsEnd(false);
+          return;
+        }
+        res.data.result.forEach(item => {
+          // resUser.data.result.post_saved.forEach(i => {
+          //   if (i == item.oid) {
+          //     item.saved = true;
+          //   } else item.saved = false;
+          // });
+          item.saved = item.is_save_by_current;
 
-              // set vote
-              item.vote = 0;
-              if (item.is_downvote_by_current) item.vote = -1;
-              else if (item.is_vote_by_current) item.vote = 1;
+          // set vote
+          item.vote = 0;
+          if (item.is_downvote_by_current) item.vote = -1;
+          else if (item.is_vote_by_current) item.vote = 1;
 
-              // resUser.data.result.post_upvote.forEach(i => {
-              //   if (i == item.oid) {
-              //     item.vote = 1;
-              //   }
-              // });
-              // resUser.data.result.post_downvote.forEach(i => {
-              //   if (i == item.oid) {
-              //     item.vote = -1;
-              //   }
-              // });
-            });
-            if (isEnd == false) return;
-            if (res.data.result.length > 0) {
-              setPosts(posts.concat(res.data.result));
+          // resUser.data.result.post_upvote.forEach(i => {
+          //   if (i == item.oid) {
+          //     item.vote = 1;
+          //   }
+          // });
+          // resUser.data.result.post_downvote.forEach(i => {
+          //   if (i == item.oid) {
+          //     item.vote = -1;
+          //   }
+          // });
+        });
+        if (isEnd == false) return;
+        if (res.data.result.length > 0) {
+          setPosts(posts.concat(res.data.result));
 
-              setSkip(skip + 5);
-              setIsEnd(false);
-            }
-          })
-          .catch(error => console.log(error));
+          setSkip(skip + 5);
+          setIsEnd(false);
+        }
       })
       .catch(error => console.log(error));
+    // })
+    // .catch(error => console.log(error));
     // await axios
     //   .get(api + `Post/timeline/skip/${skip}/count/5`, config)
     //   .then(res => {
@@ -421,7 +422,7 @@ function NewsFeed() {
                 }}
               >
                 {' '}
-                Không còn bài viết.{' '}
+                Không còn bài đăng.{' '}
               </Text>
             ) : isEnd ? (
               <View style={{ marginVertical: 12 }}>

@@ -18,6 +18,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     margin: 8,
+    marginBottom: 4
   },
   headerAvatar: {
     flex: 1,
@@ -109,11 +110,12 @@ const styles = StyleSheet.create({
   txtTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginHorizontal: 8,
+    marginLeft: 16,
+    marginRight: 8,
   },
   txtContent: {
     fontSize: 15,
-    marginLeft: 8,
+    marginLeft: 16,
     marginRight: 8,
   },
   txtTag: {

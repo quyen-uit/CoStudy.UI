@@ -103,11 +103,13 @@ function UserCard({ item }) {
                 }
               />
             </TouchableOpacity>
-            <View style={{ flexShrink: 1 }}>
+            <View style={{ flexShrink: 1, justifyContent: 'center' }}>
               <Text style={styles.txtAuthor}>
                 {item.first_name} {item.last_name}
               </Text>
-              <Text style={styles.txtContent}>{item.address.city}</Text>
+              {item.address.city ? (
+                <Text style={styles.txtContent}>{item.address.city}</Text>
+              ) : null}
             </View>
           </View>
           {item.oid == userInfo.id ? null : (
@@ -155,6 +157,7 @@ function Search() {
   const route = useRoute();
   const navigation = useNavigation();
   const [isFirst, setIsFirst] = useState(true);
+  const [stop, setStop] = useState(false);
 
   const [isPostSearch, setIsPostSearch] = useState(true);
   // query
@@ -165,6 +168,7 @@ function Search() {
   const [filterVote, setFilterVote] = useState(-1);
   const [filterComment, setFilterComment] = useState(-1);
   const [amountField, setAmoutField] = useState(0);
+  const [countResult, setCountResult] = useState(0);
   // data
   const [fieldPickers, setFieldPickers] = useState([]);
   const [posts, setPosts] = useState([]);
@@ -199,7 +203,28 @@ function Search() {
     setIsVisible(true);
     setImgView(uri);
   });
+  const onDelete = () => {
+    PostService.deletePost(jwtToken, idModal)
+      .then(res => {
+        ToastAndroid.show('Xóa bài đăng thành công', 1000);
 
+        setPosts(posts.filter(i => i.oid != idModal));
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('bài đăng chưa được xóa', 1000);
+      });
+  };
+  const onNotExist = React.useCallback(id => {
+    setPosts(posts.filter(i => i.oid != id));
+  });
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    onDelete();
+    setModalVisible(false);
+    //setTmp(value);
+    //setIdModal(value);
+  });
   const onModal = React.useCallback((value, id, saved) => {
     setModalPostVisible(value);
     setIdModal(id);
@@ -225,8 +250,11 @@ function Search() {
     return () => {};
   }, [isPostSearch]);
   useEffect(() => {
-    setIsLoading(true);
-    onSearch();
+    if (typeof route.params?.fieldId != 'undefined') {
+      setIsLoading(true);
+
+      onSearch();
+    }
 
     return () => {};
   }, [route.params?.fieldId]);
@@ -244,7 +272,7 @@ function Search() {
               }
             });
             setFieldPickers(response.data.result);
-             setIsLoading(false);
+            setIsLoading(false);
           }
         })
         .catch(error => console.log(error));
@@ -438,7 +466,7 @@ function Search() {
   };
   const getFieldPick = () => {
     let temp = [];
-     fieldPickers.forEach(x => {
+    fieldPickers.forEach(x => {
       if (x.isPick) temp.push({ field_id: x.oid });
     });
     return temp;
@@ -451,6 +479,7 @@ function Search() {
     return temp;
   };
   const onSearch = async () => {
+    setStop(false);
     let sortObject = getSortObject();
     let sortType = getSortType();
     if (isPostSearch) {
@@ -462,39 +491,43 @@ function Search() {
 
       let fields = getFieldPick();
       console.log(rangeDate);
-      await UserService.getCurrentUser(jwtToken)
-        .then(async response => {
-          await PostService.filterPost(jwtToken, {
-            skip: 0,
-            count: 3,
-            search: search,
-            // startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
-            // endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
-            startDate: rangeDate.startDate,
-            endDate: rangeDate.endDate,
-            sortObject: sortObject,
-            sortType: sortType,
-            fields: fields,
-          })
-            .then(async res => {
-              res.data.result.forEach(item => {
-                response.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
-                });
-                // set vote
-                item.vote = 0;
-                if (item.is_downvote_by_current) item.vote = -1;
-                else if (item.is_vote_by_current) item.vote = 1;
-              });
-              setPosts(res.data.result);
-              setIsLoading(false);
-              setSkip(3);
-            })
-            .catch(error => console.log(error));
+      // await UserService.getCurrentUser(jwtToken)
+      //   .then(async response => {
+      await PostService.filterPost(jwtToken, {
+        skip: 0,
+        count: 5,
+        search: search,
+        // startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+        // endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+        startDate: rangeDate.startDate,
+        endDate: rangeDate.endDate,
+        sortObject: sortObject,
+        sortType: sortType,
+        fields: fields,
+      })
+        .then(async res => {
+          res.data.result.data.forEach(item => {
+            // response.data.result.post_saved.forEach(i => {
+            //   if (i == item.oid) {
+            //     item.saved = true;
+            //   } else item.saved = false;
+            // });
+            item.saved = item.is_save_by_current;
+            // set vote
+            item.vote = 0;
+            if (item.is_downvote_by_current) item.vote = -1;
+            else if (item.is_vote_by_current) item.vote = 1;
+          });
+          setCountResult(
+            res.data.result.record_remain + res.data.result.data.length
+          );
+          setPosts(res.data.result.data);
+          setIsLoading(false);
+          setSkip(5);
         })
         .catch(error => console.log(error));
+      // })
+      // .catch(error => console.log(error));
     } else {
       setIsLoading(true);
       let fields = getStringFieldPick();
@@ -525,7 +558,9 @@ function Search() {
               });
             });
             setIsLoading(false);
-            setUsers(res.data.result);
+
+            setUsers(res.data.result.filter(i => i.oid != userInfo.id));
+            setSkip(10);
           });
         })
         .catch(error => console.log(error));
@@ -537,43 +572,47 @@ function Search() {
     let sortType = getSortType();
     if (isPostSearch) {
       let fields = getFieldPick();
-      await UserService.getCurrentUser(jwtToken)
-        .then(async response => {
-          await PostService.filterPost(jwtToken, {
-            skip: 0,
-            count: 3,
-            search: search,
-            // startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
-            // endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
-            startDate: rangeDate.startDate,
-            endDate: rangeDate.endDate,
-            sortObject: sortObject,
-            sortType: sortType,
-            fields: fields,
-          })
-            .then(async res => {
-              res.data.result.forEach(item => {
-                item.vote = 0;
-                response.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                response.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
-              });
-
-              setPosts(posts.concat(res.data.result));
-              setIsLoading(false);
-              setSkip(skip + 3);
-              setIsEnd(false);
-            })
-            .catch(error => console.log(error));
+      // await UserService.getCurrentUser(jwtToken)
+      //   .then(async response => {
+      await PostService.filterPost(jwtToken, {
+        skip: skip,
+        count: 5,
+        search: search,
+        // startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+        // endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+        startDate: rangeDate.startDate,
+        endDate: rangeDate.endDate,
+        sortObject: sortObject,
+        sortType: sortType,
+        fields: fields,
+      })
+        .then(async res => {
+          if (res.data.result.data.length < 1) {
+            setStop(true);
+            setIsEnd(false);
+            return;
+          }
+          res.data.result.data.forEach(item => {
+            // response.data.result.post_saved.forEach(i => {
+            //   if (i == item.oid) {
+            //     item.saved = true;
+            //   } else item.saved = false;
+            // });
+            item.saved = item.is_save_by_current;
+            // set vote
+            item.vote = 0;
+            if (item.is_downvote_by_current) item.vote = -1;
+            else if (item.is_vote_by_current) item.vote = 1;
+          });
+          //setCountResult(res.data.result.record_remain);
+          setPosts(posts.concat(res.data.result.data));
+          setIsLoading(false);
+          setSkip(skip + 5);
+          setIsEnd(false);
         })
         .catch(error => console.log(error));
+      // })
+      // .catch(error => console.log(error));
     } else {
       setIsLoading(true);
       let fields = getStringFieldPick();
@@ -583,7 +622,7 @@ function Search() {
         if (item.isPick) tmp.push(item);
       });
       await UserService.filterUser(jwtToken, {
-        skip: 0,
+        skip: skip,
         count: 10,
         search: search,
 
@@ -604,7 +643,8 @@ function Search() {
               });
             });
             setIsLoading(false);
-            setUsers(res.data.result);
+            setUsers(res.data.result.filter(i => i.oid != userInfo.id));
+            setSkip(skip + 10);
           });
         })
         .catch(error => console.log(error));
@@ -624,7 +664,14 @@ function Search() {
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard onViewImage={onViewImage} post={item} onModal={onModal} />;
+    return (
+      <PostCard
+        onNotExist={onNotExist}
+        onViewImage={onViewImage}
+        post={item}
+        onModal={onModal}
+      />
+    );
   };
   const renderUserCard = ({ item }) => {
     return <UserCard item={item} />;
@@ -663,8 +710,9 @@ function Search() {
           style={isPostSearch ? styles.btnSelected : styles.btnNotSelected}
           onPress={() => setIsPostSearch(true)}
         >
-          <Text style={styles.txtBtnSelected}>Bài viết</Text>
+          <Text style={styles.txtBtnSelected}>Bài đăng</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={!isPostSearch ? styles.btnSelected : styles.btnNotSelected}
           onPress={() => setIsPostSearch(false)}
@@ -715,13 +763,35 @@ function Search() {
                   >
                     Không có kết quả.
                   </Text>
-                ) : (
-                  <View></View>
-                )}
+                ) : isPostSearch ? (
+                  // <View style={{marginLeft: 8, marginBottom: -8}}>
+                  <Text
+                    style={{
+                      alignSelf: 'center',
+                      marginBottom: -8,
+                      color: '#545454',
+                    }}
+                  >
+                    Có {countResult} bài đăng được tìm thấy.
+                  </Text>
+                ) : // </View>
+                null}
               </View>
             )}
             ListFooterComponent={() =>
-              isEnd ? (
+              stop ? (
+                <Text
+                  style={{
+                    alignSelf: 'center',
+                    marginTop: 4,
+                    color: '#4f4f4f',
+                    marginBottom: 8,
+                  }}
+                >
+                  {' '}
+                  Không còn bài đăng.{' '}
+                </Text>
+              ) : isEnd ? (
                 <View style={{ marginVertical: 12 }}>
                   <ActivityIndicator size={'large'} color={main_color} />
                 </View>
@@ -793,7 +863,7 @@ function Search() {
             }}
           >
             {modalOrder == 0 ? (
-              <Text style={styles.md_txtHeader}>Lọc bài viết</Text>
+              <Text style={styles.md_txtHeader}>Lọc bài bài đăng</Text>
             ) : (
               <TouchableOpacity
                 style={{ marginLeft: 4, alignSelf: 'center' }}
@@ -1551,6 +1621,8 @@ function Search() {
         saved={savedModal}
         id={idModal}
         onVisible={onVisibleCallBack}
+        onDelete={onDeleteCallback}
+        onNotExist={onNotExist}
       />
 
       <ImageView

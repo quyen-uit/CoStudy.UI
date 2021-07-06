@@ -77,6 +77,12 @@ class CommentService {
       status: 4
     });
   }
+  static async deleteReply(jwtToken, oid) {
+    return await getAPI(jwtToken).put(api + 'Comment/modified-reply-status', {
+      comment_id: oid,
+      status: 4
+    });
+  }
   static async updateReply(jwtToken, params) {
     return await getAPI(jwtToken).put(api + 'Comment/reply/update', {
       id: params.replyId,

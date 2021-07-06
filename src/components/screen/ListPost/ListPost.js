@@ -75,13 +75,13 @@ function ListPost() {
     // setVisibleDelete(true);
     PostService.deletePost(jwtToken, idModal)
       .then(res => {
-        ToastAndroid.show('Xóa bài viết thành công', 1000);
+        ToastAndroid.show('Xóa bài đăng thành công', 1000);
 
         setPosts(posts.filter(i => i.oid != idModal));
       })
       .catch(err => {
         console.log(err);
-        ToastAndroid.show('Bài viết chưa được xóa', 1000);
+        ToastAndroid.show('bài đăng chưa được xóa', 1000);
       });
     setModalVisible(false);
     //setTmp(value);
@@ -120,8 +120,8 @@ function ListPost() {
     setIsEnd(false);
     setStop(false);
     const fetchData1 = async () => {
-      await UserService.getCurrentUser(jwtToken)
-        .then(async response => {
+      // await UserService.getCurrentUser(jwtToken)
+      //   .then(async response => {
           await PostService.getSavedPost(jwtToken, { skip: 0, count: 5 })
             .then(res => {
               res.data.result.forEach(item => {
@@ -143,8 +143,8 @@ function ListPost() {
               setSkip(5);
             })
             .catch(error => console.log(error));
-        })
-        .catch(error => console.log(error));
+        // })
+        // .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -152,16 +152,18 @@ function ListPost() {
   useEffect(() => {
     let isRender = true;
     const fetchData1 = async () => {
-      await UserService.getCurrentUser(jwtToken)
-        .then(async resUser => {
+      // await UserService.getCurrentUser(jwtToken)
+      //   .then(async resUser => {
           await PostService.getSavedPost(jwtToken, { skip: 0, count: 5 })
             .then(async resPost => {
               resPost.data.result.forEach(item => {
-                resUser.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
-                });
+                // resUser.data.result.post_saved.forEach(i => {
+                //   if (i == item.oid) {
+                //     item.saved = true;
+                //   } else item.saved = false;
+                // });
+                item.saved = item.is_save_by_current;
+
                 // set vote
                 item.vote = 0;
                 if (item.is_downvote_by_current) item.vote = -1;
@@ -241,8 +243,8 @@ function ListPost() {
               }
             })
             .catch(error => console.log(error));
-        })
-        .catch(error => console.log(error));
+        // })
+        // .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -257,8 +259,8 @@ function ListPost() {
       setIsEnd(false);
       return;
     }
-    await UserService.getCurrentUser(jwtToken)
-      .then(async resUser => {
+    // await UserService.getCurrentUser(jwtToken)
+    //   .then(async resUser => {
         await PostService.getSavedPost(jwtToken, { skip: skip, count: 5 })
           .then(res => {
             if (res.data.result.length < 1) {
@@ -267,11 +269,13 @@ function ListPost() {
               return;
             }
             res.data.result.forEach(item => {
-              resUser.data.result.post_saved.forEach(i => {
-                if (i == item.oid) {
-                  item.saved = true;
-                } else item.saved = false;
-              });
+              // resUser.data.result.post_saved.forEach(i => {
+              //   if (i == item.oid) {
+              //     item.saved = true;
+              //   } else item.saved = false;
+              // });
+              item.saved = item.is_save_by_current;
+
               // set vote
               item.vote = 0;
               if (item.is_downvote_by_current) item.vote = -1;
@@ -287,8 +291,8 @@ function ListPost() {
             // setIsEnd(false);
           })
           .catch(error => console.log(error));
-      })
-      .catch(error => console.log(error));
+      // })
+      // .catch(error => console.log(error));
     // await axios
     //   .get(api + `Post/timeline/skip/${skip}/count/5`, config)
     //   .then(res => {
@@ -424,7 +428,7 @@ function ListPost() {
                   }}
                 >
                   {' '}
-                  Không còn bài viết.{' '}
+                  Không còn bài đăng.{' '}
                 </Text>
               ) : isEnd ? (
                 <View style={{ marginVertical: 12 }}>

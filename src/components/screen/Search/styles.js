@@ -56,8 +56,10 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     backgroundColor: '#fff',
     borderRadius: 100,
-    margin: 8,
+    marginVertical: 8,
+    marginHorizontal: 8,
     paddingHorizontal: 8,
+    paddingVertical: 2
   },
 
   // modal

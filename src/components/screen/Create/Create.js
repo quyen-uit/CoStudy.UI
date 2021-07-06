@@ -222,7 +222,7 @@ function Create() {
       setIsLoading(false);
       return;
     }
-    ToastAndroid.show('Bài viết đang đăng...', ToastAndroid.SHORT);
+    ToastAndroid.show('Đang đăng bài...', ToastAndroid.SHORT);
     let list = [];
     // test edit
     if (route.params.isEdit) {
