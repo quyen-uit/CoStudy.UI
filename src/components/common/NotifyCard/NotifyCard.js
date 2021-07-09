@@ -61,6 +61,8 @@ function NotifyCard(props) {
     setModalVisible(false);
   });
   const goTo = async () => {
+    props.onLoading(true);
+
     if (notify.notification_type == 0)
       await UserService.getCurrentUser(jwtToken)
         .then(async response => {

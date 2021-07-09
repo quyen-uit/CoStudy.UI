@@ -70,9 +70,11 @@ function Comment(props) {
   const navigation = useNavigation();
   const [visibleAlert, setVisibleAlert] = useState(false);
   const [bodyAlert, setBodyAlert] = useState('');
-    ///image view
-    const [imgView, setImgView] = useState();
-    const [visible, setIsVisible] = useState(false);
+  const [violenceWords, setViolenceWords] = useState([]);
+
+  ///image view
+  const [imgView, setImgView] = useState();
+  const [visible, setIsVisible] = useState(false);
   const showAlert = (title, body) => {
     setBodyAlert(body);
     setVisibleAlert(true);
@@ -107,13 +109,12 @@ function Comment(props) {
       route.params?.onVote(vote);
     }
   }, [downvote]);
- 
+
   const onNotExist = React.useCallback(id => {
     setReplies(replies.filter(i => i.oid != id));
     if (typeof route.params?.onComment == 'function')
-    route.params?.onComment(comment_count - 1);
+      route.params?.onComment(comment_count - 1);
     setCommentCount(comment_count - 1);
-
   });
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: data.author_id });
@@ -125,7 +126,7 @@ function Comment(props) {
           comment={item}
           onEdit={onEditCallBack}
           onViewImage={onViewImage}
-           onNotExist={onNotExist}
+          onNotExist={onNotExist}
         />
       </View>
     );
@@ -135,6 +136,9 @@ function Comment(props) {
 
     let isOut = false;
     const fetchData = async () => {
+      await PostService.getViolenceWord(jwtToken)
+        .then(res => setViolenceWords(res.data.result))
+        .catch(err => console.log(err));
       await CommentService.getAllReply(jwtToken, {
         oid: data.oid,
         skip: 0,
@@ -190,6 +194,13 @@ function Comment(props) {
     if (comment.trim() == '') {
       showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
+    }
+    if (violenceWords.length > 0) {
+      if (violenceWords.filter(i => comment.includes(i.value))) {
+        showAlert('Thiếu thông tin', 'Bình luận chứa từ ngữ không phù hợp.');
+        setIsLoading(false);
+        return;
+      }
     }
     setSending(true);
     replies.forEach(x => {
@@ -265,6 +276,13 @@ function Comment(props) {
     if (comment.trim() == '') {
       showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
+    }
+    if (violenceWords.length > 0) {
+      if (violenceWords.filter(i => comment.includes(i.value))) {
+        showAlert('Thiếu thông tin', 'Bình luận chứa từ ngữ không phù hợp.');
+        setIsLoading(false);
+        return;
+      }
     }
     flatList.current.scrollToOffset({ animated: true, offset: 0 });
 

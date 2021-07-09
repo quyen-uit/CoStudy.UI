@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 
 function Point(props) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', }}>
       <Text
         style={{
           marginVertical: 2,
@@ -16,8 +16,8 @@ function Point(props) {
         {props.point}{' '}
       </Text>
       <Icon
-        name={'star'}
-        size={12}
+        name={'medal'}
+        size={14}
         color={typeof props.color == 'undefined' ? 'white' : props.color}
       />
     </View>

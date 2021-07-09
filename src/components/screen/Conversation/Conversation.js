@@ -546,7 +546,7 @@ function Conversation(props) {
   }, []);
 
   const sendMessage = async () => {
-    Keyboard.dismiss();
+    // Keyboard.dismiss();
 
     if (message.trim().length < 1) {
       showAlert('Thông báo', 'Bạn chưa nhập tin nhắn..');
@@ -864,7 +864,7 @@ function Conversation(props) {
           multiline={true}
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
-          placeholder="Nhập j đi bạn.."
+          placeholder="Nhập tin nhắn ..."
           value={message}
           onChangeText={text => setMessage(text)}
         />

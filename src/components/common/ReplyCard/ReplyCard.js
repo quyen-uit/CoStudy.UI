@@ -154,7 +154,7 @@ function ReplyCard(props) {
                           moment(comment.created_date),
                           'hours'
                         ) + ' giờ trước'
-                      : moment(comment.created_date).format('hh:mm DD-MM-YYYY')}
+                      : moment(comment.created_date).format('DD-MM-YYYY')}
                   </Text>
                 </View>
                 <View style={styles.row}>

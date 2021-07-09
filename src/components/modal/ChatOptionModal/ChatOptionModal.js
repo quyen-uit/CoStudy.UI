@@ -102,7 +102,7 @@ function ChatOptionModal({ ...rest }) {
         <TouchableHighlight
           underlayColor={'#000'}
           onPress={() => {
-            setModalVisible(false);
+            rest.onVisible(false);
           }}
         >
           <View style={styles.optionContainer}>
@@ -112,7 +112,7 @@ function ChatOptionModal({ ...rest }) {
               size={24}
               style={{ marginHorizontal: 2 }}
             />
-            <Text style={styles.txtOption}>Báo cáo</Text>
+            <Text style={styles.txtOption}>  Báo cáo</Text>
           </View>
         </TouchableHighlight>
       </ModalContent>

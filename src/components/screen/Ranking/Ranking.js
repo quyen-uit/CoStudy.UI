@@ -123,7 +123,7 @@ function Ranking() {
   const renderItem = ({ item }) => {
     return (
       <TouchableOpacity
-        onPress={() => goToProfile(item.id)}
+        onPress={() => goToProfile(item.user_id)}
         style={{
           borderRadius: 8,
           borderWidth: 1,
@@ -154,7 +154,7 @@ function Ranking() {
             >
               {item.user_name}
             </Text>
-            <Point point={item.total_point} color={'#000'} />
+            <Point point={item.total_point} color={main_color} />
           </View>
         </View>
         <View style={{ alignItems: 'center' }}>
@@ -211,13 +211,13 @@ function Ranking() {
               }}
             >
               <View style={{ ...styles.col, marginTop: 32 }}>
-                <TouchableOpacity onPress={() => goToProfile(list[1].id)}>
+                <TouchableOpacity onPress={() => goToProfile(list[1].user_id)}>
                   <Image
                     style={{
                       width: 64,
                       height: 64,
                       borderRadius: 32,
-                      borderColor: main_color,
+                      borderColor: '#fff',
                       borderWidth: 1,
                     }}
                     source={{ uri: list[1].user_avatar }}
@@ -245,13 +245,13 @@ function Ranking() {
               </View>
               <View style={{ ...styles.col }}>
                 <View>
-                  <TouchableOpacity onPress={() => goToProfile(list[0].id)}>
+                  <TouchableOpacity onPress={() => goToProfile(list[0].user_id)}>
                     <Image
                       style={{
                         width: 88,
                         height: 88,
                         borderRadius: 44,
-                        borderColor: main_color,
+                        borderColor: '#ede437',
                         borderWidth: 1,
                       }}
                       source={{ uri: list[0].user_avatar }}
@@ -290,13 +290,13 @@ function Ranking() {
                 <Point point={list[0].total_point} />
               </View>
               <View style={{ ...styles.col, marginTop: 32 }}>
-                <TouchableOpacity onPress={() => goToProfile(list[2].id)}>
+                <TouchableOpacity onPress={() => goToProfile(list[2].user_id)}>
                   <Image
                     style={{
                       width: 64,
                       height: 64,
                       borderRadius: 32,
-                      borderColor: main_color,
+                      borderColor: '#fff',
                       borderWidth: 1,
                     }}
                     source={{ uri: list[2].user_avatar }}

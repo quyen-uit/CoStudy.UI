@@ -46,6 +46,7 @@ import PickField from 'components/screen/PickField';
 import Report from 'components/screen/Report';
 import Ranking from 'components/screen/Ranking';
 import UserNearBy from 'components/screen/UserNearBy';
+import HelpPost from 'components/screen/HelpPost';
 const Stack = createStackNavigator();
 
 const {
@@ -67,6 +68,7 @@ const {
   video,
   ranking,
   nearby,
+  helpPost,
 } = navigationConstants;
 
 function AppNavigator() {
@@ -245,8 +247,6 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
-
-         
         }}
       />
       <Stack.Screen
@@ -286,7 +286,7 @@ function AppNavigator() {
 
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity  >
+              <TouchableOpacity>
                 <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
@@ -308,8 +308,8 @@ function AppNavigator() {
 
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
           ),
@@ -330,8 +330,30 @@ function AppNavigator() {
 
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={helpPost}
+        component={HelpPost}
+        options={{
+          title: helpPost,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
           ),

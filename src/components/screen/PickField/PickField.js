@@ -68,7 +68,7 @@ function PickField() {
               }
             }}
           >
-            <Text style={{ color: '#fff', fontSize: 16 }}>OK</Text>
+            <Text style={{ color: '#fff', fontSize: 16 }}>Thay đổi</Text>
           </TouchableOpacity>
         </View>
       ),
@@ -130,14 +130,14 @@ function PickField() {
               >
                 <View
                   style={{
-                    borderColor: item.isPick ? '#fff' : main_2nd_color,
-                    backgroundColor: item.isPick ? main_2nd_color : '#fff',
+                    borderColor: item.isPick ? '#ededed' : main_2nd_color,
+                    backgroundColor: item.isPick ? main_2nd_color : '#ededed',
                     ...styles.box,
                   }}
                 >
                   <Text
                     style={{
-                      color: item.isPick ? '#fff' : main_2nd_color,
+                      color: item.isPick ? '#ededed' : main_2nd_color,
                       ...styles.txtField,
                     }}
                   >
@@ -159,7 +159,7 @@ export default PickField;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#fff',
     flex: 1,
   },
   containerField: {
@@ -173,7 +173,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 100,
     margin: 8,
-
     borderWidth: 1,
   },
   txtField: {

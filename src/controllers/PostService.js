@@ -15,6 +15,12 @@ class PostService {
   static async getPostById(jwtToken, id) {
     return await getAPI(jwtToken).get(api + `Post/` + id);
   }
+  static async getHelpPostById(jwtToken, id) {
+    return await getAPI(jwtToken).get(api + `Post/match-user?postId=${id}`);
+  }
+  static async getViolenceWord(jwtToken) {
+    return await getAPI(jwtToken).get(api + `ViolenceWord?Skip=0&Count=40`);
+  }
   // static async getTimeline(jwtToken, skip, count) {
   //   // return await getAPI(jwtToken).post(api + `Post/timeline/skip/${skip}/count/${count}`);
   //   return await getAPI(jwtToken).post(api + `Post/timeline`, {
@@ -27,8 +33,8 @@ class PostService {
     return await getAPI(jwtToken).post(api + `Post/news-feed`, {
       skip: skip,
       count: count,
-      from_date: '2020-06-11T12:57:49.993Z' ,
-      to_date: '2025-06-11T12:57:49.993Z'
+      from_date: '2020-06-11T12:57:49.993Z',
+      to_date: '2025-06-11T12:57:49.993Z',
     });
   }
   static async getSavedPost(jwtToken, params) {
@@ -51,10 +57,10 @@ class PostService {
   static async deletePost(jwtToken, oid) {
     return await getAPI(jwtToken).post(api + 'Post/modified-post-status', {
       post_id: oid,
-      status: 4
+      status: 4,
     });
   }
- 
+
   static async upvote(jwtToken, oid) {
     return await getAPI(jwtToken).post(api + 'Post/upvote/' + oid, { id: oid });
   }
@@ -84,8 +90,6 @@ class PostService {
   }
 
   static async filterPost(jwtToken, params) {
-     
-
     return await getAPI(jwtToken).post(api + `Post/filter`, {
       skip: params.skip,
       count: params.count,

@@ -120,6 +120,7 @@ function Notify() {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification
       );
+      
       if (res.author_id != userInfo.id) {
         Toast.show({
           type: 'success',
@@ -131,7 +132,6 @@ function Notify() {
           ).content,
           visibilityTime: 2000,
         });
-        console.log(res);
         setList([
           {
             author_avatar: res.author_avatar,
@@ -140,6 +140,8 @@ function Notify() {
             object_thumbnail: res.object_thumbnail,
             object_id: res.object_id,
             is_read: false,
+            notification_type: res.notification_type,
+            oid: res.oid
             // isUnread: true,
           },
           ...list,

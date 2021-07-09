@@ -154,6 +154,8 @@ function Post(props) {
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [visibleAlert, setVisibleAlert] = useState(false);
   const [bodyAlert, setBodyAlert] = useState('');
+  const [violenceWords, setViolenceWords] = useState([]);
+
   const showAlert = (title, body) => {
     setBodyAlert(body);
     setVisibleAlert(true);
@@ -232,6 +234,9 @@ function Post(props) {
     if (refreshing) setRefreshing(false);
     let isOut = false;
     const fetchData = async () => {
+      await PostService.getViolenceWord(jwtToken)
+        .then(res => setViolenceWords(res.data.result))
+        .catch(err => console.log(err));
       await CommentService.getCommentByPostId(jwtToken, {
         oid: post.oid,
         skip: 0,
@@ -461,6 +466,14 @@ function Post(props) {
     if (comment.trim() == '') {
       showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
       return;
+    }
+    if (violenceWords.length > 0) {
+      if (violenceWords.filter(i => comment.includes(i.value))) {
+        showAlert('Thiếu thông tin', 'Bình luận chứa từ ngữ không phù hợp.');
+        setIsLoading(false);
+        return;
+      }
+      
     }
     flatList.current.scrollToOffset({ animated: true, offset: 0 });
 

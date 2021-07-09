@@ -944,6 +944,7 @@ function Profile({ userId }) {
         onVisible={onVisibleCallBack}
         onDelete={onDeleteCallback}
         onNotExist={onNotExist}
+        inProfile={true}
       />
     </View>
   );

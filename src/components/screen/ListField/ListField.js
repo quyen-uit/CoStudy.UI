@@ -120,23 +120,40 @@ function ListField() {
           borderRadius: 4,
           alignItems: 'center',
           padding: 8,
+          borderWidth: 1,
+          borderColor: main_color,
         }}
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 16, color: item.color }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 16, color: '#000' }}>
             {index + 1}. {item.field_name}
           </Text>
-          <Icon name={'angle-double-right'} style={{marginHorizontal: 4, marginTop: 2}} color={main_color}/>
-          <Point point={item.point} color={'#000'} />
+          <Icon
+            name={'angle-double-right'}
+            style={{ marginHorizontal: 4, marginTop: 2 }}
+            color={main_color}
+          />
+          <Point point={item.point} color={main_color} />
         </View>
-        <Image source={item.icon} />
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <Text style={{ fontSize: 16, color: item.color, marginRight: 4 }}>
+            {item.level_description}
+          </Text>
+          <Image source={item.icon} />
+        </View>
       </View>
     );
   };
   return (
     <View
       style={{
-        backgroundColor: '#ccc',
+        backgroundColor: '#fff',
         flex: 1,
       }}
     >
@@ -166,7 +183,7 @@ function ListField() {
                 width: 100,
                 height: 100,
                 borderRadius: 50,
-                borderColor: main_2nd_color,
+                borderColor: main_color,
                 borderWidth: 8,
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -175,11 +192,15 @@ function ListField() {
               }}
             >
               <Text
-                style={{ fontSize: 40, color: main_color, fontWeight: 'bold' }}
+                style={{
+                  fontSize: 40,
+                  color: main_2nd_color,
+                  fontWeight: 'bold',
+                }}
               >
                 {fields.length}
               </Text>
-              <Text style={{ marginTop: -10, color: main_color }}>
+              <Text style={{ marginTop: -10, color: main_2nd_color }}>
                 lĩnh vực
               </Text>
             </View>

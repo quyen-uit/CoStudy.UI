@@ -252,8 +252,6 @@ function Search() {
   useEffect(() => {
     if (typeof route.params?.fieldId != 'undefined') {
       setIsLoading(true);
-
-      onSearch();
     }
 
     return () => {};
@@ -262,8 +260,9 @@ function Search() {
     let isRender = true;
     if (route.params?.fieldId) setIsLoading(true);
     const fetchData = async () => {
+      if (fieldPickers.length > 0) return;
       await UserService.getAllField(jwtToken)
-        .then(response => {
+        .then(async response => {
           if (isRender) {
             response.data.result.forEach(element => {
               element.isPick = false;
@@ -272,7 +271,62 @@ function Search() {
               }
             });
             setFieldPickers(response.data.result);
-            setIsLoading(false);
+            //onsearchresponse.data.result
+            setStop(false);
+            let temp = [];
+            response.data.result.forEach(x => {
+              if (x.isPick) temp.push({ field_id: x.oid });
+            });
+
+            let sortObject = getSortObject();
+            let sortType = getSortType();
+            setIsLoading(true);
+            // const tmp = [];
+            // fieldPickers.forEach(item => {
+            //   if (item.isPick) tmp.push(item);
+            // });
+            //let fields = getFieldPick();
+            //console.log(rangeDate);
+            // await UserService.getCurrentUser(jwtToken)
+            //   .then(async response => {
+            await PostService.filterPost(jwtToken, {
+              skip: 0,
+              count: 5,
+              search: search,
+              // startDate: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+              // endDate: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+              startDate: rangeDate.startDate,
+              endDate: rangeDate.endDate,
+              sortObject: sortObject,
+              sortType: sortType,
+              fields: temp,
+            })
+              .then(async res => {
+                if (res.data.result.data.length == 0) {
+                  setIsLoading(false);
+                  return;
+                }
+
+                res.data.result.data.forEach(item => {
+                  // response.data.result.post_saved.forEach(i => {
+                  //   if (i == item.oid) {
+                  //     item.saved = true;
+                  //   } else item.saved = false;
+                  // });
+                  item.saved = item.is_save_by_current;
+                  // set vote
+                  item.vote = 0;
+                  if (item.is_downvote_by_current) item.vote = -1;
+                  else if (item.is_vote_by_current) item.vote = 1;
+                });
+                setCountResult(
+                  res.data.result.record_remain + res.data.result.data.length
+                );
+                setPosts(res.data.result.data);
+                setIsLoading(false);
+                setSkip(5);
+              })
+              .catch(error => console.log(error));
           }
         })
         .catch(error => console.log(error));
@@ -281,7 +335,7 @@ function Search() {
     return () => {
       isRender = false;
     };
-  }, []);
+  }, [route.params?.fieldId]);
   useEffect(() => {
     let count = 0;
     if (filterComment != -1) count += 1;
@@ -293,166 +347,8 @@ function Search() {
     setCountFilter(count);
     return () => {};
   }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
-  // useEffect(() => {
-  //   let tmp = 0;
-  //   if (filterComment > 0) tmp = tmp + 1;
-  //   if (filterTime > 0) tmp = tmp + 1;
-  //   if (filterVote > 0) tmp = tmp + 1;
-  //   fieldPickers.forEach(i => {
-  //     if (i.isPick) tmp = tmp + 1;
-  //   });
-  //   setCountFilter(tmp);
-  //   //sort
-
-  //   if (filterTime == 0) {
-  //     let tmpList = posts.sort(
-  //       (d1, d2) => new Date(d1.modified_date) - new Date(d2.modified_date)
-  //     );
-  //     if (tmpList.length > 0) setPosts([...tmpList]);
-  //   } else if (filterTime == 1) {
-  //     let tmpList = posts.sort(
-  //       (d1, d2) => new Date(d2.modified_date) - new Date(d1.modified_date)
-  //     );
-  //     if (tmpList.length > 0) setPosts([...tmpList]);
-  //   }
-  //   // let type;
-  //   // let order;
-  //   // if (filterComment > 0) {
-  //   //   type = 0;
-  //   //   if(filterComment == 0)
-  //   //   order = 0;
-  //   //   else order = 1;
-  //   // }
-  //   // if (filterTime > 0)  {type = 1;
-  //   //   if(filterComment == 0)
-  //   //   order = 0;
-  //   //   else order = 1;}
-  //   // if (filterVote > 0)  {type = 2
-  //   //   if(filterComment == 0)
-  //   //   order = 0;
-  //   //   else order = 1;}
-
-  //   if (filterComment == 0) {
-  //     let tmpList = posts.sort(
-  //       (d1, d2) => d1.comments_countd - d2.comments_countd
-  //     );
-
-  //     if (tmpList.length > 0) {
-  //       setPosts([]);
-  //       setPosts([...tmpList]);
-  //     }
-  //   } else if (filterComment == 1) {
-  //     let tmpList = posts.sort(
-  //       (d1, d2) => d2.comments_countd - d1.comments_countd
-  //     );
-  //     if (tmpList.length > 0) setPosts([...tmpList]);
-  //   }
-  //   if (filterVote == 1) {
-  //     let tmpList = posts.sort((d1, d2) => d1.vote - d2.vote);
-  //     if (tmpList.length > 0) setPosts([...tmpList]);
-  //   } else if (filterVote == 0) {
-  //     let tmpList = posts.sort((d1, d2) => d2.vote - d1.vote);
-  //     if (tmpList.length > 0) setPosts([...tmpList]);
-  //   }
-  // }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
-  // useEffect(() => {
-  //   if (isFirst) {
-  //     setIsFirst(false);
-  //     return;
-  //   }
-  //   let isRender = true;
-  //   if (isPostSearch) {
-  //     setIsLoading(true);
-  //     const tmp = [];
-  //     fieldPickers.forEach(item => {
-  //       if (item.isPick) tmp.push(item);
-  //     });
-
-  //     const fetchData1 = async () => {
-  //       await getAPI(jwtToken)
-  //         .get(api + 'User/current')
-  //         .then(async response => {
-  //           await getAPI(jwtToken)
-  //             .post(api + `Post/post/filter`, {
-  //               skip: 0,
-  //               count: 3,
-  //               keyword: keyword,
-  //             })
-  //             .then(async res => {
-  //               res.data.result.forEach(item => {
-  //                 response.data.result.post_saved.forEach(i => {
-  //                   if (i == item.oid) {
-  //                     item.saved = true;
-  //                   } else item.saved = false;
-  //                 });
-  //                 item.vote = 0;
-  //                 response.data.result.post_upvote.forEach(i => {
-  //                   if (i == item.oid) {
-  //                     item.vote = 1;
-  //                   }
-  //                 });
-  //                 response.data.result.post_downvote.forEach(i => {
-  //                   if (i == item.oid) {
-  //                     item.vote = -1;
-  //                   }
-  //                 });
-  //               });
-
-  //               setPosts(res.data.result);
-
-  //               setIsLoading(false);
-  //               setSkip(3);
-  //             })
-  //             .catch(error => console.log(error));
-  //         })
-  //         .catch(error => console.log(error));
-  //     };
-
-  //     fetchData1();
-  //   } else {
-  //     setIsLoading(true);
-  //     const tmp = [];
-  //     fieldPickers.forEach(item => {
-  //       if (item.isPick) tmp.push(item);
-  //     });
-
-  //     const fetchData1 = async () => {
-  //       await getAPI(jwtToken)
-  //         .post(api + 'User/user/filter', {
-  //           keyword: keyword,
-  //           skip: 0,
-  //           count: 99,
-  //         })
-  //         .then(async res => {
-  //           await getAPI(jwtToken)
-  //             .get(
-  //               api +
-  //                 'User/following?UserId=' +
-  //                 userInfo.id +
-  //                 '&Skip=0&Count=99'
-  //             )
-  //             .then(following => {
-  //               if (isRender) {
-  //                 res.data.result.forEach(er => {
-  //                   er.following = false;
-  //                   following.data.result.forEach(ing => {
-  //                     if (er.oid == ing.to_id) er.following = true;
-  //                   });
-  //                 });
-  //                 setIsLoading(false);
-  //                 setUsers(res.data.result);
-  //               }
-  //             });
-  //         })
-  //         .catch(error => console.log(error));
-  //     };
-
-  //     fetchData1();
-  //   }
-  //   return () => {
-  //     isRender = false;
-  //   };
-  // }, [keyword]);
+  
+  
   const getSortObject = () => {
     if (filterComment != -1) return 2;
     else if (filterVote != -1) return 1;
@@ -484,13 +380,12 @@ function Search() {
     let sortType = getSortType();
     if (isPostSearch) {
       setIsLoading(true);
-      const tmp = [];
-      fieldPickers.forEach(item => {
-        if (item.isPick) tmp.push(item);
-      });
-
+      // const tmp = [];
+      // fieldPickers.forEach(item => {
+      //   if (item.isPick) tmp.push(item);
+      // });
       let fields = getFieldPick();
-      console.log(rangeDate);
+      //console.log(rangeDate);
       // await UserService.getCurrentUser(jwtToken)
       //   .then(async response => {
       await PostService.filterPost(jwtToken, {
@@ -506,6 +401,11 @@ function Search() {
         fields: fields,
       })
         .then(async res => {
+          if (res.data.result.data.length == 0) {
+            setIsLoading(false);
+            return;
+          }
+
           res.data.result.data.forEach(item => {
             // response.data.result.post_saved.forEach(i => {
             //   if (i == item.oid) {
@@ -532,10 +432,10 @@ function Search() {
       setIsLoading(true);
       let fields = getStringFieldPick();
 
-      const tmp = [];
-      fieldPickers.forEach(item => {
-        if (item.isPick) tmp.push(item);
-      });
+      // const tmp = [];
+      // fieldPickers.forEach(item => {
+      //   if (item.isPick) tmp.push(item);
+      // });
       await UserService.filterUser(jwtToken, {
         skip: 0,
         count: 10,
@@ -772,7 +672,7 @@ function Search() {
                       color: '#545454',
                     }}
                   >
-                    Có {countResult} bài đăng được tìm thấy.
+                    Có {countResult} bài đăng được tìm thấy
                   </Text>
                 ) : // </View>
                 null}

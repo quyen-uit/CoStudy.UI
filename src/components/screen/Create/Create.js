@@ -53,7 +53,8 @@ const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 import Modal, {
   ModalContent,
-  BottomModal,
+  BottomModal,  ModalFooter,
+  ModalButton,
   SlideAnimation,
 } from 'react-native-modals';
 import Badge from 'components/common/Badge';
@@ -74,12 +75,19 @@ function Create() {
   const [levelList, setLevelList] = useState([]);
   const [currFieldId, setCurrFieldId] = useState('');
   const userInfo = useSelector(getBasicInfo);
-
+  const [violenceWords, setViolenceWords] = useState([]);
   const route = useRoute();
   const onUpvoteCallback = useCallback(value => console.log('up vote'));
   const onDownvoteCallback = useCallback(value => console.log('down vote'));
   const onCommentCallback = useCallback(value => console.log('comment'));
   const onVoteCallback = useCallback(value => console.log('vote'));
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   const config = {
     headers: { Authorization: `Bearer ${jwtToken}` },
   };
@@ -113,6 +121,9 @@ function Create() {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
+      await PostService.getViolenceWord(jwtToken)
+        .then(res => setViolenceWords(res.data.result))
+        .catch(err => console.log(err));
       const getCurrUser = await UserService.getCurrentUser(jwtToken)
         .then(response => {
           if (isRender) {
@@ -214,13 +225,25 @@ function Create() {
   const upload = async () => {
     setIsLoading(true);
     if (title == '') {
-      Alert.alert('Thiếu thông tin', 'Vui lòng nhập tiêu đề');
+      showAlert('Thiếu thông tin', 'Vui lòng nhập tiêu đề');
       setIsLoading(false);
       return;
     } else if (content == '') {
-      Alert.alert('Thiếu thông tin', 'Vui lòng nhập nội dung');
+      showAlert('Thiếu thông tin', 'Vui lòng nhập nội dung');
       setIsLoading(false);
       return;
+    }
+    if (violenceWords.length > 0) {
+      if (violenceWords.filter(i => title.includes(i.value))) {
+        showAlert('Thiếu thông tin', 'Tiêu đề chứa từ ngữ không phù hợp.');
+        setIsLoading(false);
+        return;
+      }
+      if (violenceWords.filter(i => content.includes(i.value))) {
+        showAlert('Thiếu thông tin', 'Nội dung chứa từ ngữ không phù hợp.');
+        setIsLoading(false);
+        return;
+      }
     }
     ToastAndroid.show('Đang đăng bài...', ToastAndroid.SHORT);
     let list = [];
@@ -828,6 +851,27 @@ function Create() {
           </TouchableOpacity>
         </View>
       ) : null}
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

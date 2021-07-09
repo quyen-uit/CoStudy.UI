@@ -61,22 +61,23 @@ const PostOptionModal = ({ ...rest }) => {
   const [visibleDelete, setVisibleDelete] = useState(false);
 
   useEffect(() => {
-    if(rest.visible == false) return;
+    if (rest.visible == false) return;
     if (rest.id != null) {
       //setSaved(typeof rest.saved == 'undefined' ? null : rest.saved);
-      const fetch = async () => await PostService.getPostById(curUser.jwtToken, rest.id)
-        .then(res => {
-          if (res.data.code == 404) {
-            rest.onNotExist(post.oid);
-            ToastAndroid.show('Bài đăng không tồn tại.', 1000);
-          } else {
-            setSaved(res.data.result.is_save_by_current);
-            if (res.data.result.author_id == curUser.oid) setIsMe(true);
-            else setIsMe(false);
-          }
-        })
-        .catch(err => console.log(err));
-       fetch();
+      const fetch = async () =>
+        await PostService.getPostById(curUser.jwtToken, rest.id)
+          .then(res => {
+            if (res.data.code == 404) {
+              rest.onNotExist(post.oid);
+              ToastAndroid.show('Bài đăng không tồn tại.', 1000);
+            } else {
+              setSaved(res.data.result.is_save_by_current);
+              if (res.data.result.author_id == curUser.oid) setIsMe(true);
+              else setIsMe(false);
+            }
+          })
+          .catch(err => console.log(err));
+      fetch();
     }
     return () => {};
   }, [rest.id, isMe, saved, rest.saved, rest.visible]);
@@ -263,6 +264,25 @@ const PostOptionModal = ({ ...rest }) => {
         <ModalContent style={styles.content}>
           <TouchableHighlight
             underlayColor={'#000'}
+            onPress={async () => {
+              navigation.navigate(navigationConstants.helpPost, {
+                id: rest.id,
+              });
+              rest.onVisible(false);
+            }}
+          >
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'hands-helping'}
+                color={main_color}
+                size={24}
+                style={{ marginLeft: 5 }}
+              />
+              <Text style={styles.txtOption}>Tìm người trợ giúp</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight
+            underlayColor={'#000'}
             onPress={async () => setModalOrder(2)}
           >
             <View style={styles.optionContainer}>
@@ -290,8 +310,8 @@ const PostOptionModal = ({ ...rest }) => {
               />
               <Text style={styles.txtOption}>
                 {saved
-                  ? 'Xóa khỏi danh sách quan tâm'
-                  : 'Thêm vào danh sách quan tâm'}
+                  ? ' Xóa khỏi danh sách quan tâm'
+                  : ' Thêm vào danh sách quan tâm'}
               </Text>
             </View>
           </TouchableHighlight>
@@ -327,7 +347,7 @@ const PostOptionModal = ({ ...rest }) => {
                   <Icon
                     name={'times'}
                     color={main_color}
-                    size={24}
+                    size={28}
                     style={{ marginHorizontal: 2 }}
                   />
                   <Text style={styles.txtOption}> Xóa bài đăng</Text>

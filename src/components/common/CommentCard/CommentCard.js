@@ -194,13 +194,13 @@ function CommentCard(props) {
                           moment(comment.created_date),
                           'hours'
                         ) + ' giờ trước'
-                      : moment(comment.created_date).format('hh:mm DD-MM-YYYY')}
+                      : moment(comment.created_date).format('DD-MM-YYYY')}
                   </Text>
                 </View>
                 <View style={styles.row}>
                   <View style={styles.rowFlexStart}>
                     <Text style={styles.txtVoteNumber}>{comment_count}</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={()=> GoToComment()}>
                       <FontAwesome5
                         name={'comment'}
                         size={18}

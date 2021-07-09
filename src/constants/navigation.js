@@ -27,9 +27,10 @@ const navigationConstants = {
   listField: 'Lĩnh vực',
   report: 'Báo cáo',
   video: 'Gọi',
-  ranking: 'Xếp hạng',
+  ranking: 'Bảng xếp hạng',
   forgot: 'Quên mật khẩu',
-  nearby: 'Tìm quanh đây'
+  nearby: 'Tìm quanh đây',
+  helpPost: 'Người trợ giúp'
 };
 
 export default navigationConstants;
