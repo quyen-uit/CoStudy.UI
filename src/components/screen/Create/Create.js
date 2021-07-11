@@ -48,12 +48,14 @@ import LevelService from 'controllers/LevelService';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
+import { Button, Menu, Divider, Provider } from 'react-native-paper';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 import Modal, {
   ModalContent,
-  BottomModal,  ModalFooter,
+  BottomModal,
+  ModalFooter,
   ModalButton,
   SlideAnimation,
 } from 'react-native-modals';
@@ -83,6 +85,8 @@ function Create() {
   const onVoteCallback = useCallback(value => console.log('vote'));
   const [visibleAlert, setVisibleAlert] = useState(false);
   const [bodyAlert, setBodyAlert] = useState('');
+  const [type, setType] = useState({ name: 'Câu hỏi', type: 0 });
+  const [visibleMenu, setVisibleMenu] = useState(false);
 
   const showAlert = (title, body) => {
     setBodyAlert(body);
@@ -110,7 +114,7 @@ function Create() {
         </View>
       ),
     });
-  }, [navigation, title, listImg, content, isLoading]);
+  }, [navigation, title, listImg, content, isLoading, type]);
   useLayoutEffect(() => {
     navigation.reset({
       routes: [{ name: navigationConstants.tabNav }],
@@ -138,6 +142,10 @@ function Create() {
               .then(async resPost => {
                 setTitle(resPost.data.result.title);
                 setContent(resPost.data.result.string_contents[0].content);
+                setType({
+                  name: resPost.data.result.post_type_name,
+                  type: resPost.data.result.post_type,
+                });
                 response.data.result.forEach(element => {
                   element.isPick = false;
                   element.level_id = '6031da2eba003751a1470d42';
@@ -196,7 +204,7 @@ function Create() {
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
       compressImageQuality: 1,
@@ -210,7 +218,7 @@ function Create() {
   const cameraImage = () => {
     ImagePicker.openCamera({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
       compressImageQuality: 1,
@@ -233,18 +241,18 @@ function Create() {
       setIsLoading(false);
       return;
     }
-    if (violenceWords.length > 0) {
-      if (violenceWords.filter(i => title.includes(i.value))) {
-        showAlert('Thiếu thông tin', 'Tiêu đề chứa từ ngữ không phù hợp.');
-        setIsLoading(false);
-        return;
-      }
-      if (violenceWords.filter(i => content.includes(i.value))) {
-        showAlert('Thiếu thông tin', 'Nội dung chứa từ ngữ không phù hợp.');
-        setIsLoading(false);
-        return;
-      }
-    }
+    // if (violenceWords.length > 0) {
+    //   if (violenceWords.filter(i => title.includes(i.value)).length > 0) {
+    //     showAlert('Thiếu thông tin', 'Tiêu đề chứa từ ngữ không phù hợp.');
+    //     setIsLoading(false);
+    //     return;
+    //   }
+    //   if (violenceWords.filter(i => content.includes(i.value)).length > 0) {
+    //     showAlert('Thiếu thông tin', 'Nội dung chứa từ ngữ không phù hợp.');
+    //     setIsLoading(false);
+    //     return;
+    //   }
+    // }
     ToastAndroid.show('Đang đăng bài...', ToastAndroid.SHORT);
     let list = [];
     // test edit
@@ -340,6 +348,7 @@ function Create() {
       if (item.isPick == true)
         tempFields.push({ field_id: item.oid, level_id: item.level_id });
     });
+
     navigation.navigate(navigationConstants.tabNav, {
       screen: navigationConstants.newsfeed,
       params: {
@@ -347,6 +356,7 @@ function Create() {
         content: content.trim(),
         listImg: listImg,
         fields: tempFields,
+        type: type.type,
       },
     });
     // return;
@@ -425,22 +435,73 @@ function Create() {
               {data ? data.first_name : null} {data ? data.last_name : null}
             </Text>
           </View>
-          {/* <View style={styles.picker}>
-            <Picker
-              dropdownIconColor={'#ffffff'}
-              itemStyle={{ fontSize: 12 }}
-              selectedValue={'a'}
-              style={{
-                height: 50,
-                width: 140,
-                color: '#fff',
+          <Menu
+            visible={visibleMenu}
+            onDismiss={() => setVisibleMenu(false)}
+            anchor={
+              <TouchableOpacity
+                onPress={() => {
+                  if (!route.params.isEdit) setVisibleMenu(true);
+                }}
+              >
+                <View
+                  style={{
+                    ...styles.picker,
+                    backgroundColor: route.params.isEdit
+                      ? '#ccc'
+                      : main_2nd_color,
+                  }}
+                >
+                  <Text
+                    style={{ color: route.params.isEdit ? '#000' : '#fff', marginHorizontal: 4 }}
+                  >
+                    {type.name}
+                  </Text>
+                  {route.params.isEdit ? null : (
+                    <Icon
+                      name={'sort-down'}
+                      size={20}
+                      style={{
+                        marginHorizontal: 4,
+                        alignSelf: 'center',
+                        marginTop: -6,
+                      }}
+                      color={'#fff'}
+                    />
+                  )}
+                  {/* <Picker
+                dropdownIconColor={'#ffffff'}
+                itemStyle={{ fontSize: 12 }}
+                selectedValue={'a'}
+                style={{
+                  height: 50,
+                  width: 140,
+                  color: '#fff',
+                }}
+                //onValueChange={(itemValue, itemIndex) => alert(itemValue)}
+              >
+                <Picker.Item label="Câu hỏi" value="0" />
+                <Picker.Item label="Hướng dẫn" value="1" />
+              </Picker> */}
+                </View>
+              </TouchableOpacity>
+            }
+          >
+            <Menu.Item
+              onPress={() => {
+                setType({ name: 'Câu hỏi', type: 0 });
+                setVisibleMenu(false);
               }}
-              //onValueChange={(itemValue, itemIndex) => alert(itemValue)}
-            >
-              <Picker.Item label="Công khai" value="public" />
-              <Picker.Item label="Riêng tư" value="private" />
-            </Picker>
-          </View> */}
+              title="Câu hỏi"
+            />
+            <Menu.Item
+              onPress={() => {
+                setType({ name: 'Chia sẻ', type: 1 });
+                setVisibleMenu(false);
+              }}
+              title="Chia sẻ"
+            />
+          </Menu>
         </View>
 
         <View style={styles.title}>

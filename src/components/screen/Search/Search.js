@@ -42,6 +42,7 @@ import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
 import FollowService from 'controllers/FollowService';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
+import { Menu } from 'react-native-paper';
 
 function UserCard({ item }) {
   const [loading, setLoading] = useState(false);
@@ -167,6 +168,9 @@ function Search() {
   const [filterTime, setFilterTime] = useState(-1);
   const [filterVote, setFilterVote] = useState(-1);
   const [filterComment, setFilterComment] = useState(-1);
+  const [filterType, setFilterType] = useState(2);
+  const [listHistory, setListHistory] = useState([]);
+
   const [amountField, setAmoutField] = useState(0);
   const [countResult, setCountResult] = useState(0);
   // data
@@ -199,6 +203,8 @@ function Search() {
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
+  const [visibleMenu, setVisibleMenu] = useState(false);
+
   const onViewImage = React.useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
@@ -246,13 +252,50 @@ function Search() {
   }, []);
   useEffect(() => {
     reset();
-
+    const fetch = async () => {
+      if (isPostSearch)
+        await PostService.getSearchHistory(jwtToken)
+          .then(res => {
+            res.data.result = res.data.result.filter(
+              i => i.post_value.content_filter != ''
+            );
+            setListHistory(
+              res.data.result.map(i => {
+                return {
+                  key: i.oid,
+                  value: i.post_value.content_filter,
+                };
+              })
+            );
+          })
+          .catch(err => console.log(err));
+      else
+        await UserService.getSearchHistory(jwtToken)
+          .then(res => {
+            res.data.result = res.data.result.filter(
+              i => i.user_value.keyword != ''
+            );
+            setListHistory(
+              res.data.result.map(i => {
+                return {
+                  key: i.oid,
+                  value: i.user_value.keyword,
+                };
+              })
+            );
+          })
+          .catch(err => console.log(err));
+    };
+    fetch();
     return () => {};
   }, [isPostSearch]);
   useEffect(() => {
+    return () => {};
+  }, []);
+  useEffect(() => {
     if (typeof route.params?.fieldId != 'undefined') {
       setIsLoading(true);
-    }
+    } else setVisibleMenu(true);
 
     return () => {};
   }, [route.params?.fieldId]);
@@ -260,7 +303,6 @@ function Search() {
     let isRender = true;
     if (route.params?.fieldId) setIsLoading(true);
     const fetchData = async () => {
-      if (fieldPickers.length > 0) return;
       await UserService.getAllField(jwtToken)
         .then(async response => {
           if (isRender) {
@@ -270,6 +312,16 @@ function Search() {
                 if (element.oid == route.params.fieldId) element.isPick = true;
               }
             });
+
+            if (
+              fieldPickers.length > 0 ||
+              typeof route.params?.fieldId == 'undefined'
+            ) {
+              setIsLoading(false);
+              setFieldPickers(response.data.result);
+              return;
+            }
+
             setFieldPickers(response.data.result);
             //onsearchresponse.data.result
             setStop(false);
@@ -289,6 +341,7 @@ function Search() {
             //console.log(rangeDate);
             // await UserService.getCurrentUser(jwtToken)
             //   .then(async response => {
+
             await PostService.filterPost(jwtToken, {
               skip: 0,
               count: 5,
@@ -300,6 +353,7 @@ function Search() {
               sortObject: sortObject,
               sortType: sortType,
               fields: temp,
+              post_type: 2,
             })
               .then(async res => {
                 if (res.data.result.data.length == 0) {
@@ -344,11 +398,18 @@ function Search() {
     fieldPickers.forEach(i => {
       if (i.isPick) count += 1;
     });
+    if (filterType != 2) count += 1;
     setCountFilter(count);
     return () => {};
-  }, [filterComment, filterTime, filterVote, fieldPickers, countFilter]);
-  
-  
+  }, [
+    filterComment,
+    filterTime,
+    filterVote,
+    fieldPickers,
+    countFilter,
+    filterType,
+  ]);
+
   const getSortObject = () => {
     if (filterComment != -1) return 2;
     else if (filterVote != -1) return 1;
@@ -399,6 +460,7 @@ function Search() {
         sortObject: sortObject,
         sortType: sortType,
         fields: fields,
+        post_type: filterType,
       })
         .then(async res => {
           if (res.data.result.data.length == 0) {
@@ -485,6 +547,7 @@ function Search() {
         sortObject: sortObject,
         sortType: sortType,
         fields: fields,
+        post_type: filterType,
       })
         .then(async res => {
           if (res.data.result.data.length < 1) {
@@ -556,6 +619,7 @@ function Search() {
     setFilterTime(-1);
     setFilterVote(-1);
     setCountFilter(0);
+    setFilterType(2);
     //??
     fieldPickers.forEach(element => {
       element.isPick = false;
@@ -585,24 +649,65 @@ function Search() {
           </TouchableOpacity>
         </View>
         <View style={{ flex: 1, justifyContent: 'center' }}>
-          <TextInput
-            style={styles.inputSearch}
-            onChangeText={text => setSearch(text)}
-            value={search}
-          />
-          <View
-            style={{ position: 'absolute', alignSelf: 'flex-end', right: 16 }}
+          <Menu
+            visible={visibleMenu}
+            style={{
+              marginTop: 40,
+              marginLeft: 16,
+              width: deviceWidth - 80,
+              alignItems: 'stretch',
+            }}
+            onDismiss={() => setVisibleMenu(false)}
+            anchor={
+              <View style={{ justifyContent: 'center' }}>
+                <TextInput
+                  style={styles.inputSearch}
+                  pointerEvents="none"
+                  onTouchStart={() => setVisibleMenu(true)}
+                  onChangeText={text => {
+                    if (text == '') setVisibleMenu(true);
+                    else setVisibleMenu(false);
+                    setSearch(text);
+                  }}
+                  value={search}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    alignSelf: 'flex-end',
+                    right: 16,
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={async () => {
+                      Keyboard.dismiss();
+                      setKeyword(search);
+                      setVisibleMenu(false);
+                      await onSearch();
+                    }}
+                  >
+                    <Icon name={'search'} size={24} color={'#000'} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            }
           >
-            <TouchableOpacity
-              onPress={async () => {
-                Keyboard.dismiss();
-                setKeyword(search);
-                await onSearch();
-              }}
-            >
-              <Icon name={'search'} size={24} color={'#000'} />
-            </TouchableOpacity>
-          </View>
+            {listHistory.map(item => (
+              <Menu.Item
+                key={item.key}
+                style={{
+                  alignSelf: 'center',
+                  width: '100%',
+                  marginVertical: -8,
+                }}
+                title={item.value}
+                onPress={() => {
+                  setSearch(item.value);
+                  setVisibleMenu(false);
+                }}
+              />
+            ))}
+          </Menu>
         </View>
       </View>
       <View style={styles.filter}>
@@ -778,6 +883,8 @@ function Search() {
               </TouchableOpacity>
             ) : modalOrder == 1 ? (
               <Text style={styles.md_txtHeader}>Lĩnh vực</Text>
+            ) : modalOrder == 6 ? (
+              <Text style={styles.md_txtHeader}>Loại bài đăng</Text>
             ) : modalOrder == 4 ? (
               <Text style={styles.md_txtHeader}>Khoảng thời gian</Text>
             ) : modalOrder == 2 ? (
@@ -858,6 +965,27 @@ function Search() {
                       <View style={{ flexDirection: 'row' }}></View>
                     </View>
                   </TouchableOpacity>
+                  <TouchableOpacity onPress={() => setModalOrder(6)}>
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>Loại bài đăng</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Text style={styles.md_txtchoose}>
+                          {filterType == 1
+                            ? 'Chia sẻ'
+                            : filterType == 0
+                            ? 'Câu hỏi'
+                            : 'Tất cả'}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
                 </View>
               ) : null}
               <View>
@@ -922,9 +1050,9 @@ function Search() {
                       <View style={{ flexDirection: 'row' }}>
                         <Text style={styles.md_txtchoose}>
                           {filterTime == 1
-                            ? 'Mới nhât'
+                            ? 'Giảm dần'
                             : filterTime == 0
-                            ? 'Cũ nhất'
+                            ? 'Tăng dần'
                             : 'Chưa chọn'}
                         </Text>
                       </View>
@@ -1392,6 +1520,90 @@ function Search() {
                         name={'dot-circle'}
                         size={24}
                         color={filterComment == 0 ? main_color : '#ccc'}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setModalOrder(0);
+                }}
+              >
+                <View
+                  style={{
+                    justifyContent: 'center',
+                    backgroundColor: main_color,
+                    marginHorizontal: 16,
+                    marginBottom: -8,
+                    alignItems: 'center',
+                    paddingVertical: 8,
+                    borderRadius: 8,
+                    marginTop: 8,
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 16, color: '#fff', fontWeight: 'bold' }}
+                  >
+                    Xác nhận
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </ModalContent>
+        ) : modalOrder == 6 ? (
+          <ModalContent>
+            <View>
+              <View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setFilterType(0);
+                    setModalOrder(0);
+                  }}
+                >
+                  <View style={styles.md_field}>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon
+                        name={'question-circle'}
+                        size={20}
+                        color={main_color}
+                      />
+                      <Text style={{ ...styles.md_txtfield, color: '#000' }}>
+                        Câu hỏi
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterType == 0 ? main_color : '#ccc'}
+                      />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View>
+                <TouchableOpacity
+                  onPress={() => {
+                    setFilterType(1);
+                    setModalOrder(0);
+                  }}
+                >
+                  <View style={styles.md_field}>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon
+                        name={'question-circle'}
+                        size={20}
+                        color={main_color}
+                      />
+                      <Text style={styles.md_txtfield}>Chia sẻ</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon
+                        name={'dot-circle'}
+                        size={24}
+                        color={filterType == 1 ? main_color : '#ccc'}
                       />
                     </View>
                   </View>

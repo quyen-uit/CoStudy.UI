@@ -31,6 +31,8 @@ import { actionTypes, update } from 'actions/UserActions';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
+import DateRangePicker from '../../common/DateRangePicker';
+import moment from 'moment';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -61,13 +63,17 @@ function ListPost() {
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
   const [stop, setStop] = useState(false);
-  // 0 main , 1 field, 2 time, 3 vote
+  const [changeFilter, setChangeFilter] = useState(true);
+  const [filterTime, setFilterTime] = useState(1);
+
+  // 0 main , 1 datetime
   const [modalOrder, setModalOrder] = useState(0);
-  const [filterTime, setFilterTime] = useState();
-  const [filterVote, setFilterVote] = useState();
-  const [filterComment, setFilterComment] = useState();
-  const [amountField, setAmountField] = useState(0);
-  const [fieldPickers, setFieldPickers] = useState([]);
+  const [modalFilterVisible, setModalFilterVisible] = useState(false);
+
+  const [rangeDate, setRangeDate] = useState({
+    startDate: moment(moment.now()).subtract(1, 'months'),
+    endDate: moment(moment.now()),
+  });
   const onUnsaveCallback = React.useCallback(id => {
     setPosts(posts.filter(i => i.oid != id));
   });
@@ -95,56 +101,63 @@ function ListPost() {
     dispatch(update(jwtToken));
   }, []);
 
-  useEffect(() => {
-    let isRender = true;
-    const fetchData = async () => {
-      await UserService.getAllField(jwtToken)
-        .then(response => {
-          if (isRender) {
-            response.data.result.forEach(element => {
-              element.isPick = false;
-            });
-            setFieldPickers(response.data.result);
-            setIsLoading(false);
-          }
-        })
-        .catch(error => console.log(error));
-    };
-    fetchData();
-    return () => {
-      isRender = false;
-    };
-  }, []);
+  // useEffect(() => {
+  //   let isRender = true;
+  //   const fetchData = async () => {
+  //     await UserService.getAllField(jwtToken)
+  //       .then(response => {
+  //         if (isRender) {
+  //           response.data.result.forEach(element => {
+  //             element.isPick = false;
+  //           });
+  //           setFieldPickers(response.data.result);
+  //           setIsLoading(false);
+  //         }
+  //       })
+  //       .catch(error => console.log(error));
+  //   };
+  //   fetchData();
+  //   return () => {
+  //     isRender = false;
+  //   };
+  // }, []);
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
     setIsEnd(false);
     setStop(false);
+    setFilterTime(1);
     const fetchData1 = async () => {
       // await UserService.getCurrentUser(jwtToken)
       //   .then(async response => {
-          await PostService.getSavedPost(jwtToken, { skip: 0, count: 5 })
-            .then(res => {
-              res.data.result.forEach(item => {
-                // response.data.result.post_saved.forEach(i => {
-                //   if (i == item.oid) {
-                //     item.saved = true;
-                //   } else item.saved = false;
-                // });
-                item.saved = item.is_save_by_current;
-                // set vote
-                item.vote = 0;
-                if (item.is_downvote_by_current) item.vote = -1;
-                else if (item.is_vote_by_current) item.vote = 1;
-              });
+      await PostService.getSavedPost(jwtToken, {
+        skip: 0,
+        count: 5,
+        from: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+        to: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+        type: filterTime,
+      })
+        .then(res => {
+          res.data.result.forEach(item => {
+            // response.data.result.post_saved.forEach(i => {
+            //   if (i == item.oid) {
+            //     item.saved = true;
+            //   } else item.saved = false;
+            // });
+            item.saved = item.is_save_by_current;
+            // set vote
+            item.vote = 0;
+            if (item.is_downvote_by_current) item.vote = -1;
+            else if (item.is_vote_by_current) item.vote = 1;
+          });
 
-              setPosts(res.data.result);
-              setRefreshing(false);
-              setIsLoading(false);
-              setSkip(5);
-            })
-            .catch(error => console.log(error));
-        // })
-        // .catch(error => console.log(error));
+          setPosts(res.data.result);
+          setRefreshing(false);
+          setIsLoading(false);
+          setSkip(5);
+        })
+        .catch(error => console.log(error));
+      // })
+      // .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -154,104 +167,44 @@ function ListPost() {
     const fetchData1 = async () => {
       // await UserService.getCurrentUser(jwtToken)
       //   .then(async resUser => {
-          await PostService.getSavedPost(jwtToken, { skip: 0, count: 5 })
-            .then(async resPost => {
-              resPost.data.result.forEach(item => {
-                // resUser.data.result.post_saved.forEach(i => {
-                //   if (i == item.oid) {
-                //     item.saved = true;
-                //   } else item.saved = false;
-                // });
-                item.saved = item.is_save_by_current;
+      await PostService.getSavedPost(jwtToken, {
+        skip: 0,
+        count: 5,
+        from: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+        to: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+        type: filterTime,
+      })
+        .then(async resPost => {
+          resPost.data.result.forEach(item => {
+            // resUser.data.result.post_saved.forEach(i => {
+            //   if (i == item.oid) {
+            //     item.saved = true;
+            //   } else item.saved = false;
+            // });
+            item.saved = item.is_save_by_current;
 
-                // set vote
-                item.vote = 0;
-                if (item.is_downvote_by_current) item.vote = -1;
-                else if (item.is_vote_by_current) item.vote = 1;
-              });
-              if (isRender) {
-                setPosts(resPost.data.result);
-                setIsLoading(false);
+            // set vote
+            item.vote = 0;
+            if (item.is_downvote_by_current) item.vote = -1;
+            else if (item.is_vote_by_current) item.vote = 1;
+          });
+          if (isRender) {
+            setPosts(resPost.data.result);
+            setIsLoading(false);
 
-                setSkip(5);
-                // if (route.params?.title) {
-                //   let list = [];
-
-                //   let promises = route.params.listImg.map(async image => {
-                //     const uri = image.path;
-                //     const filename = uuidv4();
-                //     const uploadUri =
-                //       Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-                //     const task = storage()
-                //       .ref('post/' + userInfo.id + '/' + filename)
-                //       .putFile(uploadUri);
-                //     // set progress state
-                //     task.on('state_changed', snapshot => {});
-                //     try {
-                //       await task.then(async response => {
-                //         await storage()
-                //           .ref(response.metadata.fullPath)
-                //           .getDownloadURL()
-                //           .then(url => {
-                //             list = [
-                //               ...list,
-                //               {
-                //                 discription: image.discription,
-                //                 image_hash: url,
-                //               },
-                //             ];
-                //           });
-                //       });
-                //     } catch (e) {
-                //       console.error(e);
-                //     }
-                //   });
-                //   Promise.all(promises).then(async () => {
-                //     await getAPI(jwtToken)
-                //       .post(api + 'Post/add', {
-                //         title: route.params.title,
-                //         string_contents: [
-                //           { content_type: 0, content: route.params.content },
-                //         ],
-                //         image_contents: list,
-                //         fields: route.params.fields,
-                //       })
-                //       .then(response1 => {
-                //         Toast.show({
-                //           type: 'success',
-                //           position: 'top',
-                //           text1: 'Đăng bài thành công.',
-                //           visibilityTime: 2000,
-                //         });
-                //         let tmp = response1.data.result.post;
-                //         tmp.vote = 0;
-                //         response.data.result.post_upvote.forEach(i => {
-                //           if (i == tmp.oid) {
-                //             item.vote = 1;
-                //           }
-                //         });
-                //         response.data.result.post_downvote.forEach(i => {
-                //           if (i == tmp.oid) {
-                //             item.vote = -1;
-                //           }
-                //         });
-                //         if (isRender) setPosts([tmp, ...res.data.result]);
-                //       })
-                //       .catch(error => console.log(error));
-                //   });
-                // }
-              }
-            })
-            .catch(error => console.log(error));
-        // })
-        // .catch(error => console.log(error));
+            setSkip(5);
+          }
+        })
+        .catch(error => console.log(error));
+      // })
+      // .catch(error => console.log(error));
     };
 
     fetchData1();
     return () => {
       isRender = false;
     };
-  }, []);
+  }, [changeFilter]);
 
   // }, [route.params?.title]);
   const fetchData = async () => {
@@ -261,38 +214,44 @@ function ListPost() {
     }
     // await UserService.getCurrentUser(jwtToken)
     //   .then(async resUser => {
-        await PostService.getSavedPost(jwtToken, { skip: skip, count: 5 })
-          .then(res => {
-            if (res.data.result.length < 1) {
-              setStop(true);
-              setIsEnd(false);
-              return;
-            }
-            res.data.result.forEach(item => {
-              // resUser.data.result.post_saved.forEach(i => {
-              //   if (i == item.oid) {
-              //     item.saved = true;
-              //   } else item.saved = false;
-              // });
-              item.saved = item.is_save_by_current;
+    await PostService.getSavedPost(jwtToken, {
+      skip: skip,
+      count: 5,
+      from: moment(rangeDate.startDate).format('YYYY-MM-DD'),
+      to: moment(rangeDate.endDate).format('YYYY-MM-DD'),
+      type: filterTime,
+    })
+      .then(res => {
+        if (res.data.result.length < 1) {
+          setStop(true);
+          setIsEnd(false);
+          return;
+        }
+        res.data.result.forEach(item => {
+          // resUser.data.result.post_saved.forEach(i => {
+          //   if (i == item.oid) {
+          //     item.saved = true;
+          //   } else item.saved = false;
+          // });
+          item.saved = item.is_save_by_current;
 
-              // set vote
-              item.vote = 0;
-              if (item.is_downvote_by_current) item.vote = -1;
-              else if (item.is_vote_by_current) item.vote = 1;
-            });
-            if (isEnd == false) return;
-            if (res.data.result.length > 0) {
-              setPosts(posts.concat(res.data.result));
+          // set vote
+          item.vote = 0;
+          if (item.is_downvote_by_current) item.vote = -1;
+          else if (item.is_vote_by_current) item.vote = 1;
+        });
+        if (isEnd == false) return;
+        if (res.data.result.length > 0) {
+          setPosts(posts.concat(res.data.result));
 
-              setSkip(skip + 5);
-              setIsEnd(false);
-            }
-            // setIsEnd(false);
-          })
-          .catch(error => console.log(error));
-      // })
-      // .catch(error => console.log(error));
+          setSkip(skip + 5);
+          setIsEnd(false);
+        }
+        // setIsEnd(false);
+      })
+      .catch(error => console.log(error));
+    // })
+    // .catch(error => console.log(error));
     // await axios
     //   .get(api + `Post/timeline/skip/${skip}/count/5`, config)
     //   .then(res => {
@@ -302,18 +261,6 @@ function ListPost() {
     //     setSkip(skip + 5);
     //   })
     //   .catch(error => console.log(error));
-  };
-  const reset = () => {
-    setFilterComment();
-    setAmoutField(0);
-    setFilterTime();
-    setFilterVote();
-
-    //??
-    fieldPickers.forEach(element => {
-      element.isPick = false;
-    });
-    setFieldPickers(fieldPickers.filter(item => item));
   };
 
   //modal
@@ -363,10 +310,8 @@ function ListPost() {
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate(navigationConstants.search)}
-          >
-            <Icon name={'search'} size={24} color={'#fff'} />
+          <TouchableOpacity onPress={() => setModalFilterVisible(true)}>
+            <Icon name={'sliders-h'} size={24} color={'#fff'} />
           </TouchableOpacity>
         </View>
       </View>
@@ -484,6 +429,181 @@ function ListPost() {
         onNotExist={onNotExist}
         onUnsave={onUnsaveCallback}
       />
+      <BottomModal
+        visible={modalFilterVisible}
+        swipeDirection={['up', 'down']} // can be string or an array
+        swipeThreshold={100} // default 100
+        useNativeDriver={true}
+        modalTitle={
+          <View
+            style={{
+              justifyContent: 'space-between',
+              backgroundColor: main_color,
+              flexDirection: 'row',
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+            }}
+          >
+            {modalOrder == 0 ? (
+              <Text style={styles.md_txtHeader}>Lọc bài bài đăng</Text>
+            ) : (
+              <TouchableOpacity
+                style={{ marginLeft: 4, alignSelf: 'center' }}
+                onPress={() => setModalOrder(0)}
+              >
+                <Icon name={'arrow-left'} size={16} color={'#fff'} />
+              </TouchableOpacity>
+            )}
+            {modalOrder == 0 ? null : (
+              <Text style={styles.md_txtHeader}>Khoảng thời gian</Text>
+            )}
+          </View>
+        }
+        modalAnimation={
+          new SlideAnimation({
+            initialValue: 0, // optional
+            slideFrom: 'bottom', // optional
+            useNativeDriver: true, // optional
+          })
+        }
+        onSwipeOut={event => {
+          setModalFilterVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalFilterVisible(false);
+
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalFilterVisible(false);
+        }}
+      >
+        {modalOrder == 0 ? (
+          <ModalContent style={{ marginHorizontal: -16 }}>
+            <View>
+              <View>
+                <TouchableOpacity onPress={() => setModalOrder(1)}>
+                  <View style={styles.md_field}>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Icon
+                        name={'question-circle'}
+                        size={20}
+                        color={main_color}
+                      />
+                      <Text style={styles.md_txtchoose}>
+                        {' '}
+                        Từ {moment(rangeDate.startDate).format(
+                          'DD-MM-YYYY'
+                        )}{' '}
+                        đến {moment(rangeDate.endDate).format('DD-MM-YYYY')}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row' }}></View>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View>
+                <View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setFilterTime(1);
+                    }}
+                  >
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>
+                          Thời gian giảm dần
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'dot-circle'}
+                          size={24}
+                          color={filterTime == 1 ? main_color : '#ccc'}
+                        />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+                <View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setFilterTime(0);
+                    }}
+                  >
+                    <View style={styles.md_field}>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'question-circle'}
+                          size={20}
+                          color={main_color}
+                        />
+                        <Text style={styles.md_txtfield}>
+                          Thời gian tăng dần
+                        </Text>
+                      </View>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon
+                          name={'dot-circle'}
+                          size={24}
+                          color={filterTime == 0 ? main_color : '#ccc'}
+                        />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setModalOrder(0);
+                    setModalFilterVisible(false);
+                    setChangeFilter(!changeFilter);
+                  }}
+                >
+                  <View
+                    style={{
+                      justifyContent: 'center',
+                      backgroundColor: main_color,
+                      marginHorizontal: 16,
+                      marginBottom: -8,
+                      alignItems: 'center',
+                      paddingVertical: 8,
+                      borderRadius: 8,
+                      marginTop: 8,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        color: '#fff',
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      Xác nhận
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ModalContent>
+        ) : modalOrder == 1 ? (
+          <ModalContent>
+            <DateRangePicker
+              initialRange={['2018-04-01', '2018-04-10']}
+              onSuccess={(s, e) => {
+                setModalOrder(0);
+                setRangeDate({ startDate: s, endDate: e });
+              }}
+              theme={{ markColor: 'red', markTextColor: 'white' }}
+            />
+          </ModalContent>
+        ) : null}
+      </BottomModal>
     </View>
   );
 }

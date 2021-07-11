@@ -86,22 +86,21 @@ function PostCard(props) {
         if (res.data.code == 404) {
           props.onNotExist(post.oid);
           ToastAndroid.show('Bài đăng không tồn tại.', 1000);
-        } else
-          {
-            post.saved = res.data.result.is_save_by_current;
-            navigation.navigate(navigationConstants.post, {
-              post: post,
-              vote: vote,
-              upvote: upvote,
-              commentCount: comment,
-              downvote: downvote,
-              onUpvote: onUpvoteCallback,
-              onDownvote: onDownvoteCallback,
-              onComment: onCommentCallback,
-              onVote: onVoteCallback,
-              onSave: onSaveCallBack
-            });
-          }
+        } else {
+          post.saved = res.data.result.is_save_by_current;
+          navigation.navigate(navigationConstants.post, {
+            post: post,
+            vote: vote,
+            upvote: upvote,
+            commentCount: comment,
+            downvote: downvote,
+            onUpvote: onUpvoteCallback,
+            onDownvote: onDownvoteCallback,
+            onComment: onCommentCallback,
+            onVote: onVoteCallback,
+            onSave: onSaveCallBack,
+          });
+        }
       })
       .catch(err => console.log(err));
   };
@@ -160,11 +159,29 @@ function PostCard(props) {
                   }}
                 />
               </TouchableOpacity>
-              <View>
-                <TouchableOpacity>
-                  <Text style={styles.txtAuthor}>{post.author_name}</Text>
-                </TouchableOpacity>
+              <View> 
+                <View style={styles.containerHeader}>
+                  <TouchableOpacity onPress={() => GoToProfile()}>
+                    <Text style={styles.txtAuthor}>{post.author_name}</Text>
+                  </TouchableOpacity>
+                  
+                </View>
                 <View style={styles.rowFlexStart}>
+                <View
+                    style={{
+                      marginRight: 4,
+                      paddingHorizontal: 4,
+                      paddingVertical: 2,
+                      borderRadius: 4,
+                      backgroundColor:
+                        post.post_type == 0 ? main_color : main_2nd_color,
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, color: '#fff' }}>
+                      {post.post_type_name}
+                    </Text>
+                  </View>
+                
                   <FontAwesome name={'circle'} size={8} color={active_color} />
                   <Text style={styles.txtCreateDate}>
                     {moment(new Date()).diff(
@@ -185,12 +202,12 @@ function PostCard(props) {
                         ) + ' giờ trước'
                       : moment(post.created_date).format('hh:mm DD-MM-YYYY')}
                   </Text>
-                </View>
+                 </View>
               </View>
             </View>
 
-            <View>
-              <TouchableHighlight
+            <View style={{ marginRight: -8 }}>
+              <TouchableOpacity
                 activeOpacity={1}
                 underlayColor={touch_color}
                 style={styles.btn3Dot}
@@ -201,7 +218,7 @@ function PostCard(props) {
                 <View style={styles.btnOption}>
                   <FontAwesome name={'ellipsis-v'} size={24} color="#c4c4c4" />
                 </View>
-              </TouchableHighlight>
+              </TouchableOpacity>
             </View>
           </View>
           <View>

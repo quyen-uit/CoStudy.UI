@@ -39,10 +39,13 @@ class PostService {
   }
   static async getSavedPost(jwtToken, params) {
     return await getAPI(jwtToken).get(
-      api + `Post/save?skip=${params.skip}&count=${params.count}`
+      api +
+        `Post/save?FromDate=${params.from}&ToDate=${params.to}&OrderType=${params.type}&Skip=${params.skip}&Count=${params.count}`
     );
   }
-
+  static async getSearchHistory(jwtToken) {
+    return await getAPI(jwtToken).get(api + `Post/history?Skip=0&Count=10`);
+  }
   static async getPostByUserId(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'Post/user', {
       skip: params.skip,
@@ -50,7 +53,12 @@ class PostService {
       user_id: params.oid,
     });
   }
-
+  static async addNotify(jwtToken, id) {
+    return await getAPI(jwtToken).post(api + `User/add-notification/${id}`);
+  }
+  static async removeNotify(jwtToken, id) {
+    return await getAPI(jwtToken).post(api + `User/remove-notification/${id}`);
+  }
   static async savePost(jwtToken, oid) {
     return await getAPI(jwtToken).post(api + 'Post/save/' + oid);
   }
@@ -76,6 +84,7 @@ class PostService {
       string_contents: [{ content_type: 0, content: post.content }],
       image_contents: post.list,
       fields: post.fields,
+      post_type: post.type,
     });
   }
 
@@ -98,6 +107,7 @@ class PostService {
       to_date: params.endDate,
       sort_object: params.sortObject, //
       sort_type: params.sortType, // 0 asc, 1 desc
+      post_type: params.post_type,
       level_filter: {
         filter_items: params.fields,
       },

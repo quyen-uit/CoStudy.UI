@@ -196,7 +196,7 @@ function Comment(props) {
       return;
     }
     if (violenceWords.length > 0) {
-      if (violenceWords.filter(i => comment.includes(i.value))) {
+      if (violenceWords.filter(i => comment.includes(i.value)).length > 0) {
         showAlert('Thiếu thông tin', 'Bình luận chứa từ ngữ không phù hợp.');
         setIsLoading(false);
         return;
@@ -278,7 +278,7 @@ function Comment(props) {
       return;
     }
     if (violenceWords.length > 0) {
-      if (violenceWords.filter(i => comment.includes(i.value))) {
+      if (violenceWords.filter(i => comment.includes(i.value)).length > 0) {
         showAlert('Thiếu thông tin', 'Bình luận chứa từ ngữ không phù hợp.');
         setIsLoading(false);
         return;

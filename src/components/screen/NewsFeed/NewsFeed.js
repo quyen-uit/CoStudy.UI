@@ -251,6 +251,7 @@ function NewsFeed() {
                   content: route.params.content,
                   list: list,
                   fields: route.params.fields,
+                  type: route.params.type
                 })
                   .then(response1 => {
                     Toast.show({

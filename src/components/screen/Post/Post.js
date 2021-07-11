@@ -363,7 +363,7 @@ function Post(props) {
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
@@ -378,7 +378,7 @@ function Post(props) {
   const cameraImage = () => {
     ImagePicker.openCamera({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
@@ -468,12 +468,11 @@ function Post(props) {
       return;
     }
     if (violenceWords.length > 0) {
-      if (violenceWords.filter(i => comment.includes(i.value))) {
+      if (violenceWords.filter(i => comment.includes(i.value)).length > 0) {
         showAlert('Thiếu thông tin', 'Bình luận chứa từ ngữ không phù hợp.');
         setIsLoading(false);
         return;
       }
-      
     }
     flatList.current.scrollToOffset({ animated: true, offset: 0 });
 
@@ -604,6 +603,20 @@ function Post(props) {
                         <Text style={styles.txtAuthor}>{post.author_name}</Text>
                       </TouchableOpacity>
                       <View style={styles.rowFlexStart}>
+                        <View
+                          style={{
+                            marginRight: 4,
+                            paddingHorizontal: 4,
+                            paddingVertical: 2,
+                            borderRadius: 4,
+                            backgroundColor:
+                              post.post_type == 0 ? main_color : main_2nd_color,
+                          }}
+                        >
+                          <Text style={{ fontSize: 10, color: '#fff' }}>
+                            {post.post_type_name}
+                          </Text>
+                        </View>
                         <FontAwesome
                           name={'circle'}
                           size={8}

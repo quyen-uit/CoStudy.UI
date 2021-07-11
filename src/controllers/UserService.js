@@ -39,6 +39,11 @@ class UserService {
       { information_name: 'subject', information_value: params.subject },
     ]);
   }
+  static async getSearchHistory(jwtToken) {
+    return await getAPI(jwtToken).get(
+      api + `User/history?Skip=0&Count=10`
+    );
+  }
   static async updateLocation(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'User/update-address', params);
   }

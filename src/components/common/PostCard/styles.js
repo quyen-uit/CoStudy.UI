@@ -1,5 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { main_2nd_color, main_color } from 'constants/colorCommon';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   // container (view)
@@ -10,6 +12,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     bottom: 40,
   },
+  containerHeader: { flexWrap: 'wrap'},
   container: {
     padding: 0,
     margin: 8,
@@ -18,12 +21,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     margin: 8,
-    marginBottom: 4
-  },
+    marginBottom: 4,
+    width: deviceWidth - 34,
+    justifyContent: 'space-between'
+   },
   headerAvatar: {
-    flex: 1,
+    // borderWidth: 1, 
+    // borderColor: main_2nd_color,
     flexDirection: 'row',
     justifyContent: 'flex-start',
+    flexShrink: 1
   },
   rowFlexStart: {
     flexDirection: 'row',
@@ -67,11 +74,8 @@ const styles = StyleSheet.create({
   // button
   btn3Dot: {
     flex: 1,
-    alignItems: 'flex-end',
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+   },
   btnVote: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -101,7 +105,8 @@ const styles = StyleSheet.create({
   txtAuthor: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
+     marginRight: 48
+   },
   txtCreateDate: {
     color: '#c4c4c4',
     fontSize: 12,

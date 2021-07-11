@@ -59,11 +59,13 @@ const PostOptionModal = ({ ...rest }) => {
   const navigation = useNavigation();
   const [modalOrder, setModalOrder] = useState(1);
   const [visibleDelete, setVisibleDelete] = useState(false);
-
+  const [isNotify, setIsNotify] = useState(true);
   useEffect(() => {
     if (rest.visible == false) return;
     if (rest.id != null) {
       //setSaved(typeof rest.saved == 'undefined' ? null : rest.saved);
+      setIsLoading(true);
+
       const fetch = async () =>
         await PostService.getPostById(curUser.jwtToken, rest.id)
           .then(res => {
@@ -71,9 +73,11 @@ const PostOptionModal = ({ ...rest }) => {
               rest.onNotExist(post.oid);
               ToastAndroid.show('Bài đăng không tồn tại.', 1000);
             } else {
+              setIsNotify(res.data.result.is_notify_by_current);
               setSaved(res.data.result.is_save_by_current);
               if (res.data.result.author_id == curUser.oid) setIsMe(true);
               else setIsMe(false);
+              setIsLoading(false);
             }
           })
           .catch(err => console.log(err));
@@ -109,6 +113,31 @@ const PostOptionModal = ({ ...rest }) => {
     fetch();
     return () => {};
   }, []);
+  const onNotify = async id => {
+    rest.onVisible(false);
+    if (isNotify)
+      await PostService.removeNotify(curUser.jwtToken, rest.id)
+        .then(response => {
+          ToastAndroid.show(
+            'Đã tắt thông báo cho bài đăng này.',
+            ToastAndroid.SHORT
+          );
+        })
+        .catch(err => {
+          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+        });
+    else
+      await PostService.addNotify(curUser.jwtToken, rest.id)
+        .then(response => {
+          ToastAndroid.show(
+            'Đã bật thông báo cho bài đăng này.',
+            ToastAndroid.SHORT
+          );
+        })
+        .catch(err => {
+          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+        });
+  };
   const onShare = async id => {
     rest.onVisible(false);
     setModalOrder(1);
@@ -260,7 +289,17 @@ const PostOptionModal = ({ ...rest }) => {
         })
       }
     >
-      {modalOrder == 1 ? (
+      {isLoading ? (
+        <ModalContent
+          style={{ justifyContent: 'center', alignItems: 'center' }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={main_color}
+            style={{ marginVertical: 20 }}
+          />
+        </ModalContent>
+      ) : modalOrder == 1 ? (
         <ModalContent style={styles.content}>
           <TouchableHighlight
             underlayColor={'#000'}
@@ -312,6 +351,27 @@ const PostOptionModal = ({ ...rest }) => {
                 {saved
                   ? ' Xóa khỏi danh sách quan tâm'
                   : ' Thêm vào danh sách quan tâm'}
+              </Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight
+            underlayColor={'#000'}
+            onPress={() => {
+              onNotify();
+              // if (isSaving == false) onSaved();
+              // else ToastAndroid.show('Đang xử lý..', ToastAndroid.SHORT);
+            }}
+          >
+            <View style={styles.optionContainer}>
+              <Icon
+                name={'bell'}
+                color={isNotify ? main_color : '#ccc'}
+                size={26}
+              />
+              <Text style={styles.txtOption}>
+                {isNotify
+                  ? '  Tắt thông báo từ bài đăng'
+                  : '  Bật thông báo từ bài đăng'}
               </Text>
             </View>
           </TouchableHighlight>
@@ -421,6 +481,7 @@ const PostOptionModal = ({ ...rest }) => {
           ) : null}
         </ModalContent>
       )}
+      {}
       <Modal
         visible={visibleDelete}
         width={deviceWidth - 56}

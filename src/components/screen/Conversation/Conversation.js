@@ -631,7 +631,7 @@ function Conversation(props) {
 
     ImagePicker.openPicker({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
@@ -709,7 +709,7 @@ function Conversation(props) {
     if (route.params?.callback) route.params.callback('Bạn: Ảnh', new Date());
     ImagePicker.openCamera({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
