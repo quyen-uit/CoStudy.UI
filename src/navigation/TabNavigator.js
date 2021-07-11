@@ -44,6 +44,7 @@ const {
   notify,
   newsfeed,
   chat,
+  search,
   tabNav,
 } = navigationConstants;
 
@@ -53,7 +54,11 @@ const Stack = createStackNavigator();
 function HomeNavigator() {
   return (
     <Stack.Navigator>
-      <Stack.Screen name={home} component={Home} />
+      <Stack.Screen
+        name={home}
+        component={Home}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
@@ -99,6 +104,9 @@ function NewsFeedNavigator({ navigation }) {
   );
 }
 function ChatNavigator() {
+  const navigation = useNavigation();
+  const curUser = useSelector(getUser);
+  const dispatch = useDispatch();
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -115,15 +123,27 @@ function ChatNavigator() {
           },
           headerLeft: () => (
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => alert('avatar is clicked')}>
-                <Icon name={'search'} size={24} color={'#fff'} />
+              <TouchableOpacity
+                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+              >
+                <Image
+                  style={styles.imgAvatar}
+                  source={{ uri: curUser.avatar.image_hash }}
+                />
               </TouchableOpacity>
             </View>
           ),
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'edit'} size={24} color={'#fff'} />
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.push(navigationConstants.following, {
+                    id: curUser.oid,
+                    isChat: true,
+                  })
+                }
+              >
+                <Icon name={'comment-dots'} size={28} color={'#fff'} />
               </TouchableOpacity>
             </View>
           ),
@@ -134,7 +154,8 @@ function ChatNavigator() {
 }
 function NotifyNavigator() {
   const curUser = useSelector(getUser);
-
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -151,7 +172,9 @@ function NotifyNavigator() {
           },
           headerLeft: () => (
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+              <TouchableOpacity
+                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+              >
                 <Image
                   style={styles.imgAvatar}
                   source={{ uri: curUser.avatar.image_hash }}
@@ -164,7 +187,6 @@ function NotifyNavigator() {
               <TouchableHighlight
                 style={styles.btnRight}
                 underlayColor={touch_color}
-                onPress={() => alert('search is clicked')}
               >
                 <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
               </TouchableHighlight>
@@ -222,31 +244,44 @@ function TabNavigator() {
   const countChat = useSelector(getChatCount);
   const countNotify = useSelector(getNotifyCount);
   const dispatch = useDispatch();
-  useEffect(() => {
-    console.log(countChat);
-  }, [countChat]);
+  const curUser = useSelector(getUser);
+
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       if (
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).notification != 'undefined'
-      )
-        
-      dispatch(increaseNotify());
-      else if (
+      ) {
+        if (
+          JSON.parse(
+            JSON.parse(
+              JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+            ).notification
+          ).author_id != curUser.oid
+        ) {
+          dispatch(increaseNotify());
+        }
+      } else if (
         typeof JSON.parse(
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message != 'undefined'
       )
-      dispatch(increaseChat());
+        if (
+          JSON.parse(
+            JSON.parse(
+              JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
+            ).message
+          ).sender_id != curUser.oid
+        )
+          dispatch(increaseChat());
     });
 
     return unsubscribe;
   }, []);
   return (
     <BottomTab.Navigator
-      swipeEnabled={true}
+      swipeEnabled={false}
       tabBarPosition={'bottom'}
       tabBarOptions={{
         activeTintColor: main_color,
@@ -274,7 +309,7 @@ function TabNavigator() {
         name={list}
         component={ListPost}
         options={{
-          tabBarLabel: list,
+          tabBarLabel: 'Quan tâm',
           tabBarIcon: ({ color }) => (
             <Icon name="list-ul" color={color} size={24} />
           ),
@@ -292,6 +327,7 @@ function TabNavigator() {
                 params: {},
               })
             );
+            // navigation.replace(navigationConstants.create, { isEdit: false });
           },
         }}
         options={navigation => ({
@@ -334,7 +370,7 @@ function TabNavigator() {
           tabBarLabel: notify,
           tabBarIcon: ({ color }) => (
             <View>
-              <Icon name="envelope" color={color} size={24} />
+              <Icon name="bell" color={color} size={24} />
               {countNotify.count > 0 ? (
                 <Badge
                   status="success"

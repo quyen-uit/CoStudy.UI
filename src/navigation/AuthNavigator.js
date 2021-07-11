@@ -6,6 +6,8 @@ import SignUp2 from 'components/authScreen/SignUp2';
 
 import navigationConstants from 'constants/navigation';
 import Verification from 'components/authScreen/Verification';
+import PickField from 'components/screen/PickField';
+import Forgot from 'components/authScreen/Forgot';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +22,8 @@ function AuthNavigator() {
       <Stack.Screen component={SignUp} name={navigationConstants.signup} />
       <Stack.Screen component={SignUp2} name={navigationConstants.signup2} />
       <Stack.Screen component={Verification} name={navigationConstants.verifyEmail} />
+      <Stack.Screen component={Forgot} name={navigationConstants.forgot} />
+
     </Stack.Navigator>
   );
 }

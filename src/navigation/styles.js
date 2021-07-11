@@ -33,6 +33,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    borderWidth: 0.5,
+    borderColor: '#ccc'
   },
   btnSearch: {
     width: 40,

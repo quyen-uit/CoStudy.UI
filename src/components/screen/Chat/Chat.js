@@ -5,42 +5,139 @@ import {
   Text,
   View,
   FlatList,
-  Pressable,
-  TouchableHighlight,
-  TouchableOpacity,
-  Dimensions,
+  RefreshControl,
+  ToastAndroid,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import styles from 'components/screen/Chat/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import ChatCard from '../../common/ChatCard';
-import Icon from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
-import { touch_color } from 'constants/colorCommon';
-import { api } from 'constants/route';
-import moment from 'moment';
-import { getAPI } from '../../../apis/instance';
+import { touch_color, main_color } from 'constants/colorCommon';
 import messaging from '@react-native-firebase/messaging';
 import Toast from 'react-native-toast-message';
-import { actionTypes, increaseChat, setChat } from 'actions/ChatAction';
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+import { setChat } from 'actions/ChatAction';
+import ChatService from 'controllers/ChatService';
+import UserService from 'controllers/UserService';
 
 function Chat() {
+  const userInfo = useSelector(getBasicInfo);
+  const jwtToken = useSelector(getJwtToken);
+
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [listMes, setListMes] = useState([]);
-  const curUser = useSelector(getUser);
+  const [refreshing, setRefreshing] = useState(false);
+
   const onCallback = React.useCallback(conversation => {
     let userTemp = listMes.filter(i => i.id === conversation.id)[0];
     let tmp = listMes.filter(i => i.id !== conversation.id);
 
     setListMes([conversation, ...tmp]);
   });
+
+  const onDeleteCallBack = React.useCallback(async id => {
+    let tmp = listMes.filter(i => i.id !== id);
+    ToastAndroid.show('Đang xóa...', 1000);
+    setListMes([...tmp]);
+    await ChatService.deleteConversation(id)
+      .then(res =>
+        setTimeout(
+          () => ToastAndroid.show('Đã xóa cuộc trò chuyện này.', 1000),
+          1000
+        )
+      )
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Xóa thất bại.', 1000);
+      });
+  });
+  const onRefresh = React.useCallback(() => {
+    let temp = [];
+
+    setRefreshing(true);
+    const fetchData1 = async () => {
+      await ChatService.getCurrentConversation(jwtToken)
+        .then(async res => {
+          res.data.result.conversations.forEach(async item => {
+            if (item.conversation.oid != null && item.messages.length > 0) {
+              const obj = {};
+
+              if (item.conversation.participants[0].member_id == userInfo.id) {
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[1].member_id
+                ).then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                  obj.call_id = user.data.result.call_id;
+                });
+              } else {
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[0].member_id
+                ).then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                  obj.call_id = user.data.result.call_id;
+                });
+              }
+
+              // if (item.messages.sender_id == userInfo.id) {
+              //   if (item.messages.media_content == null)
+              //     obj.content = 'Bạn: ' + item.messages.string_content;
+              //   else obj.content = 'Bạn: Ảnh';
+              // } else {
+              //   if (item.messages.media_content == null)
+              //     obj.content = item.messages.string_content;
+              //   else obj.content = 'Ảnh';
+              // }
+              if (item.messages[0].sender_id == userInfo.id) {
+                if (item.messages[0].message_type == 0)
+                  obj.content = 'Bạn: ' + item.messages[0].content[0];
+                else if (item.messages[0].message_type == 3)
+                  obj.content = 'Bạn: Bài đăng';
+                else obj.content = 'Bạn: Hình ảnh';
+              } else {
+                if (item.messages[0].message_type == 0)
+                  obj.content = item.messages[0].content[0];
+                else if (item.messages[0].message_type == 3)
+                  obj.content = 'Bài đăng';
+                else obj.content = 'Hình ảnh';
+              }
+              temp.push({
+                name: obj.name,
+                modified_date: item.messages[0].modified_date,
+                avatar: obj.avatar,
+                content:
+                  obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
+                id: item.conversation.oid,
+                isUnread: false,
+                call_id: obj.call_id,
+              });
+              //console.log('1');
+
+              temp.sort(
+                (d1, d2) =>
+                  new Date(d2.modified_date) - new Date(d1.modified_date)
+              );
+              setListMes(temp);
+              setRefreshing(false);
+            }
+          });
+          //setListMes([...listMes, ...temp]);
+        })
+        .catch(err => console.log(err));
+    };
+
+    fetchData1();
+  }, []);
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       dispatch(setChat(0));
@@ -63,29 +160,66 @@ function Chat() {
         ).message
       );
       // test
+      if (listMes.length < 1) return;
+      //let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
+      //let tmp = listMes.filter(i => i.id !== res.ConversationId);
 
-      // console.log(res);
-      let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
-      let tmp = listMes.filter(i => i.id !== res.ConversationId);
+      let userTemp = listMes.filter(i => i.id === res.conversation_id)[0];
+      let tmp = listMes.filter(i => i.id !== res.conversation_id);
 
-      setListMes([
-        {
-          name: userTemp.name,
-          modified_date: res.CreatedDate,
-          avatar: userTemp.avatar,
-          content: res.MediaContent == null ? res.StringContent : 'Ảnh',
-          id: userTemp.id,
-          isUnread: true,
-        },
-        ...tmp,
-      ]);
-      if (res.SenderId == curUser.oid) return;
-      Toast.show({
-        type: 'success',
-        position: 'top',
-        text1: 'Bạn có tin nhắn mới từ ' + userTemp.name,
-        visibilityTime: 2000,
-      });
+      // setListMes([
+      //   {
+      //     name: userTemp.name,
+      //     modified_date: res.CreatedDate,
+      //     avatar: userTemp.avatar,
+      //     content: res.MediaContent == null ? res.StringContent : 'Ảnh',
+      //     id: userTemp.id,
+      //     isUnread: true,
+      //   },
+      //   ...tmp,
+      // ]);
+
+      if (res.sender_id == userInfo.id) {
+        setListMes([
+          {
+            name: userTemp.name,
+            modified_date: res.created_date,
+            avatar: userTemp.avatar,
+            content:
+              res.message_type == 3
+                ? 'Bài đăng'
+                : res.message_type == 1
+                ? 'Ảnh'
+                : res.content,
+            id: userTemp.id,
+            isUnread: false,
+          },
+          ...tmp,
+        ]);
+      } else {
+        setListMes([
+          {
+            name: userTemp.name,
+            modified_date: res.created_date,
+            avatar: userTemp.avatar,
+            content:
+              res.message_type == 3
+                ? 'Bài đăng'
+                : res.message_type == 1
+                ? 'Ảnh'
+                : res.content,
+            id: userTemp.id,
+            isUnread: true,
+          },
+          ...tmp,
+        ]);
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: 'Bạn có tin nhắn mới từ ' + userTemp.name,
+          visibilityTime: 2000,
+        });
+      }
       ///
     });
 
@@ -95,52 +229,59 @@ function Chat() {
     let isRender = true;
     let temp = [];
     const fetch = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'Message/conversation/current')
+      await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
           res.data.result.conversations.forEach(async item => {
-            if (item.item2.conversation_id != null) {
+            if (item.conversation.oid != null && item.messages.length > 0) {
               const obj = {};
-
-              if (item.item1.participants[0] == curUser.oid) {
-                await getAPI(curUser.jwtToken)
-                  .get(api + 'User/get/' + item.item1.participants[1])
-                  .then(user => {
-                    obj.name =
-                      user.data.result.first_name +
-                      ' ' +
-                      user.data.result.last_name;
-                    obj.avatar = user.data.result.avatar.image_hash;
-                  });
+              if (item.conversation.participants[0].member_id == userInfo.id) {
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[1].member_id
+                ).then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                  obj.call_id = user.data.result.call_id;
+                });
               } else {
-                await getAPI(curUser.jwtToken)
-                  .get(api + 'User/get/' + item.item1.participants[0])
-                  .then(user => {
-                    obj.name =
-                      user.data.result.first_name +
-                      ' ' +
-                      user.data.result.last_name;
-                    obj.avatar = user.data.result.avatar.image_hash;
-                  });
+                await UserService.getUserById(
+                  jwtToken,
+                  item.conversation.participants[0].member_id
+                ).then(user => {
+                  obj.name =
+                    user.data.result.first_name +
+                    ' ' +
+                    user.data.result.last_name;
+                  obj.avatar = user.data.result.avatar.image_hash;
+                  obj.call_id = user.data.result.call_id;
+                });
               }
 
-              if (item.item2.sender_id == curUser.oid) {
-                if (item.item2.media_content == null)
-                  obj.content = 'Bạn: ' + item.item2.string_content;
-                else obj.content = 'Bạn: Ảnh';
+              if (item.messages[0].sender_id == userInfo.id) {
+                if (item.messages[0].message_type == 0)
+                  obj.content = 'Bạn: ' + item.messages[0].content[0];
+                else if (item.messages[0].message_type == 3)
+                  obj.content = 'Bạn: Bài đăng';
+                else obj.content = 'Bạn: Hình ảnh';
               } else {
-                if (item.item2.media_content == null)
-                  obj.content = item.item2.string_content;
-                else obj.content = 'Ảnh';
+                if (item.messages[0].message_type == 0)
+                  obj.content = item.messages[0].content[0];
+                else if (item.messages[0].message_type == 3)
+                  obj.content = 'Bài đăng';
+                else obj.content = 'Hình ảnh';
               }
               temp.push({
                 name: obj.name,
-                modified_date: item.item2.modified_date,
+                modified_date: item.messages[0].modified_date,
                 avatar: obj.avatar,
                 content:
                   obj.content == null ? 'Bạn chưa nhắn tin' : obj.content,
-                id: item.item2.conversation_id,
+                id: item.conversation.oid,
                 isUnread: false,
+                call_id: obj.call_id,
               });
               //console.log('1');
               if (isRender) {
@@ -154,7 +295,7 @@ function Chat() {
           });
           //setListMes([...listMes, ...temp]);
         })
-        .catch(err => alert(err));
+        .catch(err => console.log(err));
     };
     fetch();
     return () => {
@@ -170,8 +311,15 @@ function Chat() {
   const GoToConversation = id => {
     navigation.navigate(navigationConstants.conversation, { id: id });
   };
+
   const renderItem = ({ item }) => {
-    return <ChatCard chat={item} onCallback={onCallback} />;
+    return (
+      <ChatCard
+        chat={item}
+        onCallback={onCallback}
+        onDelete={onDeleteCallBack}
+      />
+    );
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
@@ -180,96 +328,17 @@ function Chat() {
         data={listMes}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
+        refreshControl={
+          <RefreshControl
+            colors={[main_color]}
+            refreshing={refreshing}
+            onRefresh={() => {
+              onRefresh();
+            }}
+          />
+        }
       />
     </View>
   );
 }
 export default Chat;
-
-// <BottomModal
-//         visible={modalVisible}
-//         swipeDirection={['up', 'down']} // can be string or an array
-//         swipeThreshold={100} // default 100
-//         useNativeDriver={true}
-//         modalTitle={<Icon name={'chevron-down'} color={main_color} size={16} style={{alignSelf: 'center', marginTop: 2}}/>}
-
-//         modalAnimation={
-//           new SlideAnimation({
-//             initialValue: 0, // optional
-//             slideFrom: 'bottom', // optional
-//             useNativeDriver: true, // optional
-//           })
-//         }
-//         useNativeDriver={true}
-//         onSwipeOut={event => {
-//           setModalVisible(false);
-//         }}
-//         onTouchOutside={() => setModalVisible(false)}
-//       >
-//         <ModalContent style={{ marginHorizontal: -16 }}>
-//           <TouchableHighlight underlayColor={'#000'} onPress={()=>alert('a')}>
-//           <View
-//             style={{
-//               flexDirection: 'row',
-//               alignItems: 'center',
-//               paddingVertical: 12,
-//               backgroundColor: '#fff',
-//             }}
-//           >
-//             <Icon
-//               style={{ marginHorizontal: 12 }}
-//               name={'home'}
-//               color={main_color}
-//               size={24}
-//             />
-//             <Text style={{ fontSize: 16 }}>Xóa hội thoại</Text>
-//           </View>
-//           </TouchableHighlight>
-//           <TouchableHighlight
-//             underlayColor={'#000'}
-//             onPress={() => alert('a')}
-//           >
-//             <View
-//               style={{
-//                 flexDirection: 'row',
-//                 alignItems: 'center',
-
-//                 paddingVertical: 12,
-//                 backgroundColor: '#fff',
-//               }}
-//             >
-//               <Icon
-//                 style={{ marginHorizontal: 12 }}
-//                 name={'home'}
-//                 color={main_color}
-//                 size={24}
-//               />
-//               <Text style={{ fontSize: 16 }}>Đánh dấu chưa đọc</Text>
-//             </View>
-//           </TouchableHighlight>
-//           <TouchableHighlight
-//             underlayColor={'#000'}
-//             onPress={() => {
-//               setModalVisible(false);
-//             }}
-//           >
-//             <View
-//               style={{
-//                 flexDirection: 'row',
-//                 alignItems: 'center',
-
-//                 paddingVertical: 12,
-//                 backgroundColor: '#fff',
-//               }}
-//             >
-//               <Icon
-//                 style={{ marginHorizontal: 12 }}
-//                 name={'home'}
-//                 color={main_color}
-//                 size={24}
-//               />
-//               <Text style={{ fontSize: 16 }}>Báo cáo</Text>
-//             </View>
-//           </TouchableHighlight>
-//         </ModalContent>
-//       </BottomModal>

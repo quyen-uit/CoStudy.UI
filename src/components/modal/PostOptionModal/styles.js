@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
     paddingLeft: 12
   },
   headerIcon: { alignSelf: 'center', marginTop: 2 },
-  content: {marginHorizontal: -16},
+  content: {marginHorizontal: -16, marginBottom: -20},
   txtOption: {
     fontSize: 16, 
     marginLeft:12

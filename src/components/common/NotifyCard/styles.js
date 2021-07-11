@@ -16,6 +16,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-start',
+    marginBottom: 4
    },
   headerAuthor: {
     flexDirection: 'row',
@@ -36,7 +37,9 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderColor: '#c4c4c4',
-    marginRight: 8
+    marginRight: 8,
+    position: 'absolute',
+    borderWidth: 0.5,
   },
 
   // text
@@ -45,7 +48,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   txtCreateDate: {
-    color: '#c4c4c4',
+    color: '#8f8f8f',
     fontSize: 12,
     marginRight: 4,
     marginTop: 4,

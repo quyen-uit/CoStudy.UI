@@ -13,9 +13,12 @@ import Toast, { BaseToast } from 'react-native-toast-message';
 import messaging from '@react-native-firebase/messaging';
 import { Alert } from 'react-native';
 import { ModalPortal } from 'react-native-modals';
-
+import 'react-native-gesture-handler';
 import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
+import { AuthService } from 'components/videocall/services';
+import { Provider as PaperProvider } from 'react-native-paper';
+
 enableScreens();
 
 messaging().setBackgroundMessageHandler(async remoteMessage => {
@@ -55,6 +58,7 @@ function App() {
   //   return unsubscribe;
   // }, []);
   useEffect(() => {
+    AuthService.init();
     persistor(hideSplashScreen);
   }, []);
   const toastConfig = {
@@ -72,9 +76,12 @@ function App() {
   };
   return (
     <Provider store={store}>
-      <Navigation theme={scheme === DARK ? DarkTheme : LightTheme} />
+          <PaperProvider>
+
+      <Navigation theme={LightTheme} />
       <Toast config={toastConfig} ref={ref => Toast.setRef(ref)} />
       <ModalPortal />
+      </PaperProvider>
     </Provider>
   );
 }

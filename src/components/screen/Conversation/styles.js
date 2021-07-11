@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     position: 'absolute',
     bottom: 0,
-    left: 0
-  },
+    left: 0,
+   },
   container: {
     padding: 0,
     margin: 8,
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   boxMessage: {
     backgroundColor: '#fff',
-    borderRadius: 32,
+    borderRadius: 24,
     padding: 8,
     marginRight: 60,
     marginLeft: 8,
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   boxRightMessage: {
     backgroundColor: main_color,
-    borderRadius: 32,
+    borderRadius: 24,
     padding: 8,
     flexShrink: 1,
     marginHorizontal: 8,

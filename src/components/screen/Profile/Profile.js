@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
   Image,
   Text,
@@ -13,16 +13,19 @@ import {
   ToastAndroid,
   ActivityIndicator,
 } from 'react-native';
-import { logout } from 'actions/UserActions';
-import Button from 'components/common/Button';
 import styles from 'components/screen/Profile/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { color } from 'react-native-reanimated';
-import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
+import {
+  badge_level1,
+  badge_level2,
+  badge_level3,
+  badge_level4,
+  badge_level5,
+  main_2nd_color,
+  main_color,
+  touch_color,
+} from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
-import { getAPI } from '../../../apis/instance';
 import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector, useDispatch } from 'react-redux';
@@ -32,6 +35,13 @@ import navigationConstants from 'constants/navigation';
 import Toast from 'react-native-toast-message';
 import storage from '@react-native-firebase/storage';
 import { actionTypes, update } from 'actions/UserActions';
+import FollowService from 'controllers/FollowService';
+import UserService from 'controllers/UserService';
+import PostService from 'controllers/PostService';
+import ChatService from 'controllers/ChatService';
+import ImageView from 'react-native-image-viewing';
+import Badge from 'components/common/Badge';
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
@@ -57,10 +67,7 @@ function GroupInfor(props) {
 function GroupOption(props) {
   return (
     <View style={styles.flex1}>
-      <TouchableHighlight
-        underlayColor={touch_color}
-        onPress={() => alert('option')}
-      >
+      <TouchableHighlight underlayColor={touch_color}>
         <View style={styles.btnOption}>
           <Icon name={props.icon} size={22} color={main_color} />
           <Text style={styles.txtOption}>{props.option}</Text>
@@ -78,7 +85,20 @@ const user = {
   specialized: 'Ngành kỹ thuật phần mềm',
   graduation: 'Đã tốt nghiệp',
 };
-
+const fields = [
+  {
+    id: 1,
+    name: 'Cơ sở dữ liệu',
+    level: 3,
+    badge: require('../../../assets/level3.png'),
+  },
+  {
+    id: 2,
+    name: 'Giải tích',
+    level: 5,
+    badge: require('../../../assets/level5.png'),
+  },
+];
 function Profile({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -87,8 +107,33 @@ function Profile({ userId }) {
   const route = useRoute();
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
-  const [data, setData] = useState(curUser);
+  const [data, setData] = useState({
+    address: curUser.address,
+    additional_infos: [],
+  });
+  //const [data,setData] = useState();
+  const [fields, setFields] = useState([]);
+  ///image view
+  const [imgView, setImgView] = useState();
+  const [visible, setIsVisible] = useState(false);
+  const onViewImage = React.useCallback((value, uri) => {
+    setIsVisible(true);
+    setImgView(uri);
+  });
+  //modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [idModal, setIdModal] = useState(null);
+  const [savedModal, setSavedModal] = useState();
+  const onModal = React.useCallback((value, id, saved) => {
+    setModalVisible(value);
+    setIdModal(id);
+    setSavedModal(saved);
+  });
+  const onVisibleCallBack = React.useCallback(value => {
+    setModalVisible(value);
+  });
 
+  const [stop, setStop] = useState(false);
   const [avatar, setAvatar] = useState('');
   const [bg, setBg] = useState();
   const [chosing, setChosing] = useState(false);
@@ -100,49 +145,86 @@ function Profile({ userId }) {
   const [isMe, setIsMe] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    PostService.deletePost(curUser.jwtToken, idModal)
+      .then(res => {
+        ToastAndroid.show('Xóa bài đăng thành công', 1000);
+
+        setPosts(posts.filter(i => i.oid != idModal));
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Bài đăng chưa được xóa', 1000);
+      });
+    setModalVisible(false);
+    //setTmp(value);
+    //setIdModal(value);
+  });
+  const onNotExist = React.useCallback(id => {
+    setPosts(posts.filter(i => i.oid != id));
+  });
   const onFollow = async () => {
     setLoading(true);
     if (isFollowing) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following/remove?followingId=' + data.oid, {
-          followingId: data.oid,
-        })
+      await FollowService.unfollow(curUser.jwtToken, { from_id: data.oid })
         .then(res => {
           setLoading(false);
           setIsFollowing(false);
           route.params.callback(false);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following', { followers: [data.oid] })
+      await FollowService.follow(curUser.jwtToken, data.oid)
         .then(res => {
           setLoading(false);
           setIsFollowing(true);
           route.params.callback(true);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     }
   };
   useEffect(() => {
-    if (route.params?.update) {
-      setIsLoading(true);
-      ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
-      if (route.params.update) {
-        const postAPI = async () => {
-          await getAPI(curUser.jwtToken)
-            .put(api + 'User/update', route.params.data)
+    const fetch = async () => {
+      if (route.params?.update) {
+        setIsLoading(true);
+        ToastAndroid.show('Đang cập nhật ...', ToastAndroid.SHORT);
+        if (route.params.update) {
+          const postAPI = await UserService.updateUser(
+            curUser.jwtToken,
+            route.params.data
+          )
             .then(res => {
               setData(res.data.result);
-              setIsLoading(false);
-              dispatch(update(curUser.jwtToken));
             })
-            .catch(error => alert(error));
-        };
-        postAPI();
+            .catch(error => console.log(error));
+          // await UserService.updateFieldOfUser(curUser.jwtToken, {
+          //   fields: route.params.data.fields,
+          // }).catch(error => console.log(error));
+          const updateField = await UserService.updateFieldOfUser(
+            curUser.jwtToken,
+            curUser.oid,
+            route.params.fields
+          )
+            .then(res => {
+              setFields(res.data.result.fields);
+            })
+            .catch(err => console.log(err));
+          const updateInfo = await UserService.updateInfo(curUser.jwtToken, {
+            school: route.params.school,
+            subject: route.params.subject,
+          }).then(res => setData(res.data.result));
+          Promise.all([postAPI, updateField, updateInfo]).then(res => {
+            setIsLoading(false);
+            ToastAndroid.show('Cập nhật thành công.', ToastAndroid.SHORT);
+            dispatch(update(curUser.jwtToken));
+          });
+        }
       }
-    } else console.log('update cc');
-  }, [route.params?.update]);
+    };
+    fetch();
+    // else console.log('update cc');
+  }, [route.params?.update, route.params?.data]);
   useEffect(() => {
     let isRender = true;
     let url = 'User/get/' + curUser.oid;
@@ -154,22 +236,20 @@ function Profile({ userId }) {
     if (isMe) dispatch(update(curUser.jwtToken));
 
     const fetchData1 = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + url)
+      await UserService.getUser(curUser.jwtToken, url)
         .then(async resUser => {
           setData(resUser.data.result);
+          setFields(resUser.data.result.fields);
           setAvatar(resUser.data.result.avatar.image_hash);
           if (route.params?.id) {
-            await getAPI(curUser.jwtToken)
-              .get(
-                api +
-                  'User/following?UserId=' +
-                  curUser.oid +
-                  '&Skip=0&Count=99'
-              )
+            await FollowService.getFollowingByUserId(curUser.jwtToken, {
+              id: curUser.oid,
+              skip: 0,
+              count: 99,
+            })
               .then(res => {
                 res.data.result.forEach(i => {
-                  if (resUser.data.result.oid == i.toId)
+                  if (resUser.data.result.oid == i.to_id)
                     if (isRender) {
                       setIsFollowing(true);
                     }
@@ -177,35 +257,25 @@ function Profile({ userId }) {
 
                 setLoading(false);
               })
-              .catch(error => alert(error));
+              .catch(error => console.log(error));
           }
-          await getAPI(curUser.jwtToken)
-            .get(
-              api +
-                'Post/get/user/' +
-                resUser.data.result.oid +
-                '/skip/' +
-                0 +
-                '/count/5'
-            )
+          await PostService.getPostByUserId(curUser.jwtToken, {
+            oid: resUser.data.result.oid,
+            skip: 0,
+            count: 5,
+          })
             .then(async resPost => {
               resPost.data.result.forEach(item => {
-                resUser.data.result.post_saved.forEach(i => {
-                  if (i == item.oid) {
-                    item.saved = true;
-                  } else item.saved = false;
-                });
+                // resUser.data.result.post_saved.forEach(i => {
+                //   if (i == item.oid) {
+                //     item.saved = true;
+                //   } else item.saved = false;
+                // });
+                item.saved = item.is_save_by_current;
+                // set vote
                 item.vote = 0;
-                resUser.data.result.post_upvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = 1;
-                  }
-                });
-                resUser.data.result.post_downvote.forEach(i => {
-                  if (i == item.oid) {
-                    item.vote = -1;
-                  }
-                });
+                if (item.is_downvote_by_current) item.vote = -1;
+                else if (item.is_vote_by_current) item.vote = 1;
               });
               if (isRender) {
                 setPosts(resPost.data.result);
@@ -214,9 +284,9 @@ function Profile({ userId }) {
                 setSkip(5);
               }
             })
-            .catch(error => alert(error));
+            .catch(error => console.log(error));
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
 
     fetchData1();
@@ -226,51 +296,72 @@ function Profile({ userId }) {
   }, [route.params?.id]);
 
   const fetchMore = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(api + 'User/current')
+    if (stop) {
+      setIsEnd(false);
+      return;
+    }
+    await UserService.getUserById(curUser.jwtToken, data.oid)
       .then(async resUser => {
-        await getAPI(curUser.jwtToken)
-          .get(
-            api +
-              'Post/get/user/' +
-              resUser.data.result.oid +
-              '/skip/' +
-              skip +
-              '/count/5'
-          )
+        await PostService.getPostByUserId(curUser.jwtToken, {
+          oid: resUser.data.result.oid,
+          skip: skip,
+          count: 5,
+        })
           .then(async resPost => {
+            if (resPost.data.result.length < 1) {
+              setStop(true);
+              setIsEnd(false);
+              return;
+            }
             resPost.data.result.forEach(item => {
-              resUser.data.result.post_saved.forEach(i => {
-                if (i == item.oid) {
-                  item.saved = true;
-                } else item.saved = false;
-              });
+              // resUser.data.result.post_saved.forEach(i => {
+              //   if (i == item.oid) {
+              //     item.saved = true;
+              //   } else item.saved = false;
+              // });
+              item.saved = item.is_save_by_current;
+              // set vote
               item.vote = 0;
-              resUser.data.result.post_upvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = 1;
-                }
-              });
-              resUser.data.result.post_downvote.forEach(i => {
-                if (i == item.oid) {
-                  item.vote = -1;
-                }
-              });
+              if (item.is_downvote_by_current) item.vote = -1;
+              else if (item.is_vote_by_current) item.vote = 1;
             });
             if (resPost.data.result.length > 0) {
               setSkip(skip + 5);
               setPosts(posts.concat(resPost.data.result));
+              setIsEnd(false);
             }
-            setIsEnd(false);
+            // setIsEnd(false);
           })
-          .catch(error => alert(error));
+          .catch(error => console.log(error));
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   };
 
   const renderItem = ({ item }) => {
-    return <PostCard post={item} />;
+    return (
+      <PostCard
+        onViewImage={onViewImage}
+        post={item}
+        onModal={onModal}
+        onNotExist={onNotExist}
+      />
+    );
   };
+  // const renderBadge = item => {
+  //   return (
+  //     <View
+  //       style={{
+  //         borderColor: item.color,
+  //         ...styles.badgeContainer,
+  //       }}
+  //     >
+  //       <Image style={{ width: 20, height: 24 }} source={item.badge} />
+  //       <Text style={{ color: item.color, ...styles.badgeText }}>
+  //         {item.name}
+  //       </Text>
+  //     </View>
+  //   );
+  // };
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 300,
@@ -300,11 +391,7 @@ function Profile({ userId }) {
               .getDownloadURL()
               .then(async url => {
                 setAvatar(url);
-                await getAPI(curUser.jwtToken)
-                  .post(api + 'User/avatar/update', {
-                    discription: '',
-                    avatar_hash: url,
-                  })
+                await UserService.updateAvatar(curUser.jwtToken, url)
                   .then(response => {
                     Toast.show({
                       type: 'success',
@@ -314,7 +401,7 @@ function Profile({ userId }) {
                     });
                     dispatch(update(curUser.jwtToken));
                   })
-                  .catch(error => alert(error));
+                  .catch(error => console.log(error));
               });
           });
         } catch (e) {
@@ -353,11 +440,7 @@ function Profile({ userId }) {
               .getDownloadURL()
               .then(async url => {
                 setAvatar(url);
-                await getAPI(curUser.jwtToken)
-                  .post(api + 'User/avatar/update', {
-                    discription: '',
-                    avatar_hash: url,
-                  })
+                await UserService.updateAvatar(curUser.jwtToken, url)
                   .then(response => {
                     Toast.show({
                       type: 'success',
@@ -367,7 +450,7 @@ function Profile({ userId }) {
                     });
                     dispatch(update(curUser.jwtToken));
                   })
-                  .catch(error => alert(error));
+                  .catch(error => console.log(error));
               });
           });
         } catch (e) {
@@ -387,7 +470,7 @@ function Profile({ userId }) {
     }).then(async image => {
       if (image) {
         const uri = image.path;
-        const filename = 'avatar_' + curUser.id;
+        const filename = 'avatar_' + curUser.oid;
         const uploadUri =
           Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
         const task = storage()
@@ -408,20 +491,47 @@ function Profile({ userId }) {
     });
   };
   const goToConversation = async () => {
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Message/conversation/add', { participants: [data.oid] })
-      .then(res => {
+    await ChatService.createConversation(curUser.jwtToken, data.oid).then(
+      res => {
         navigation.navigate(navigationConstants.conversation, {
-          id: res.data.result.id,
+          id: res.data.result.oid,
           avatar: data.avatar.image_hash,
+          name: data.first_name + ' ' + data.last_name,
         });
-      });
+      }
+    );
   };
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerRight: () => (
+        <View style={{ marginRight: 16 }}>
+          <TouchableOpacity
+            onPress={() => {
+              if (isMe)
+                navigation.navigate(navigationConstants.profileEdit, {
+                  data: data,
+                });
+            }}
+          >
+            {isMe ? (
+              <Icon name={'edit'} size={24} color={'#fff'} />
+            ) : (
+              <Icon name={'edit'} size={24} color={main_color} />
+            )}
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, data]);
+  const flatList = React.useRef(null);
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
         <SafeAreaView>
           <FlatList
+            ref={flatList}
+            extraData={posts}
             style={{ flexGrow: 0 }}
             onEndReached={async () => {
               if (posts.length > 4 && !isEnd) {
@@ -429,7 +539,7 @@ function Profile({ userId }) {
                 await fetchMore();
               }
             }}
-            onEndReachedThreshold={0.5}
+            onEndReachedThreshold={0.1}
             showsVerticalScrollIndicator={false}
             data={posts}
             renderItem={item => renderItem(item)}
@@ -481,11 +591,12 @@ function Profile({ userId }) {
                   <View style={styles.containerAmount}>
                     <View style={styles.flex1}>
                       <GroupAmount
-                        amount={
-                          typeof data.posts === 'undefined'
-                            ? 0
-                            : data.post_count
-                        }
+                        // amount={
+                        //   typeof data.posts === 'undefined'
+                        //     ? 0
+                        //     : data.post_count
+                        // }
+                        amount={data.post_count}
                         title={'Bài đăng'}
                       />
                     </View>
@@ -516,13 +627,70 @@ function Profile({ userId }) {
                       />
                     </TouchableOpacity>
                   </View>
-                  <GroupInfor name={user.school} icon={'school'} />
-                  <GroupInfor name={user.specialized} icon={'user-cog'} />
-                  <GroupInfor name={user.graduation} icon={'graduation-cap'} />
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      marginLeft: 16,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {fields.slice(0, 3).map((item, index) => (
+                      <TouchableOpacity
+                        onPress={() =>
+                          navigation.navigate(navigationConstants.listField, {
+                            userId: data.oid,
+                          })
+                        }
+                        key={index}
+                      >
+                        <Badge
+                          item={{
+                            name: item.level_name,
+                            description: item.field_name,
+                          }}
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  {data ? (
+                    <View>
+                      {data.address.district ? (
+                        <GroupInfor
+                          name={
+                            data.address.district + ', ' + data.address.city
+                          }
+                          icon={'city'}
+                        />
+                      ) : null}
+
+                      {data.additional_infos.length > 0 ? (
+                        <View>
+                          {data.additional_infos[0].information_value != '' ? (
+                            <GroupInfor
+                              name={
+                                'Trường ' +
+                                data.additional_infos[0].information_value
+                              }
+                              icon={'school'}
+                            />
+                          ) : null}
+                          {data.additional_infos[1].information_value != '' ? (
+                            <GroupInfor
+                              name={
+                                'Chuyên ngành ' +
+                                data.additional_infos[1].information_value
+                              }
+                              icon={'graduation-cap'}
+                            />
+                          ) : null}
+                        </View>
+                      ) : null}
+                    </View>
+                  ) : null}
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate(navigationConstants.profileDetail, {
-                        id: data.oid,
+                        data: data,
                       })
                     }
                   >
@@ -542,7 +710,7 @@ function Profile({ userId }) {
                           />
                         </View>
                       ) : (
-                        <TouchableHighlight
+                        <TouchableOpacity
                           style={
                             isFollowing ? styles.btnUnFollow : styles.btnFollow
                           }
@@ -560,52 +728,56 @@ function Profile({ userId }) {
                           >
                             {isFollowing ? 'Hủy theo dõi' : 'Theo dõi'}
                           </Text>
-                        </TouchableHighlight>
+                        </TouchableOpacity>
                       )}
-                      <TouchableHighlight
+                      <TouchableOpacity
                         style={styles.btnFollow}
                         underlayColor={touch_color}
                         onPress={() => goToConversation()}
                       >
                         <Text style={styles.txtFollow}>Nhắn tin</Text>
-                      </TouchableHighlight>
+                      </TouchableOpacity>
                     </View>
                   )}
                 </View>
-                <View style={styles.containerNew}>
-                  <View style={styles.grNew}>
-                    <View style={styles.flex1}>
-                      <Image
-                        style={styles.imgAvatar}
-                        source={
-                          avatar == ''
-                            ? require('../../../assets/test.png')
-                            : { uri: avatar }
+                {isMe ? (
+                  <View style={styles.containerNew}>
+                    <View style={styles.grNew}>
+                      <View style={styles.flex1}>
+                        <Image
+                          style={styles.imgAvatar}
+                          source={
+                            avatar == ''
+                              ? require('../../../assets/test.png')
+                              : { uri: avatar }
+                          }
+                        />
+                      </View>
+                      <TouchableHighlight
+                        onPress={() =>
+                          navigation.navigate(navigationConstants.create, {
+                            isEdit: false,
+                          })
                         }
-                      />
+                        underlayColor={touch_color}
+                        style={styles.btnBoxNew}
+                      >
+                        <Text style={styles.txtNew}>
+                          Bạn có câu hỏi gì mới, {data ? data.first_name : null}{' '}
+                          {data ? data.last_name : null}?
+                        </Text>
+                      </TouchableHighlight>
                     </View>
-                    <TouchableHighlight
-                      onPress={() =>
-                        navigation.navigate(navigationConstants.create)
-                      }
-                      underlayColor={touch_color}
-                      style={styles.btnBoxNew}
-                    >
-                      <Text style={styles.txtNew}>
-                        Bạn có câu hỏi gì mới, {data ? data.first_name : null}{' '}
-                        {data ? data.last_name : null}?
-                      </Text>
-                    </TouchableHighlight>
+                    <View style={styles.grOption}>
+                      <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
+                      <GroupOption
+                        icon={'square-root-alt'}
+                        option={'Công thức'}
+                      />
+                      <GroupOption icon={'images'} option={'Hình ảnh'} />
+                    </View>
                   </View>
-                  <View style={styles.grOption}>
-                    <GroupOption icon={'plus-circle'} option={'Lĩnh vực'} />
-                    <GroupOption
-                      icon={'square-root-alt'}
-                      option={'Công thức'}
-                    />
-                    <GroupOption icon={'images'} option={'Hình ảnh'} />
-                  </View>
-                </View>
+                ) :null}
                 {posts.length == 0 ? (
                   <Text
                     style={{
@@ -622,7 +794,18 @@ function Profile({ userId }) {
               </View>
             )}
             ListFooterComponent={() =>
-              isEnd ? (
+              stop ? (
+                <Text
+                  style={{
+                    alignSelf: 'center',
+                    marginVertical: 4,
+                    color: '#4f4f4f',
+                  }}
+                >
+                  {' '}
+                  Không còn bài đăng.{' '}
+                </Text>
+              ) : isEnd ? (
                 <View style={{ marginVertical: 12 }}>
                   <ActivityIndicator size={'large'} color={main_color} />
                 </View>
@@ -633,6 +816,12 @@ function Profile({ userId }) {
           />
         </SafeAreaView>
       </View>
+      <ImageView
+        images={[{ uri: imgView }]}
+        imageIndex={0}
+        visible={visible}
+        onRequestClose={() => setIsVisible(false)}
+      />
       {isLoading ? (
         <View
           style={{
@@ -748,6 +937,15 @@ function Profile({ userId }) {
           </TouchableOpacity>
         </View>
       ) : null}
+      <PostOptionModal
+        visible={modalVisible}
+        saved={savedModal}
+        id={idModal}
+        onVisible={onVisibleCallBack}
+        onDelete={onDeleteCallback}
+        onNotExist={onNotExist}
+        inProfile={true}
+      />
     </View>
   );
 }

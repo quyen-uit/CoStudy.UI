@@ -1,5 +1,5 @@
 import { useTheme, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Text,
@@ -7,9 +7,10 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { actionTypes, login } from 'actions/UserActions';
+import { actionTypes, login, loginGoogle } from 'actions/UserActions';
 import Button from 'components/common/Button';
 import ErrorView from 'components/common/ErrorView';
 import TextField from 'components/common/TextField';
@@ -22,29 +23,99 @@ import { isLoadingSelector } from 'selectors/StatusSelectors';
 import navigationConstants from 'constants/navigation';
 import axios from 'axios';
 import Loading from 'components/common/Loading';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
+
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import { main_color } from 'constants/colorCommon';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ConnectyCube from 'react-native-connectycube';
+import { AuthService } from 'components/videocall/services';
+import { api } from 'constants/route';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
+GoogleSignin.configure();
+
 function Login() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [userInfo, setUserInfo] = useState({});
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+
+  const [titleAlert, setTitleAlert] = useState('');
   const navigation = useNavigation();
   const isLoading = useSelector(state =>
     isLoadingSelector([actionTypes.LOGIN], state)
   );
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
+
+  const alertCallback = useCallback(message => {
+    setBodyAlert(message, message);
+  });
+  // Somewhere in your code
+  const signIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfoGG = await GoogleSignin.signIn();
+      setUserInfo(userInfoGG);
+      await axios
+        .get(api + 'User/is-exist?email=' + userInfoGG.user.email)
+        .then(async res => {
+          if (res.data.result) dispatch(loginGoogle(userInfoGG));
+          else {
+            navigation.navigate(navigationConstants.signup, {
+              isGoogle: true,
+              email: userInfoGG.user.email,
+            });
+          }
+        })
+        .catch(err => console.log(err));
+    } catch (error) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('cancel');
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('in progress');
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        console.log('play services not available');
+        // play services not available or outdated
+      } else {
+        console.log(error);
+        // some other error happened
+      }
+    }
+  };
 
   const errors = useSelector(
     state => errorsSelector([actionTypes.LOGIN], state),
     shallowEqual
   );
-
   const handleSubmit = () => {
-    if (email === '') Alert.alert('Thông báo', 'Vui lòng nhập email.');
+    if (email === '')
+      //Alert.alert('Thông báo', 'Vui lòng nhập email.');
+      showAlert('Thông báo', 'Vui lòng nhập email.');
     else if (password === '')
-      Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
-    else dispatch(login(email, password));
+      // Alert.alert('Thông báo', 'Vui lòng nhập mật khẩu.');
+      showAlert('Thông báo', 'Vui lòng nhập mật khẩu.');
+    else dispatch(login(email, password, navigation));
   };
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       {isLoading ? (
         <Loading />
       ) : (
@@ -83,20 +154,32 @@ function Login() {
               >
                 <Text style={styles.txtLogin}>{strings.login}</Text>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(navigationConstants.forgot)}
+              >
                 <Text style={styles.txtForgot}>{strings.forgotPassword} ?</Text>
               </TouchableOpacity>
             </View>
-            <View>
+            <View
+              style={{ justifyContent: 'space-around', alignItems: 'center' }}
+            >
+              <GoogleSigninButton
+                style={{}}
+                size={GoogleSigninButton.Size.Standard}
+                color={GoogleSigninButton.Color.Dark}
+                onPress={signIn}
+                //disabled={this.state.isSigninInProgress}
+              />
               <View style={styles.otherContainer}>
-                <TouchableOpacity>
+                {/* <TouchableOpacity>
                   <Image source={require('../../../assets/fb.png')} />
-                </TouchableOpacity>
-                <TouchableOpacity>
+                </TouchableOpacity> */}
+                {/* <TouchableOpacity onPress={() => signIn()}>
                   <Image source={require('../../../assets/google.png')} />
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
               <TouchableOpacity
+                style={{ marginTop: 20 }}
                 onPress={() => navigation.navigate(navigationConstants.signup)}
               >
                 <Text style={styles.txtFooter}>
@@ -107,6 +190,27 @@ function Login() {
           </View>
         </ScrollView>
       )}
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
   // return (

@@ -2,6 +2,9 @@ import axios from 'axios';
 import { api } from '../constants/route';
 import { store } from '../store/index';
 import { actionTypes, update } from 'actions/UserActions';
+import { BackHandler } from "react-native";
+import { logout } from '../actions/UserActions';
+import { View, StyleSheet, Button, Alert } from "react-native";
 
 export const getAPI = jwtToken => {
   let isRefreshing = false;
@@ -27,19 +30,25 @@ export const getAPI = jwtToken => {
         config,
         response: { status },
       } = error;
-
       const originalRequest = config;
-
-      if (status === 400) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-
-          await axios.post(api + 'Accounts/refresh-token').then(response => {
-            isRefreshing = false;
-            store.dispatch(update(response.data.result.jwtToken));
-            onRrefreshed(jwtToken);
-          });
-        }
+      if(status === 400)
+      //   Alert.alert('Thông báo','Có lỗi xảy ra.')
+      // else if (status === 401) 
+      {
+         // logout
+       store.dispatch(logout(jwtToken));
+        // if (!isRefreshing) {
+        //   isRefreshing = true;
+        //    await axios
+        //     .post('http://192.168.207.150:8000/api/Accounts/refresh-token')
+        //     .then(response => {
+        //       isRefreshing = false;
+        //       store.dispatch(update(response.data.result.jwtToken));
+        //       onRrefreshed(jwtToken);
+            
+        //     })
+        //     .catch(err => console.log(err));
+        // }
 
         const retryOrigReq = new Promise((resolve, reject) => {
           subscribeTokenRefresh(token => {

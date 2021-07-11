@@ -10,10 +10,9 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 const styles = StyleSheet.create({
   container: {
    alignSelf: 'stretch',
-   marginHorizontal: 56,
    marginVertical: 10,
-   justifyContent: 'center'
-  },
+   justifyContent: 'center',
+   },
  
   input: {
     backgroundColor: '#fff',
@@ -21,8 +20,8 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     paddingLeft: 48,
     fontSize: 16,
-    color: '#000'
-  },
+    color: '#000',
+   },
   icon: {
     paddingLeft: 12,
     position: 'absolute'
@@ -31,16 +30,16 @@ const styles = StyleSheet.create({
 
 function TextField({ icon, ...rest }) {
   const { colors } = useTheme();
-
-  return (
+   return (
     <View style={styles.container}>
       <TextInput
         {...rest}
         window
         placeholderTextColor={hint_color}
-        style={styles.input}
+        style={{...styles.input, backgroundColor: typeof(rest.editable) == 'undefined'  || rest.editable ?  '#fff' : '#ccc'}}
         underlineColorAndroid="transparent"
-      />
+        editable={rest.editable}
+       />
       <View style={styles.icon}>
         <Icon name={icon} size={22} color={main_2nd_color}/>
       </View>

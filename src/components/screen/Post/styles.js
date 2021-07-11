@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
 
-    marginTop: 8,
+     
     justifyContent: 'center',
     borderTopColor: main_color,
     borderTopWidth: 0.5,
@@ -154,6 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginHorizontal: 8,
+    marginLeft: 16,
   },
   txtContent: {
     fontSize: 15,

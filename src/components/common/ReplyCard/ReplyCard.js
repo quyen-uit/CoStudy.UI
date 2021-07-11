@@ -1,5 +1,5 @@
 import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Text,
@@ -20,7 +20,7 @@ import strings from 'localization';
 import { color } from 'react-native-reanimated';
 import moment from 'moment';
 import { api } from '../../../constants/route';
-import { getUser } from 'selectors/UserSelectors';
+import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import {
   main_2nd_color,
@@ -33,38 +33,20 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import navigationConstants from 'constants/navigation';
-import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
+import ReplyOptionModal from 'components/modal/ReplyOptionModal/ReplyOptionModal';
 import { getAPI } from '../../../apis/instance';
-
-const tmpComment = {
-  id: '1',
-  title: 'Đây là title 1',
-  author: 'Nguyễn Văn Nam',
-  content:
-    'Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé. Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé',
-  createdDate: '10 phut truoc',
-};
-
-const comment = {
-  author: 'Võ Thanh Tâm',
-  content: 'Đây là child content Đây là child content Đây là child content',
-  createdDate: '10 phut truoc',
-  amountVote: 10,
-  amountComment: 20,
-};
- 
+import CommentService from 'controllers/CommentService';
 
 function ReplyCard(props) {
-  const curUser = useSelector(getUser);
-
-  const post = tmpComment;
+  // const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
   const navigation = useNavigation();
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
+  // const { colors } = useTheme();
+  // const dispatch = useDispatch();
   const [isVote, setIsVote] = useState(false);
   const [showOption, setShowOption] = useState(true);
   const comment = props.comment;
-  const isInPost = props.isInPost;
+  //const isInPost = props.isInPost;
   const [modalVisible, setModalVisible] = useState(false);
   // like, comment
   const [upvote, setUpvote] = useState(comment.upvote_count);
@@ -72,63 +54,74 @@ function ReplyCard(props) {
   const [comment_count, setCommentCount] = useState(comment.replies_count);
 
   const [vote, setVote] = useState(comment.vote);
-  const onUpvoteCallback = useCallback(value => setUpvote(value));
-  const onDownvoteCallback = useCallback(value => setDownvote(value));
-  const onCommentCallback = useCallback(value => setCommentCount(value));
-  const onVoteCallback = useCallback((value)=> setVote(value));
-
-  const GoToComment = () => {
+  React.useEffect(() => {
+  
+  },[comment]);
+  const onEditCallBack = React.useCallback( isEdit => {
+    setModalVisible(false);
+    props.onEdit(isEdit, comment.oid);
+  });
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    CommentService.deleteReply(jwtToken, comment.oid)
+      .then(res => {
+        ToastAndroid.show('Xóa phản hồi thành công', 1000);
+        props.onNotExist(comment.oid);
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Phản hồi chưa được xóa', 1000);
+      });
+    setModalVisible(false);
+  });
+  const onVisibleCallBack = React.useCallback( isEdit => {
+    setModalVisible(false);
     
-  };
-  console.log(comment);
+  });
+  const GoToComment = () => {};
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: comment.author_id });
   };
 
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bình luận này.',1000)
+      ToastAndroid.show('Bạn đã upvote cho bình luận này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
       setUpvote(upvote + 1);
-    } else 
-    {
+    } else {
       setVote(1);
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/upvote/' + comment.oid)
+    await CommentService.upVoteReply(jwtToken, comment.oid)
       .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bình luận này.', 1000)
+      ToastAndroid.show('Bạn đã downvote cho bình luận này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
       setDownvote(downvote + 1);
-    } else 
-    {
+    } else {
       setVote(-1);
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/downvote/' + comment.oid)
+    await CommentService.downVoteReply(jwtToken,comment.oid)
       .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT))
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
-
   return (
-    <View>
+    <View key={comment.oid} >
       <View style={styles.containerComment}>
         <TouchableOpacity onPress={() => GoToProfile()}>
           <Image
             style={styles.imgAvatar}
-            source={{ uri: comment.avatar }}
+            source={{ uri: comment.author_avatar }}
           />
         </TouchableOpacity>
         <View style={styles.shrink1}>
@@ -139,7 +132,7 @@ function ReplyCard(props) {
             onLongPress={() => setModalVisible(true)}
           >
             <View>
-              <Text style={styles.txtAuthor}>{comment.name}</Text>
+              <Text style={styles.txtAuthor}>{comment.author_name}</Text>
               <Text style={styles.txtContent}>{comment.content}</Text>
               <View style={styles.footer}>
                 <View style={styles.containerCreatedTime}>
@@ -161,20 +154,10 @@ function ReplyCard(props) {
                           moment(comment.created_date),
                           'hours'
                         ) + ' giờ trước'
-                      : moment(comment.created_date).format('hh:mm DD-MM-YYYY')}
+                      : moment(comment.created_date).format('DD-MM-YYYY')}
                   </Text>
                 </View>
                 <View style={styles.row}>
-                  <View style={styles.rowFlexStart}>
-                    <Text style={styles.txtVoteNumber}>{comment_count}</Text>
-                    <TouchableOpacity>
-                      <FontAwesome5
-                        name={'comment'}
-                        size={18}
-                        color={main_2nd_color}
-                      />
-                    </TouchableOpacity>
-                  </View>
                   <View style={styles.rowFlexStart}>
                     <Text style={styles.txtVoteNumber}>{downvote}</Text>
                     <TouchableOpacity onPress={() => onDownvote()}>
@@ -192,7 +175,6 @@ function ReplyCard(props) {
                         name={'thumbs-up'}
                         size={18}
                         color={vote == 1 ? main_color : '#ccc'}
-
                       />
                     </TouchableOpacity>
                   </View>
@@ -200,10 +182,9 @@ function ReplyCard(props) {
               </View>
             </View>
           </TouchableHighlight>
-          
         </View>
       </View>
-      <CommentOptionModal
+      <ReplyOptionModal
         visible={modalVisible}
         onSwipeOut={event => {
           setModalVisible(false);
@@ -215,11 +196,15 @@ function ReplyCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
+        onEdit={onEditCallBack}
+        id={comment.oid}
+        onVisible={onVisibleCallBack}
+        onDelete={onDeleteCallback}
       />
     </View>
   );
 }
 
-export default ReplyCard;
+export default React.memo(ReplyCard);
 
 // {isInPost ? <ChildComment /> : null}

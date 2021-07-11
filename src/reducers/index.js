@@ -5,4 +5,5 @@ import user from 'reducers/UserReducer';
 import timeline from 'reducers/TimelineReducer';
 import chat from 'reducers/ChatReducer';
 import notify from 'reducers/NotifyReducer';
-export default combineReducers({ error, status, user, timeline, chat, notify });
+import call from 'reducers/CallReducer';
+export default combineReducers({ error, status, user, timeline, chat, notify, call });

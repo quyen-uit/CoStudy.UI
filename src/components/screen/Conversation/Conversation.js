@@ -1,4 +1,4 @@
-import { useTheme, useRoute } from '@react-navigation/native';
+import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Image,
@@ -7,6 +7,7 @@ import {
   View,
   ScrollView,
   TouchableHighlight,
+  ToastAndroid,
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
@@ -14,6 +15,7 @@ import {
   SafeAreaView,
   TextInput,
   RefreshControl,
+  Keyboard,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Conversation/styles';
@@ -27,101 +29,54 @@ import {
   active_color,
   background_gray_color,
 } from 'constants/colorCommon';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import * as signalR from '@microsoft/signalr';
 import axios from 'axios';
-import { getUser } from 'selectors/UserSelectors';
+import { getUser, getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
-import { api } from 'constants/route';
 import messaging from '@react-native-firebase/messaging';
-import { getAPI } from '../../../apis/instance';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
+import ChatOptionModal from 'components/modal/ChatOptionModal/ChatOptionModal';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 import ImageView from 'react-native-image-viewing';
 
+import ChatService from 'controllers/ChatService';
+import navigationConstants from 'constants/navigation';
+import PostService from 'controllers/PostService';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
-const tmpConversation = {
-  id: '1',
-  title: 'Đây là title 1',
-  author: 'Nguyễn Văn Nam',
-  content:
-    'Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé. Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé',
-  createdDate: '10 phut truoc',
-};
-const list = [
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content Đây là content Đây làaaaaa content Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '1',
-    id: '1',
-  },
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '1',
 
-    id: '2',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content:
-      'Đây là contentĐây là content Đây là content Đây là content Đây là contentsss',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '2',
-
-    id: '3',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '1',
-
-    id: '4',
-  },
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    userId: '2',
-
-    id: '6',
-  },
-];
-const comment = {
-  author: 'Võ Thanh Tâm',
-  content: 'Đây là content',
-  createdDate: '10 phut truoc',
-  amountVote: 10,
-  amountComment: 20,
-};
-
-function RightMessage({ item, onViewImage }) {
+function RightMessage({ item, onViewImage, onDelete, onLoading }) {
   const [showTime, setShowTime] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
+  const jwtToken = useSelector(getJwtToken);
 
+  // const onUpvoteCallback = useCallback();
+  // const onDownvoteCallback = useCallback();
+  // const onCommentCallback = useCallback();
+  // const onVoteCallback = useCallback();
+
+  const onDelete1 = React.useCallback(value => {
+    setVisible(true);
+  });
   return (
-    <TouchableOpacity onPress={() => setShowTime(!showTime)}>
+    <TouchableOpacity
+      //onLongPress={() => setModalVisible(true)}
+      onPress={() => setShowTime(!showTime)}
+    >
       <View style={styles.containerRightMessage}>
         <View
           style={[
@@ -146,20 +101,91 @@ function RightMessage({ item, onViewImage }) {
         </View>
 
         <View>
-          {item.media_content != null ? (
+          {item.message_type == 1 ? (
             <TouchableOpacity
-              onPress={() => onViewImage(true, item.media_content.image_hash)}
+              onPress={() => onViewImage(true, item.content[0].image_hash)}
             >
               <Image
                 style={{ width: 200, height: 300, marginRight: 8 }}
-                source={{ uri: item.media_content.image_hash }}
+                source={{ uri: item.content[0].image_hash }}
               />
             </TouchableOpacity>
-          ) : (
+          ) : item.message_type == 0 ? (
             <View style={styles.boxRightMessage}>
-              <Text style={{ color: '#ffffff' }}>{item.string_content}</Text>
+              <Text style={{ color: '#ffffff' }}>{item.content[0]}</Text>
             </View>
-          )}
+          ) : item.message_type == 3 ? (
+            <TouchableOpacity
+              onPress={() => {
+                onLoading(true);
+                PostService.getPostById(jwtToken, item.content.oid)
+                  .then(res => {
+                    onLoading(false);
+                    if (res.data.code == 404) {
+                      //props.onNotExist(post.oid);
+                      ToastAndroid.show('Bài đăng không tồn tại.', 1000);
+                    } else {
+                      res.data.result.saved =
+                        res.data.result.is_save_by_current;
+                      navigation.navigate(navigationConstants.post, {
+                        post: res.data.result,
+                        vote: res.data.result.is_vote_by_current
+                          ? 1
+                          : res.data.result.is_downvote_by_current
+                          ? -1
+                          : 0,
+                        upvote: res.data.result.upvote,
+                        commentCount: res.data.result.comments_count,
+                        downvote: res.data.result.downvote,
+                      });
+                    }
+                  })
+                  .catch(err => console.log(err));
+              }}
+              style={styles.boxRightMessage}
+            >
+              <View>
+                <View style={{ flexDirection: 'row' }}>
+                  <Image
+                    source={{ uri: item.content.author_avatar }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      borderWidth: 0.5,
+                      marginRight: 8,
+                    }}
+                  />
+                  <View style={{ width: deviceWidth - 150 }}>
+                    <Text
+                      style={{
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        fontSize: 14,
+                      }}
+                      numberOfLines={2}
+                    >
+                      {item.content.title}
+                    </Text>
+                    <Text style={{ color: '#ccc', fontSize: 12 }}>
+                      {item.content.author_name}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  style={{ color: '#fff', marginHorizontal: 8 }}
+                  numberOfLines={3}
+                >
+                  {item.content.string_contents[0].content.length < 80
+                    ? `${item.content.string_contents[0].content}`
+                    : `${item.content.string_contents[0].content.substring(
+                        0,
+                        200
+                      )}...`}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
       {showTime ? (
@@ -175,12 +201,56 @@ function RightMessage({ item, onViewImage }) {
           </Text>
         </View>
       ) : null}
+      <ChatOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        onDelete={onDelete1}
+      />
+      <Modal
+        visible={visible}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisible(false)}
+            />
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Xóa"
+              onPress={() => {
+                onDelete(item.oid);
+                setVisible(false);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn muốn xóa thông báo này?
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </TouchableOpacity>
   );
 }
-function LeftMessage({ item, onViewImage, avatar }) {
+function LeftMessage({ item, onViewImage, avatar, onLoading }) {
   const [showTime, setShowTime] = useState(false);
-
+  const navigation = useNavigation();
+  const jwtToken = useSelector(getJwtToken);
   return (
     <TouchableOpacity onPress={() => setShowTime(!showTime)}>
       <View>
@@ -189,22 +259,99 @@ function LeftMessage({ item, onViewImage, avatar }) {
             <Image style={styles.imgAvatar} source={{ uri: avatar }} />
           </View>
 
-          {item.media_content != null ? (
+          {item.message_type == 1 ? (
             <TouchableOpacity
-              onPress={() => onViewImage(true, item.media_content.image_hash)}
+              onPress={() => onViewImage(true, item.content[0].image_hash)}
             >
               <Image
-                style={{ width: 200, height: 300, marginLeft: 8 }}
-                source={{ uri: item.media_content.image_hash }}
+                style={{
+                  width: 200,
+                  height: 300,
+                  marginLeft: 8,
+                  borderRadius: 8,
+                  borderWidth: 0.5,
+                  borderColor: main_color,
+                }}
+                source={{ uri: item.content[0].image_hash }}
               />
             </TouchableOpacity>
-          ) : (
+          ) : item.message_type == 0 ? (
             <View style={styles.shirk1}>
               <View style={styles.boxMessage}>
-                <Text>{item.string_content}</Text>
+                <Text>{item.content[0]}</Text>
               </View>
             </View>
-          )}
+          ) : item.message_type == 3 ? (
+            <TouchableOpacity
+              onPress={() => {
+                onLoading(true);
+                PostService.getPostById(jwtToken, item.oid)
+                  .then(res => {
+                    onLoading(false);
+                    if (res.data.code == 404) {
+                      //props.onNotExist(post.oid);
+                      ToastAndroid.show('Bài đăng không tồn tại.', 1000);
+                    } else {
+                      res.data.result.saved =
+                        res.data.result.is_save_by_current;
+                      navigation.navigate(navigationConstants.post, {
+                        post: res.data.result,
+                        vote: res.data.result.is_vote_by_current
+                          ? 1
+                          : res.data.result.is_downvote_by_current
+                          ? -1
+                          : 0,
+                        upvote: res.data.result.upvote,
+                        commentCount: res.data.result.comments_count,
+                        downvote: res.data.result.downvote,
+                      });
+                    }
+                  })
+                  .catch(err => console.log(err));
+              }}
+              style={styles.boxMessage}
+            >
+              <View>
+                <View style={{ flexDirection: 'row' }}>
+                  <Image
+                    source={{ uri: item.content.author_avatar }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      borderWidth: 0.5,
+                      marginRight: 8,
+                    }}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        color: '#000',
+                        fontWeight: 'bold',
+                        fontSize: 14,
+                      }}
+                    >
+                      {item.content.title}
+                    </Text>
+                    <Text style={{ color: '#ccc', fontSize: 12 }}>
+                      {item.content.author_name}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  style={{ color: '#000', marginHorizontal: 8 }}
+                  numberOfLines={3}
+                >
+                  {item.content.string_contents[0].content.length < 80
+                    ? `${item.content.string_contents[0].content}`
+                    : `${item.content.string_contents[0].content.substring(
+                        0,
+                        200
+                      )}...`}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ) : null}
         </View>
         {showTime ? (
           <View style={styles.timeLeft}>
@@ -228,31 +375,90 @@ function LeftMessage({ item, onViewImage, avatar }) {
   );
 }
 function Conversation(props) {
-  const post = tmpConversation;
   const route = useRoute();
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
   const [message, setMessage] = useState('');
-  const curUser = useSelector(getUser);
+  const [modalVisible, setModalVisible] = useState(false);
+
   const flatListRef = useRef();
   const [chosing, setChosing] = useState(false);
   const [imgMessage, setImgMessage] = useState();
   const [isSending, setSending] = useState(false);
   const conversation_id = route.params.id;
   const [visible, setIsVisible] = useState(false);
+  const [deleteVisible, setDeleteVisible] = useState(false);
+  const navigation = useNavigation();
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ margin: 16 }}>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <FontAwesome5 name={'ellipsis-h'} size={24} color={'#fff'} />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
   const onViewImage = useCallback((value, uri) => {
     setIsVisible(true);
     setImgMessage(uri);
   });
+  const onLoading = useCallback(value => {
+    setIsLoading(value);
+  });
+  const onDelete = useCallback(value => {
+    setModalVisible(false);
+    setDeleteVisible(true);
+  });
+  const deleteConversation = async () => {
+    ToastAndroid.show('Đang xóa...', 1000);
+    setIsLoading(true);
+    setDeleteVisible(false);
+    await ChatService.deleteConversation(conversation_id)
+      .then(res => {
+        setIsLoading(true);
+        navigation.goBack();
+        setTimeout(
+          () => ToastAndroid.show('Đã xóa cuộc trò chuyện này.', 1000),
+          1000
+        );
+      })
+      .catch(err => {
+        console.log(err);
+        setIsLoading(false);
 
+        ToastAndroid.show('Xóa thất bại.', 1000);
+      });
+  };
+
+  const onDeleteCallBack = React.useCallback(async id => {
+    let tmp = listMes.filter(i => i.oid !== id);
+
+    setListMes([...tmp]);
+
+    await ChatService.deleteMessageById(id)
+      .then(res => setTimeout(() => ToastAndroid.show('Đã xóa', 1000), 1000))
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Xóa thất bại.', 1000);
+      });
+  });
   //lazy
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
+    headers: { Authorization: `Bearer ${jwtToken}` },
   };
   // useEffect(() => {
   //   flatListRef.current.scrollToEnd({ animated: true, duration: 1000 });
@@ -271,26 +477,38 @@ function Conversation(props) {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message
       );
+      console.log(res);
+      if (res.sender_id == userInfo.id) return;
+      // if (route.params?.callback)
+      // if (res.MediaContent == null) {
+      //   route.params.callback(res.StringContent, new Date());
+      // } else {
+      //   route.params.callback('Ảnh', new Date());
+      // }
+      if (route.params?.callback) {
+      }
+      if (res.message_type == 1) {
+        res.content = [{ image_hash: res.content[0].ImageHash }];
+      } else if (res.message_type == 3) {
+        res.content.string_contents[0].content =
+          res.content.string_contents[0].Content;
+      }
 
-      if (res.SenderId == curUser.oid) return;
-      if (route.params?.callback)
-        if (res.MediaContent == null) {
-          route.params.callback(res.StringContent, new Date());
-        } else {
-          route.params.callback('Ảnh', new Date());
-        }
-      const tmp = {
-        id: '',
-        sender_id: res.SenderId,
-        conversation_id: res.ConversationId,
-        media_content: res.MediaContent,
-        string_content: res.StringContent,
-        status: res.Status,
-        created_date: res.CreatedDate,
-        modified_date: res.ModifiedDate,
-        oid: res.OId,
-      };
-      setListMes([tmp, ...listMes]);
+      setListMes([res, ...listMes]);
+      // const tmp = {
+      //   id: '',
+      //   sender_id: res.SenderId,
+      //   conversation_id: res.ConversationId,
+      //   media_content: res.MediaContent
+      //     ? { image_hash: res.MediaContent.ImageUrl }
+      //     : res.MediaContent,
+      //   string_content: res.StringContent,
+      //   status: res.Status,
+      //   created_date: res.CreatedDate,
+      //   modified_date: res.ModifiedDate,
+      //   oid: res.OId,
+      // };
+      //setListMes([tmp, ...listMes]);
 
       // console.log(
       //   JSON.parse(
@@ -306,24 +524,20 @@ function Conversation(props) {
   useEffect(() => {
     let isRender = true;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(
-          api +
-            'Message/message/get/conversation/' +
-            conversation_id +
-            '/skip/' +
-            skip +
-            '/count/15'
-        )
+      await ChatService.getAllMessage(jwtToken, {
+        conversation_id: conversation_id,
+        skip: skip,
+        count: 15,
+      })
         .then(response => {
-          response.data.result.messages.forEach(i => (i.sending = false));
+          response.data.result.forEach(i => (i.sending = false));
           if (isRender) {
-            setListMes(response.data.result.messages);
+            setListMes(response.data.result);
             setIsLoading(false);
             setSkip(skip + 10);
           }
         })
-        .catch(err => alert(err));
+        .catch(err => console.log(err));
     };
     fetchData();
     return () => {
@@ -332,13 +546,20 @@ function Conversation(props) {
   }, []);
 
   const sendMessage = async () => {
+    // Keyboard.dismiss();
+
+    if (message.trim().length < 1) {
+      showAlert('Thông báo', 'Bạn chưa nhập tin nhắn..');
+      return;
+    }
     setSending(true);
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
     const tmp = {
       id: '',
-      sender_id: curUser.oid,
-      media_content: null,
-      string_content: message,
-
+      sender_id: userInfo.id,
+      media_content: [],
+      content: [message.trim()],
+      message_type: 0,
       created_date: new Date(),
       modified_date: new Date(),
       sending: true,
@@ -346,11 +567,10 @@ function Conversation(props) {
     setMessage('');
     setListMes([tmp, ...listMes]);
 
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Message/message/add', {
-        conversation_id: conversation_id,
-        content: message,
-      })
+    await ChatService.createMessage(jwtToken, {
+      conversation_id: conversation_id,
+      message: message.trim(),
+    })
       .then(response => {
         // setListMes([...listMes, response.data.result]);
         listMes.forEach(i => {
@@ -358,40 +578,49 @@ function Conversation(props) {
         });
         if (route.params?.callback) {
           route.params.callback(
-            'Bạn: ' + response.data.result.string_content,
+            'Bạn: ' + response.data.result.content[0],
             new Date()
           );
         }
         setListMes([
           {
             id: '',
-            sender_id: curUser.oid,
+            sender_id: userInfo.id,
             media_content: response.data.result.media_content,
-            string_content: response.data.result.string_content,
+            content: response.data.result.content,
             conversation_id: response.data.result.conversation_id,
             created_date: response.data.result.created_date,
             modified_date: response.data.result.modified_date,
             sending: false,
+            message_type: 0,
           },
           ...listMes,
         ]);
         setSending(false);
       })
       .catch(err => {
-        alert(err);
+        console.log(err);
         setSending(false);
       });
   };
 
   const renderItem = ({ item }) => {
-    if (item.sender_id == curUser.oid)
-      return <RightMessage item={item} onViewImage={onViewImage} />;
+    if (item.sender_id == userInfo.id)
+      return (
+        <RightMessage
+          item={item}
+          onViewImage={onViewImage}
+          onDelete={onDeleteCallBack}
+          onLoading={onLoading}
+        />
+      );
     else
       return (
         <LeftMessage
           item={item}
           onViewImage={onViewImage}
           avatar={route.params.avatar}
+          onLoading={onLoading}
         />
       );
   };
@@ -402,7 +631,7 @@ function Conversation(props) {
 
     ImagePicker.openPicker({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
@@ -411,9 +640,9 @@ function Conversation(props) {
       if (image) {
         const tmp = {
           id: '',
-          sender_id: curUser.oid,
-          media_content: { image_hash: image.path },
-
+          sender_id: userInfo.id,
+          content: [{ image_hash: image.path }],
+          message_type: 1,
           created_date: new Date(),
           modified_date: new Date(),
           sending: true,
@@ -430,7 +659,7 @@ function Conversation(props) {
               'conversation/' +
                 conversation_id +
                 '/' +
-                curUser.oid +
+                userInfo.id +
                 '/' +
                 filename
             )
@@ -445,20 +674,16 @@ function Conversation(props) {
                 .ref(response.metadata.fullPath)
                 .getDownloadURL()
                 .then(async url => {
-                  await getAPI(curUser.jwtToken)
-                    .post(api + 'Message/message/add', {
-                      conversation_id: conversation_id,
-                      image: {
-                        image_url: url,
-                        image_hash: url,
-                      },
-                    })
+                  await ChatService.createImageMessage(jwtToken, {
+                    conversation_id: conversation_id,
+                    url: url,
+                  })
                     .then(response => {
                       const tmp = {
                         id: '',
-                        sender_id: curUser.oid,
-                        media_content: { image_hash: image.path },
-
+                        sender_id: userInfo.id,
+                        content: [{ image_hash: image.path }],
+                        message_type: 1,
                         created_date: new Date(),
                         modified_date: new Date(),
                         sending: false,
@@ -484,7 +709,7 @@ function Conversation(props) {
     if (route.params?.callback) route.params.callback('Bạn: Ảnh', new Date());
     ImagePicker.openCamera({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
@@ -493,9 +718,9 @@ function Conversation(props) {
       if (image) {
         const tmp = {
           id: '',
-          sender_id: curUser.oid,
-          media_content: { image_hash: image.path },
-
+          sender_id: userInfo.id,
+          content: [{ image_hash: image.path }],
+          message_type: 1,
           created_date: new Date(),
           modified_date: new Date(),
           sending: true,
@@ -512,7 +737,7 @@ function Conversation(props) {
               'conversation/' +
                 conversation_id +
                 '/' +
-                curUser.oid +
+                userInfo.id +
                 '/' +
                 filename
             )
@@ -527,20 +752,16 @@ function Conversation(props) {
                 .ref(response.metadata.fullPath)
                 .getDownloadURL()
                 .then(async url => {
-                  await getAPI(curUser.jwtToken)
-                    .post(api + 'Message/message/add', {
-                      conversation_id: conversation_id,
-                      image: {
-                        image_url: url,
-                        image_hash: url,
-                      },
-                    })
+                  await ChatService.createImageMessage(jwtToken, {
+                    conversation_id: conversation_id,
+                    url: url,
+                  })
                     .then(response => {
                       const tmp = {
                         id: '',
-                        sender_id: curUser.oid,
-                        media_content: { image_hash: image.path },
-
+                        sender_id: userInfo.id,
+                        content: [{ image_hash: image.path }],
+                        message_type: 1,
                         created_date: new Date(),
                         modified_date: new Date(),
                         sending: false,
@@ -562,30 +783,29 @@ function Conversation(props) {
     });
   };
   const fetchData = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(
-        api +
-          'Message/message/get/conversation/' +
-          conversation_id +
-          '/skip/' +
-          skip +
-          '/count/15'
-      )
+    await ChatService.getAllMessage(jwtToken, {
+      conversation_id: conversation_id,
+      skip: skip,
+      count: 15,
+    })
       .then(response => {
-        response.data.result.messages.forEach(i => (i.sending = false));
-        setListMes([...listMes, ...response.data.result.messages]);
+        response.data.result.forEach(i => (i.sending = false));
+        setListMes([...listMes, ...response.data.result]);
         setSkip(skip + 10);
         setIsEnd(false);
       })
-      .catch(err => alert(err));
+      .catch(err => console.log(err));
   };
+
+  const flatList = React.useRef(null);
+
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
-          style={{ marginBottom: 64 }}
+          ref={flatList}
+          style={{ marginBottom: 56 }}
           onEndReached={() => {
-            console.log('end');
             if (isEnd) return;
             if (listMes.length > 14) {
               setIsEnd(true);
@@ -610,7 +830,9 @@ function Conversation(props) {
           keyExtractor={(item, index) => index.toString()}
         />
       </SafeAreaView>
-      <View style={styles.containerInput}>
+      <View
+        style={{ ...styles.containerInput, height: 56, width: deviceWidth }}
+      >
         {showOption ? (
           <View style={styles.grOption}>
             <TouchableOpacity style={styles.btnInputOption}>
@@ -642,7 +864,7 @@ function Conversation(props) {
           multiline={true}
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
-          placeholder="Nhập j đi tml.."
+          placeholder="Nhập tin nhắn ..."
           value={message}
           onChangeText={text => setMessage(text)}
         />
@@ -758,7 +980,6 @@ function Conversation(props) {
           </TouchableOpacity>
         </View>
       ) : null}
-
       <ImageView
         images={[{ uri: imgMessage }]}
         imageIndex={0}
@@ -783,6 +1004,70 @@ function Conversation(props) {
           />
         </View>
       ) : null}
+      <ChatOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        onDelete={onDelete}
+      />
+      <Modal
+        visible={deleteVisible}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setDeleteVisible(false)}
+            />
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Xóa"
+              onPress={() => {
+                deleteConversation();
+                setDeleteVisible(false);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn muốn xóa hội thoại này?
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     marginVertical: 4,
   },
   containerCreatedTime: { 
-    marginRight: 24,
+    marginRight: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },

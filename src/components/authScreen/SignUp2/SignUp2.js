@@ -1,5 +1,5 @@
 import { useTheme, useRoute, useNavigation } from '@react-navigation/native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Text,
@@ -7,7 +7,9 @@ import {
   View,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
   ScrollView,
+  ToastAndroid
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -27,6 +29,13 @@ import { hint_color, main_2nd_color, main_color } from 'constants/colorCommon';
 import axios from 'axios';
 import { api } from 'constants/route';
 import navigationConstants from 'constants/navigation';
+import Geolocation from 'react-native-geolocation-service';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function SignUp2() {
@@ -36,41 +45,126 @@ function SignUp2() {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
+
   const [phone, setPhone] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
 
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
   const data = route.params;
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
+  useEffect(() => {
+    setEmail(route.params.emailGG);
+  }, []);
+  const checkEmailExisting = async () => {
+    if (email != '') {
+      await axios
+        .get(api + 'User/is-exist?email=' + email)
+        .then(res => {
+          if (res.data.result) {
+            showAlert(
+              'Thông báo',
+              'Email này đã đăng kí, vui lòng nhập email khác.'
+            );
+            setEmail('');
+          }
+        })
+        .catch(err => console.log(err));
+    }
+  };
   const handleSubmit = async () => {
+    if (phone == '') {
+      showAlert('Thông báo', 'Vui lòng nhập số điện thoại.');
+      return;
+    } else if (email == '') {
+      showAlert('Thông báo', 'Vui lòng nhập email.');
+      return;
+    } else if (password.length < 6 || password2.length < 6) {
+      showAlert('Thông báo', 'Vui lòng nhập mật khẩu ít nhất 6 kí tự.');
+      return;
+    } else if (password != password2) {
+      showAlert('Thông báo', 'Mật khẩu không trùng khớp, vui lòng nhập lại');
+      return;
+    }
     setIsLoading(true);
-    console.log({
-      first_name: data.first,
-      last_name: data.last,
-      date_of_birth: data.dob,
-      address: { city: data.city, district: data.district },
-      email: email,
-      phone_number: phone,
-      password: password,
-    });
-
     await axios
       .post(api + 'User/register', {
         first_name: data.first,
         last_name: data.last,
         date_of_birth: data.dob,
-        address: { city: data.city, district: data.district },
+        address: {
+          city: data.city,
+          district: data.district,
+          latitude: '1',
+          longtitude: '1',
+          detail: '',
+        },
         email: email,
         phone_number: phone,
         password: password,
+        confirmPassword: password,
+        accept_term: true,
+        title: 'title',
+        isExternalRegister: route.params?.isGoogle ? true : false
       })
       .then(res => {
-        console.log(res);
         setIsLoading(false);
-        navigation.navigate(navigationConstants.verifyEmail, {email: email, password: password});
+        if (route.params?.isGoogle) {
+          dispatch(login(email, password));
+
+          ToastAndroid.show('Bạn đã đăng kí thành công.', ToastAndroid.SHORT);
+        } else {
+          navigation.navigate(navigationConstants.verifyEmail, {
+            email: email,
+            password: password,
+          });
+        }
       })
       .catch(err => {
         setIsLoading(false);
-        alert(err);
+        showAlert('Đăng kí không thành công', err.message);
       });
+    // if (hasLocationPermission) {
+    //   Geolocation.getCurrentPosition(
+    //       async (location) => {
+    //         console.log(location);
+    //         await axios
+    //       .post(api + 'User/register', {
+    //         first_name: data.first,
+    //         last_name: data.last,
+    //         date_of_birth: data.dob,
+    //         address: { city: data.city, district: data.district, latitude: location.latitude, longtitude: location.longitude },
+    //         email: email,
+    //         phone_number: phone,
+    //         password: password,
+    //         confirmPassword: password,
+    //         accept_term: true,
+    //         title: 'title',
+    //       })
+    //       .then(res => {
+    //         setIsLoading(false);
+    //         navigation.navigate(navigationConstants.verifyEmail, {
+    //           email: email,
+    //           password: password,
+    //         });
+    //       })
+    //       .catch(err => {
+    //         setIsLoading(false);
+    //         showAlert('Đăng kí không thành công', err.message);
+    //       });
+    //       },
+    //       (error) => {
+    //         See error code charts below.
+    //         console.log(error.code, error.message);
+    //       },
+    //       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    //   );
+    // }
   };
   return (
     <ScrollView
@@ -96,6 +190,8 @@ function SignUp2() {
             placeholder={strings.email}
             value={email}
             icon={'envelope'}
+            editable={route.params?.isGoogle ? false : true}
+
           />
           <TextField
             accessibilityHint={strings.lastName}
@@ -104,13 +200,22 @@ function SignUp2() {
             placeholder={strings.password}
             value={password}
             icon={'unlock-alt'}
+            secureTextEntry={true}
           />
-
+          <TextField
+            accessibilityHint={strings.lastName}
+            accessibilityLabel={strings.lastName}
+            onChangeText={setPassword2}
+            placeholder={'Nhập lại mật khẩu'}
+            value={password2}
+            icon={'unlock'}
+            secureTextEntry={true}
+          />
           <TouchableOpacity
             style={styles.btnSignUp}
             onPress={() => handleSubmit()}
           >
-            <Text style={styles.txtSignUp}>{strings.next}</Text>
+            <Text style={styles.txtSignUp}>Đăng kí</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -132,6 +237,27 @@ function SignUp2() {
           />
         </View>
       ) : null}
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </ScrollView>
   );
   // return (

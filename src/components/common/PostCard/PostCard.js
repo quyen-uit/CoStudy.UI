@@ -15,9 +15,9 @@ import { Card } from 'react-native-elements';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import navigationConstants from 'constants/navigation';
-import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import { getUser } from 'selectors/UserSelectors';
+import PostService from 'controllers/PostService';
+
+import { getJwtToken, getUser } from 'selectors/UserSelectors';
 import Modal, {
   ModalContent,
   BottomModal,
@@ -39,6 +39,7 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { api } from 'constants/route';
 import { RotationGestureHandler } from 'react-native-gesture-handler';
+import Badge from '../Badge';
 function PostCard(props) {
   const post = props.post;
   const userId = props.userId;
@@ -46,46 +47,67 @@ function PostCard(props) {
   const navigation = useNavigation();
   const [author, setAuthor] = useState();
 
-  const curUser = useSelector(getUser);
+  const jwtToken = useSelector(getJwtToken);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
 
   // like, comment
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
-  const [comment, setComment] = useState(post.comments_countd);
-
+  const [comment, setComment] = useState(post.comments_count);
+  const [saved, setSaved] = useState(post.is_save_by_current);
   const [vote, setVote] = useState(post.vote);
   const onUpvoteCallback = useCallback(value => setUpvote(value));
   const onDownvoteCallback = useCallback(value => setDownvote(value));
   const onCommentCallback = useCallback(value => setComment(value));
   const onVoteCallback = useCallback(value => setVote(value));
+  const onSaveCallBack = useCallback(value => setSaved(value));
+  useEffect(() => {
+    setComment(post.comments_count);
+    setUpvote(post.upvote);
+    setDownvote(post.downvote);
+    setVote(post.vote);
+    setSaved(post.is_save_by_current);
+  }, [
+    post.comments_count,
+    post.vote,
+    post.upvote,
+    post.downvote,
+    post.is_save_by_current,
+  ]);
 
-  const config = {
-    headers: { Authorization: `Bearer ${curUser.jwtToken}` },
-  };
   useEffect(() => {
     const fetchData = async () => {};
     fetchData();
   }, []);
   const GoToPost = () => {
-    navigation.navigate(navigationConstants.post, {
-      post: post,
-      author: author,
-      vote: vote,
-      upvote: upvote,
-      commentCount: comment,
-      downvote: downvote,
-      onUpvote: onUpvoteCallback,
-      onDownvote: onDownvoteCallback,
-      onComment: onCommentCallback,
-      onVote: onVoteCallback,
-    });
+    PostService.getPostById(jwtToken, post.oid)
+      .then(res => {
+        if (res.data.code == 404) {
+          props.onNotExist(post.oid);
+          ToastAndroid.show('Bài đăng không tồn tại.', 1000);
+        } else {
+          post.saved = res.data.result.is_save_by_current;
+          navigation.navigate(navigationConstants.post, {
+            post: post,
+            vote: vote,
+            upvote: upvote,
+            commentCount: comment,
+            downvote: downvote,
+            onUpvote: onUpvoteCallback,
+            onDownvote: onDownvoteCallback,
+            onComment: onCommentCallback,
+            onVote: onVoteCallback,
+            onSave: onSaveCallBack,
+          });
+        }
+      })
+      .catch(err => console.log(err));
   };
 
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã upvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
@@ -95,13 +117,13 @@ function PostCard(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await axios
-      .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid }, config)
-      .then(response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT));
+    await PostService.upvote(jwtToken, post.oid).then(response =>
+      ToastAndroid.show('Đã upvote', ToastAndroid.SHORT)
+    );
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã downvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
@@ -111,13 +133,14 @@ function PostCard(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await axios
-      .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid }, config)
-      .then(response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT));
+    await PostService.downvote(jwtToken, post.oid).then(response =>
+      ToastAndroid.show('Đã downvote', ToastAndroid.SHORT)
+    );
   };
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: post.author_id });
   };
+
   return (
     <Card containerStyle={styles.container}>
       <TouchableHighlight
@@ -136,11 +159,29 @@ function PostCard(props) {
                   }}
                 />
               </TouchableOpacity>
-              <View>
-                <TouchableOpacity>
-                  <Text style={styles.txtAuthor}>{post.author_name}</Text>
-                </TouchableOpacity>
+              <View> 
+                <View style={styles.containerHeader}>
+                  <TouchableOpacity onPress={() => GoToProfile()}>
+                    <Text style={styles.txtAuthor}>{post.author_name}</Text>
+                  </TouchableOpacity>
+                  
+                </View>
                 <View style={styles.rowFlexStart}>
+                <View
+                    style={{
+                      marginRight: 4,
+                      paddingHorizontal: 4,
+                      paddingVertical: 2,
+                      borderRadius: 4,
+                      backgroundColor:
+                        post.post_type == 0 ? main_color : main_2nd_color,
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, color: '#fff' }}>
+                      {post.post_type_name}
+                    </Text>
+                  </View>
+                
                   <FontAwesome name={'circle'} size={8} color={active_color} />
                   <Text style={styles.txtCreateDate}>
                     {moment(new Date()).diff(
@@ -161,31 +202,33 @@ function PostCard(props) {
                         ) + ' giờ trước'
                       : moment(post.created_date).format('hh:mm DD-MM-YYYY')}
                   </Text>
-                </View>
+                 </View>
               </View>
             </View>
 
-            <View>
-              <TouchableHighlight
+            <View style={{ marginRight: -8 }}>
+              <TouchableOpacity
                 activeOpacity={1}
                 underlayColor={touch_color}
                 style={styles.btn3Dot}
-                onPress={() => props.onModal(true, post.oid, post.saved)}
+                onPress={() => {
+                  props.onModal(true, post.oid, saved);
+                }}
               >
                 <View style={styles.btnOption}>
                   <FontAwesome name={'ellipsis-v'} size={24} color="#c4c4c4" />
                 </View>
-              </TouchableHighlight>
+              </TouchableOpacity>
             </View>
           </View>
           <View>
             <View style={styles.rowFlexStart}>
-              <FontAwesome
+              {/* <FontAwesome
                 style={styles.iconTitle}
                 name={'angle-double-right'}
                 size={20}
                 color={main_color}
-              />
+              /> */}
               <Text style={styles.txtTitle}>{post.title}</Text>
             </View>
             <Text style={styles.txtContent} numberOfLines={3}>
@@ -211,23 +254,32 @@ function PostCard(props) {
             </TouchableOpacity>
           ) : null}
 
-          <View style={styles.containerTag}>
-            <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={false}
-            >
-              {post.fields.map((item, index) => (
-                <TouchableOpacity
-                  key={index}
-                  onPress={() => alert('tag screen')}
-                >
-                  <View style={styles.btnTag}>
-                    <Text style={styles.txtTag}>{item.value}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+          {post.field ? (
+            <View style={styles.containerTag}>
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={false}
+              >
+                {post.field.map((item, index) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate(navigationConstants.search, {
+                        fieldId: item.field_id,
+                      });
+                    }}
+                    key={index}
+                  >
+                    <Badge
+                      item={{
+                        name: item.level_name,
+                        description: item.field_name,
+                      }}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
         </View>
       </TouchableHighlight>
       <View style={styles.footer}>

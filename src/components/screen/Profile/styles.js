@@ -153,6 +153,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     alignSelf: 'center',
   },
+  // badge
+  badgeContainer: {
+    borderWidth: 1,
+    marginRight: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+    flexDirection: 'row',
+  },
+  badgeText: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginLeft: 4,
+  },
+
 });
 
 export default styles;

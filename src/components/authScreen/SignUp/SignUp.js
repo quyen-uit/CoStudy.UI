@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -25,6 +26,14 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import { hint_color, main_2nd_color, main_color } from 'constants/colorCommon';
 import moment from 'moment';
 import navigationConstants from 'constants/navigation';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 function SignUp() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
@@ -32,23 +41,41 @@ function SignUp() {
   const [last, setLast] = useState('');
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
+
+
   const navigation = useNavigation();
-  const [date, setDate] = useState(new Date(1598051730000));
+  const [date, setDate] = useState(new Date(2000, 1, 1));
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+  const route = useRoute();
   const onChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === 'ios');
     setDate(currentDate);
   };
-
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   const onNext = () => {
     if (first == '' || last == '') {
-      Alert.alert('Thông báo', 'Vui lòng đầy đủ họ và tên.');
+      showAlert('Thông báo', 'Vui lòng nhập đầy đủ họ và tên.');
       return;
-    }else 
-    {
-      navigation.navigate(navigationConstants.signup2, {first: first, last: last, dob: date, city: city, district: district})
+    } else if (district == '' || city == '') {
+      showAlert('Thông báo', 'Vui lòng chọn thông tin nơi ở.');
+      return;
+    } else {
+      navigation.navigate(navigationConstants.signup2, {
+        first: first,
+        last: last,
+        dob: date,
+        city: city,
+        district: district,
+        isGoogle: route.params?.isGoogle ? true : false,
+        emailGG: route.params?.email ? route.params?.email : '',
+      });
     }
   };
 
@@ -83,7 +110,6 @@ function SignUp() {
           <TouchableOpacity
             style={{
               alignSelf: 'stretch',
-              marginHorizontal: 56,
               backgroundColor: '#fff',
               borderRadius: 32,
               justifyContent: 'center',
@@ -106,6 +132,26 @@ function SignUp() {
               <Icon name={'birthday-cake'} size={22} color={main_2nd_color} />
             </View>
           </TouchableOpacity>
+
+          <View style={styles.picker}>
+            <RNPickerSelect
+              onValueChange={value => setCity(value)}
+              style={{
+                placeholder: { color: hint_color },
+                inputAndroid: {
+                  color: '#000',
+                },
+              }}
+              placeholder={{
+                label: 'Thành phố',
+                value: '',
+              }}
+              items={[{ label: 'Hồ Chí Minh', value: 'Hồ Chí Minh' }]}
+            />
+            <View style={styles.icon}>
+              <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
+            </View>
+          </View>
           <View style={styles.picker}>
             <RNPickerSelect
               onValueChange={value => setDistrict(value)}
@@ -129,37 +175,44 @@ function SignUp() {
               <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
             </View>
           </View>
-          <View style={styles.picker}>
-            <RNPickerSelect
-              onValueChange={value => console.log(value)}
-              style={{
-                placeholder: { color: hint_color },
-                inputAndroid: {
-                  color: '#000',
-                },
-              }} 
-              placeholder={{
-                label: 'Thành phố',
-                value: '',
-              }}
-              items={[
-                { label: 'Hồ Chí Minh', value: 'Hồ Chí Minh' },
-                
-              ]}
-            />
-            <View style={styles.icon}>
-              <Icon name={'venus-mars'} size={22} color={main_2nd_color} />
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.btnSignUp}
-            onPress={() => onNext()}
-          >
+          {/* <TextField
+            onChangeText={setSchool}
+            placeholder={'Trường'}
+            value={school}
+            icon={'school'}
+          />
+          <TextField
+            onChangeText={setSubject}
+            placeholder={'Chuyên ngành'}
+            value={subject}
+            icon={'graduation-cap'}
+          /> */}
+          <TouchableOpacity style={styles.btnSignUp} onPress={() => onNext()}>
             <Text style={styles.txtSignUp}>{strings.next}</Text>
           </TouchableOpacity>
         </View>
 
-        <View></View>
+        <Modal
+          visible={visibleAlert}
+          width={deviceWidth - 56}
+          footer={
+            <ModalFooter>
+              <ModalButton
+                textStyle={{ fontSize: 14, color: main_color }}
+                text="Hủy"
+                onPress={() => setVisibleAlert(false)}
+              />
+            </ModalFooter>
+          }
+        >
+          <ModalContent>
+            <View>
+              <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+                {bodyAlert}
+              </Text>
+            </View>
+          </ModalContent>
+        </Modal>
         {show && (
           <DateTimePicker
             testID="dateTimePicker"

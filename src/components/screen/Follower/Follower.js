@@ -12,38 +12,27 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
+  TextInput
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Follower/styles';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { getUser } from 'selectors/UserSelectors';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+
+import { getUser, getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
 import navigationConstants from 'constants/navigation';
 import { main_color, touch_color } from 'constants/colorCommon';
-import { api } from 'constants/route';
 import moment from 'moment';
-import { getAPI } from '../../../apis/instance';
+import FollowService from 'controllers/FollowService';
+import UserService from 'controllers/UserService';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
-const list = [
-  {
-    id: '1',
-    author: 'Nguyễn Văn Nam',
-    info: 'Đại học Công nghệ thông tin',
-    status: 0,
-  },
-  {
-    id: '2',
-    author: 'Nguyễn Văn Ba',
-    info: 'Đại học Công nghệ thông tin',
-    status: 1,
-  },
-];
+
 function UserCard({ item }) {
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+  const route = useRoute();
   const [loading, setLoading] = useState(false);
-  const curUser = useSelector(getUser);
   const [following, setFollowing] = useState(item.following);
   const navigation = useNavigation();
   const onCallback = React.useCallback(value => {
@@ -52,45 +41,49 @@ function UserCard({ item }) {
   const onFollow = async () => {
     setLoading(true);
     if (following) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/follower/remove?followingId=' + item.from_id, {
-          followingId: item.from_id,
-        })
+      // ??
+      await FollowService.unfollow(jwtToken, { from_id: item.from_id })
         .then(res => {
           setLoading(false);
           setFollowing(false);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'User/following', { followers: [item.from_id] })
+      await FollowService.follow(jwtToken, item.from_id)
         .then(res => {
           setLoading(false);
           setFollowing(true);
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     }
   };
   return (
     <Card containerStyle={styles.cardContainer}>
       <TouchableHighlight
+        underlayColor={touch_color}
+        style={styles.card}
         onPress={() =>
-          navigation.push(navigationConstants.profile, {
+          navigation.navigate(navigationConstants.profile, {
             id: item.from_id,
             callback: onCallback,
           })
         }
-        underlayColor={touch_color}
-        style={styles.card}
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate(navigationConstants.profile, {
+                  id: item.from_id,
+                  callback: onCallback,
+                })
+              }
+            >
               <Image
                 style={styles.imgAvatar}
                 source={
-                  item.avatar
-                    ? { uri: item.avatar }
+                  item.from_avatar
+                    ? { uri: item.from_avatar }
                     : require('../../../assets/avatar.jpeg')
                 }
               />
@@ -102,7 +95,7 @@ function UserCard({ item }) {
               </Text>
             </View>
           </View>
-          {item.from_id != curUser.oid ? (
+          {item.from_id != userInfo.id ? (
             <View style={{ alignSelf: 'center', width: 96 }}>
               {loading ? (
                 <ActivityIndicator
@@ -113,7 +106,7 @@ function UserCard({ item }) {
               ) : (
                 <TouchableOpacity
                   style={{
-                    backgroundColor: !following ? main_color : '#ccc',
+                    backgroundColor: following ? '#ccc' : main_color,
                     padding: 4,
                     paddingHorizontal: 8,
                     borderRadius: 8,
@@ -124,7 +117,7 @@ function UserCard({ item }) {
                 >
                   <Text
                     style={{
-                      color: !following ? 'white' : main_color,
+                      color: following ? main_color : 'white',
                       alignSelf: 'center',
                     }}
                   >
@@ -140,52 +133,96 @@ function UserCard({ item }) {
   );
 }
 function Follower() {
-  const { colors } = useTheme();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [listMes, setListMes] = useState([]);
+  // const { colors } = useTheme();
+  // const [modalVisible, setModalVisible] = useState(false);
+  // const [listMes, setListMes] = useState([]);
   const [list, setList] = useState([]);
-  const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(true);
   const route = useRoute();
-
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+  const [search, setSearch] = useState('');
+  const [isSearch, setIsSearch] = useState(false);
   useEffect(() => {
     let isOut = false;
     const fetch = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(
-          api + 'User/follower?UserId=' + route.params.id + '&Skip=0&Count=99'
-        )
+      await FollowService.getFollowerByUserId(jwtToken, {
+        id: route.params.id,
+        skip: 0,
+        count: 99,
+        keyword: search
+      })
         .then(async res => {
-          await getAPI(curUser.jwtToken)
-            .get(
-              api + 'User/following?UserId=' + curUser.oid + '&Skip=0&Count=99'
-            )
-            .then(following => {
-              if (!isOut) {
-                console.log(res.data.result);
-                res.data.result.forEach(er => {
-                  er.following = false;
-                  following.data.result.forEach(ing => {
-                    if (er.from_id == ing.toId) er.following = true;
-                  });
+          await FollowService.getFollowingByUserId(jwtToken, {
+            id: userInfo.id,
+            skip: 0,
+            count: 99,
+          }).then(following => {
+            if (!isOut) {
+              let promises = res.data.result.map(async er => {
+                er.full_name = er.from_name;
+                er.following = false;
+                following.data.result.forEach(ing => {
+                  if (er.from_id == ing.to_id) er.following = true;
                 });
+              });
+              Promise.all(promises).then(() => {
                 setIsLoading(false);
                 setList(res.data.result);
-              }
-            });
+                setIsSearch(false);
+              });
+            }
+          });
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetch();
     return () => {
       isOut = true;
     };
-  }, []);
+  }, [isSearch]);
   const renderItem = ({ item }) => {
     return <UserCard item={item} />;
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
+       <View style={{  justifyContent: 'center', marginBottom: 4 }}>
+        <TextInput
+          style={{
+            alignSelf: 'stretch',
+            backgroundColor: '#fff',
+            borderRadius: 100,
+            margin: 8,
+            marginBottom: 0,
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+          }}
+          onChangeText={text => setSearch(text)}
+          value={search}
+          placeholder={'Tìm theo tên...'}
+        />
+        <View
+          style={{
+            position: 'absolute',
+            alignSelf: 'flex-end',
+            right: 16,
+            top: 16,
+          }}
+        >
+          <TouchableOpacity
+            onPress={async () => {
+              Keyboard.dismiss();
+              // setKeyword(search);
+              //await onSearch();
+              setIsSearch(true);
+              setIsLoading(true);
+            }}
+          >
+            <Icon name={'search'} size={20} color={'#000'} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {list.length == 0 ? (
         <Text style={{ alignSelf: 'center', marginTop: 100 }}>
           Bạn chưa có người theo dõi

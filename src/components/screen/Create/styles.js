@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     marginLeft: 8,
     flexWrap: 'wrap',
-    marginBottom: 4,
+    marginVertical: 4,
   },
   option: {
     flexDirection: 'row',
@@ -48,17 +48,13 @@ const styles = StyleSheet.create({
    
   },
   picker: {
-    width: 140,
-    
-    backgroundColor: main_2nd_color,
-    paddingLeft: 12,
-    borderRadius: 20,
-    height: 32,
+     
+    padding: 4,
+    borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    
-    alignSelf: 'center',
-  },
+    flexDirection: 'row',
+   },
   //img
   imgAvatar: {
     width: 40,

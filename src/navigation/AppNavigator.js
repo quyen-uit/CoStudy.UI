@@ -12,6 +12,7 @@ import ProfileDetail from 'components/screen/ProfileDetail';
 import ProfileEdit from 'components/screen/ProfileEdit';
 
 import Create from 'components/screen/Create';
+import VideoScreen from 'components/videocall/components/VideoScreen';
 
 import NewsFeed from 'components/screen/NewsFeed';
 import Chat from 'components/screen/Chat';
@@ -40,6 +41,12 @@ import Follower from 'components/screen/Follower';
 import Following from 'components/screen/Following';
 
 import Search from 'components/screen/Search';
+import ListField from 'components/screen/ListField';
+import PickField from 'components/screen/PickField';
+import Report from 'components/screen/Report';
+import Ranking from 'components/screen/Ranking';
+import UserNearBy from 'components/screen/UserNearBy';
+import HelpPost from 'components/screen/HelpPost';
 const Stack = createStackNavigator();
 
 const {
@@ -55,6 +62,13 @@ const {
   profileEdit,
   follower,
   create,
+  listField,
+  pickField,
+  report,
+  video,
+  ranking,
+  nearby,
+  helpPost,
 } = navigationConstants;
 
 function AppNavigator() {
@@ -72,6 +86,80 @@ function AppNavigator() {
         }}
       />
       <Stack.Screen
+        name={listField}
+        component={ListField}
+        options={{
+          title: listField,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+        }}
+      />
+      <Stack.Screen
+        name={nearby}
+        component={UserNearBy}
+        options={{
+          title: nearby,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={pickField}
+        component={PickField}
+        options={{
+          title: pickField,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+        }}
+      />
+      <Stack.Screen
+        name={report}
+        component={Report}
+        options={{
+          title: report,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity onPress={() => alert('search is clicked')}>
+                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
         name={profile}
         component={Profile}
         options={{
@@ -84,14 +172,6 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
-
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
         }}
       />
       <Stack.Screen
@@ -107,14 +187,6 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
-
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
         }}
       />
       <Stack.Screen
@@ -175,21 +247,13 @@ function AppNavigator() {
           headerTitleStyle: {
             alignSelf: 'center',
           },
-
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
         }}
       />
       <Stack.Screen
         name={conversation}
         component={Conversation}
-        options={{
-          title: conversation,
+        options={({ route }) => ({
+          title: route.params.name,
           headerStyle: {
             backgroundColor: main_color,
           },
@@ -198,14 +262,14 @@ function AppNavigator() {
             alignSelf: 'center',
           },
 
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
+          // headerRight: () => (
+          //   <View style={styles.headerRight}>
+          //     <TouchableOpacity onPress={() => alert('search is clicked')}>
+          //       <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+          //     </TouchableOpacity>
+          //   </View>
+          // ),
+        })}
       />
       <Stack.Screen
         name={comment}
@@ -222,8 +286,8 @@ function AppNavigator() {
 
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
           ),
@@ -244,6 +308,94 @@ function AppNavigator() {
 
           headerRight: () => (
             <View style={styles.headerRight}>
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={following}
+        component={Following}
+        options={{
+          title: following,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={helpPost}
+        component={HelpPost}
+        options={{
+          title: helpPost,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={ranking}
+        component={Ranking}
+        options={{
+          //title: ranking,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          // headerRight: () => (
+          //   <View style={styles.headerRight}>
+          //     <TouchableOpacity onPress={() => alert('search is clicked')}>
+          //       <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+          //     </TouchableOpacity>
+          //   </View>
+          // ),
+        }}
+      />
+      <Stack.Screen
+        name={video}
+        component={VideoScreen}
+        options={{
+          title: video,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+          headerRight: () => (
+            <View style={styles.headerRight}>
               <TouchableOpacity onPress={() => alert('search is clicked')}>
                 <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
               </TouchableOpacity>
@@ -251,28 +403,6 @@ function AppNavigator() {
           ),
         }}
       />
-      <Stack.Screen
-      name={following}
-      component={Following}
-      options={{
-        title: following,
-        headerStyle: {
-          backgroundColor: main_color,
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          alignSelf: 'center',
-        },
-
-        headerRight: () => (
-          <View style={styles.headerRight}>
-            <TouchableOpacity onPress={() => alert('search is clicked')}>
-              <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
-            </TouchableOpacity>
-          </View>
-        ),
-      }}
-    />
       <Stack.Screen
         name={create}
         component={Create}

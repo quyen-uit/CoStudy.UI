@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Image,
   TouchableHighlight,
+  Dimensions,
 } from 'react-native';
 import styles from 'components/common/ChatCard/styles';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -19,7 +20,15 @@ import navigationConstants from 'constants/navigation';
 import moment from 'moment';
 import { Card } from 'react-native-elements';
 import ChatOptionModal from 'components/modal/ChatOptionModal/ChatOptionModal';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 // const chat = {
 //   title: 'Đây là title',
 //   author: 'Nguyễn Văn Nam',
@@ -33,7 +42,11 @@ function ChatCard(props) {
   const [date, setDate] = React.useState(props.chat.modified_date);
   const [modalVisible, setModalVisible] = useState(false);
   const [isUnread, setIsUnread] = useState(props.chat.isUnread);
-  console.log(props.chat);
+  const [visible, setVisible] = useState(false);
+  const onDelete = React.useCallback(value => {
+    setVisible(true);
+  });
+
   const onCallback = React.useCallback((value, date) => {
     setContent(value);
     setDate(date);
@@ -41,15 +54,18 @@ function ChatCard(props) {
       name: chat.name,
       modified_date: date,
       avatar: chat.avatar,
-      content: value,
+      content: [value],
       id: chat.id,
       isUnread: false,
     });
   });
+  const onVisible = React.useCallback((value ) => {
+    setModalVisible(value);
+  });
   useEffect(() => {
     setContent(chat.content);
     setDate(chat.modified_date);
-    setIsUnread(chat.isUnread)
+    setIsUnread(chat.isUnread);
   }, [chat.content, chat.modified_date]);
   const GoToConversation = () => {
     setIsUnread(false);
@@ -57,6 +73,7 @@ function ChatCard(props) {
       id: chat.id,
       callback: onCallback,
       avatar: chat.avatar,
+      name: chat.name,
     });
   };
   return (
@@ -81,12 +98,19 @@ function ChatCard(props) {
       >
         <View style={styles.header}>
           <View style={styles.headerAvatar}>
-            <TouchableOpacity onPress={() => alert('avatar is clicked')}>
+            <TouchableOpacity>
               <Image style={styles.imgAvatar} source={{ uri: chat.avatar }} />
             </TouchableOpacity>
             <View style={{ marginLeft: 8 }}>
               <Text style={styles.txtAuthor}>{chat.name}</Text>
-              <Text style={styles.txtContent}>{content}</Text>
+              <Text style={styles.txtContent} numberOfLines={1}>
+                {content.length < 20
+                  ? `${content}`
+                  : `${content.substring(
+                      0,
+                      20
+                    )}...`}
+              </Text>
             </View>
           </View>
 
@@ -120,7 +144,41 @@ function ChatCard(props) {
         onTouchOutside={() => {
           setModalVisible(false);
         }}
+        onDelete={onDelete}
+        onVisible={onVisible}
+        callId={chat.call_id}
+        name={chat.name}
+        conversationId={chat.id}
       />
+      <Modal
+        visible={visible}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisible(false)}
+            />
+            <ModalButton
+              textStyle={{ fontSize: 14, color: 'red' }}
+              text="Xóa"
+              onPress={() => {
+                props.onDelete(chat.id);
+                setVisible(false);
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              Bạn muốn xóa thông báo này?
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

@@ -5,8 +5,10 @@ import {
   Text,
   Image,
   View,
+  ActivityIndicator,
   TouchableOpacity,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login } from 'actions/UserActions';
@@ -21,27 +23,55 @@ import errorsSelector from 'selectors/ErrorSelectors';
 import { isLoadingSelector } from 'selectors/StatusSelectors';
 import navigationConstants from 'constants/navigation';
 import axios from 'axios';
+import { api } from 'constants/route';
 import Loading from 'components/common/Loading';
+import { main_color } from 'constants/colorCommon';
+import { ToastAndroid } from 'react-native';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
+import { ConnectyCube } from 'react-native-connectycube';
 function Verification() {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [key, setKey] = useState('');
   const route = useRoute();
   const navigation = useNavigation();
-
+  const [isLoading, setIsLoading] = useState(false);
+  const deviceWidth = Dimensions.get('window').width;
+  const deviceHeight = Dimensions.get('window').height;
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
   const errors = useSelector(
     state => errorsSelector([actionTypes.LOGIN], state),
     shallowEqual
   );
-
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
   const handleSubmit = () => {
+    if (key == '') {
+      showAlert('Thông báo', 'Bạn chưa nhập mã xác nhận.');
+      return;
+    }
+    setIsLoading(true);
     axios
-      .post(api + 'Accounts/verify-email', token)
+      .post(api + 'Accounts/verify-email?token=' + key, { token: key })
       .then(res => {
+        ToastAndroid.show('Bạn đã đăng kí thành công.', ToastAndroid.SHORT);
+        dispatch(login(route.params.email, route.params.password, navigation));
+        // register chat video
+
         //check response
-        dispatch(login(route.params.email, route.params.password));
       })
-      .catch(err => alert(err));
+      .catch(err => {
+        showAlert('Thất bại', 'Mã xác thực không đúng, vui lòng nhập lại.');
+        setIsLoading(false);
+      });
   };
   return (
     <View style={{ flex: 1 }}>
@@ -72,6 +102,45 @@ function Verification() {
           </View>
         </View>
       </ScrollView>
+      {isLoading ? (
+        <View
+          style={{
+            position: 'absolute',
+            justifyContent: 'center',
+            backgroundColor: '#cccccc',
+            opacity: 0.5,
+            width: deviceWidth,
+            height: deviceHeight - 20,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={main_color}
+            style={{ marginBottom: 100 }}
+          />
+        </View>
+      ) : null}
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
   // return (

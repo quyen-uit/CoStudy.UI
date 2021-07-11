@@ -1,5 +1,5 @@
 import { useTheme, useNavigation } from '@react-navigation/native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Image,
   Text,
@@ -16,6 +16,7 @@ import {
   Keyboard,
   Dimensions,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Post/styles';
@@ -38,7 +39,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { Card } from 'react-native-elements';
 import CommentCard from 'components/common/CommentCard';
 import { useRoute } from '@react-navigation/native';
-import { getUser } from 'selectors/UserSelectors';
+import { getBasicInfo, getJwtToken } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -47,67 +48,32 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 import { api } from 'constants/route';
-import { getAPI } from '../../../apis/instance';
 import ImageView from 'react-native-image-viewing';
 import { ImageComponent } from 'react-native';
-
-const tmpPost = {
-  id: '1',
-  title: 'Đây là title 1',
-  author: 'Nguyễn Văn Nam',
-  content:
-    'Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé. Bọn mình sẽ sử dụng Python, Jupiter Notebook và Google Collab để phân tích, hiển thị dữ liệu, vẽ biểu đồ các kiểu con đà điểu và bình luận nhé',
-  createdDate: '10 phut truoc',
-};
-const list = [
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content Đây là content Đây làaaaaa content Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '1',
-  },
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '2',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '3',
-  },
-
-  {
-    author: 'Võ Thanh Tâm',
-    content: 'Đây là content',
-    createdDate: '10 phut truoc',
-    amountVote: 10,
-    amountComment: 20,
-    id: '4',
-  },
-];
-
+import CommentService from 'controllers/CommentService';
+import PostService from 'controllers/PostService';
+import CommentOptionModal from 'components/modal/CommentOptionModal/CommentOptionModal';
+import { update } from 'actions/UserActions';
+import Badge from 'components/common/Badge';
+import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import {
+  Modal,
+  ModalFooter,
+  ModalButton,
+  ModalContent,
+} from 'react-native-modals';
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 function Post(props) {
-  const { colors } = useTheme();
-  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const [isVote, setIsVote] = useState(false);
+  const jwtToken = useSelector(getJwtToken);
+  const userInfo = useSelector(getBasicInfo);
+
+  const [refreshing, setRefreshing] = useState(false);
   const [showOption, setShowOption] = useState(true);
   const route = useRoute();
   const [post, setPost] = useState(route.params.post);
-  const [author, setAuthor] = useState([]);
-  const curUser = useSelector(getUser);
   const [isLoading, setIsLoading] = useState(false);
   const [comments, setComments] = useState([]);
   const [upvote, setUpvote] = useState(route.params.upvote);
@@ -124,41 +90,160 @@ function Post(props) {
   const [isEnd, setIsEnd] = useState(false);
   const [skip, setSkip] = useState(0);
   const [sending, setSending] = useState(false);
+  const [stop, setStop] = useState(false);
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ margin: 16 }}>
+          <TouchableOpacity onPress={() => setPostModalVisible(true)}>
+            <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
+  const onNotExist = React.useCallback(id => {
+    setComments(comments.filter(i => i.oid != id));
+    if (typeof route.params.onComment == 'function')
+      route.params.onComment(commentCount - 1);
+    setCommentCount(commentCount - 1);
+  });
+  const onDeleteCallback = React.useCallback(value => {
+    // setVisibleDelete(true);
+    CommentService.deleteComment(jwtToken, idModal)
+      .then(res => {
+        ToastAndroid.show('Xóa bình luận thành công', 1000);
+        setComments(comments.filter(i => i.oid != idModal));
+        if (typeof route.params.onComment == 'function')
+          route.params.onComment(commentCount - 1);
+        setCommentCount(commentCount - 1);
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('Bình luận chưa được xóa', 1000);
+      });
+    setModalVisible(false);
+  });
+
+  const resetComment = () => {
+    setComment('');
+    setImgComment('');
+    setIsEdit(false);
+  };
   const renderItem = ({ item }) => {
     return (
       <View style={{ opacity: item.opacity }}>
-        <CommentCard comment={item} isInPost={true} onViewImage={onViewImage} />
+        <CommentCard
+          comment={item}
+          isInPost={true}
+          onViewImage={onViewImage}
+          onCommentModal={onCommentModal}
+          onNotExist={onNotExist}
+        />
       </View>
     );
   };
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
-  const onViewImage = React.useCallback((value, uri) => {
+
+  //modal
+  const [modalVisible, setModalVisible] = useState(false);
+  const [idModal, setIdModal] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
+  const [postModalVisible, setPostModalVisible] = useState(false);
+  const [visibleAlert, setVisibleAlert] = useState(false);
+  const [bodyAlert, setBodyAlert] = useState('');
+  const [violenceWords, setViolenceWords] = useState([]);
+
+  const showAlert = (title, body) => {
+    setBodyAlert(body);
+    setVisibleAlert(true);
+  };
+
+  const onPostVisibleCallBack = React.useCallback(value => {
+    setPostModalVisible(value);
+  });
+  const onDelete = async () => {
+    await PostService.deletePost(jwtToken, post.oid)
+      .then(res => {
+        ToastAndroid.show('Xóa bài đăng thành công', 1000);
+        navigation.goBack();
+      })
+      .catch(err => {
+        console.log(err);
+        ToastAndroid.show('bài đăng chưa được xóa', 1000);
+      });
+  };
+
+  const onDeletePostCallback = React.useCallback(async value => {
+    // setVisibleDelete(true);
+    await onDelete();
+    setPostModalVisible(false);
+    //setTmp(value);
+    //setIdModal(value);
+  });
+  const onSaveCallBack = useCallback(value => {
+    setSaved(value);
+  });
+  const onCommentModal = useCallback((value, id) => {
+    setModalVisible(value);
+    setIdModal(id);
+  });
+  const onVisibleCallBack = useCallback(value => {
+    setModalVisible(value);
+  });
+  const onEditCallBack = useCallback((isEdit, id) => {
+    setIsEdit(isEdit);
+
+    let cmt = comments.filter(x => x.oid == id);
+
+    setComment(cmt[0].content);
+    if (cmt[0].image != '' && cmt[0].image != null)
+      setImgComment({ path: cmt[0].image, isEdit: false });
+    else setImgComment('');
+  });
+  const onViewImage = useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
   });
+
   useEffect(() => {
-    route.params.onUpvote(upvote);
-    route.params.onVote(vote);
+    if (
+      typeof route.params.onUpvote == 'function' &&
+      typeof route.params.onVote == 'function'
+    ) {
+      route.params.onUpvote(upvote);
+      route.params.onVote(vote);
+    }
   }, [upvote]);
+
   useEffect(() => {
-    route.params.onDownvote(downvote);
-    route.params.onVote(vote);
+    if (
+      typeof route.params.onDownvote == 'function' &&
+      typeof route.params.onVote == 'function'
+    ) {
+      route.params.onDownvote(downvote);
+      route.params.onVote(vote);
+    }
   }, [downvote]);
 
   useEffect(() => {
     setIsLoading(true);
+    setStop(false);
+    if (refreshing) setRefreshing(false);
     let isOut = false;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'Comment/get/post?PostId=' + post.oid + '&Skip=0&Count=5', {
-          PostId: post.oid,
-          Skip: 0,
-          Count: 5,
-        })
+      await PostService.getViolenceWord(jwtToken)
+        .then(res => setViolenceWords(res.data.result))
+        .catch(err => console.log(err));
+      await CommentService.getCommentByPostId(jwtToken, {
+        oid: post.oid,
+        skip: 0,
+        count: 5,
+      })
         .then(response => {
-           if (!isOut) {
+          if (!isOut) {
             setIsLoading(false);
             response.data.result.forEach(i => {
               i.opacity = 1;
@@ -170,21 +255,24 @@ function Post(props) {
             setSkip(5);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
       isOut = true;
     };
-  }, []);
+  }, [refreshing]);
 
   const fetchMore = async () => {
-    await getAPI(curUser.jwtToken)
-      .get(api + 'Comment/get/post?PostId=' + post.oid + '&Skip=0&Count=5', {
-        PostId: post.oid,
-        Skip: 0,
-        Count: 5,
-      })
+    if (stop) {
+      setIsEnd(false);
+      return;
+    }
+    await CommentService.getCommentByPostId(jwtToken, {
+      oid: post.oid,
+      skip: skip,
+      count: 5,
+    })
       .then(response => {
         if (response.data.result.length > 0) {
           setSkip(skip + 5);
@@ -195,42 +283,52 @@ function Post(props) {
             else i.vote = 0;
           });
           setComments(comments.concat(response.data.result));
+        } else {
+          setStop(true);
+          setIsEnd(false);
         }
-        setIsEnd(false);
       })
-      .catch(error => alert(error));
+      .catch(error => console.log(error));
   };
   const onSaved = async () => {
     setIsSaving(true);
-    if (saved) {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'Post/post/save/' + post.oid, { id: post.oid })
-        .then(response => {
-          setIsSaving(false);
-          setSaved(false);
-          ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
-        })
-        .catch(err => {
-          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
-          setIsSaving(false);
-        });
-    } else {
-      await getAPI(curUser.jwtToken)
-        .post(api + 'Post/post/save/' + post.oid, { id: post.oid })
-        .then(response => {
+    // if (saved) {
+    await PostService.savePost(jwtToken, post.oid)
+      .then(response => {
+        if (response.data.result.is_save) {
+          if (typeof route.params.onSave == 'function')
+            route.params.onSave(true);
           ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
           setIsSaving(false);
           setSaved(true);
-        })
-        .catch(err => {
-          ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+        } else {
+          if (typeof route.params.onSave == 'function')
+            route.params.onSave(false);
+          setSaved(false);
           setIsSaving(false);
-        });
-    }
+          ToastAndroid.show('Đã hủy lưu thành công', ToastAndroid.SHORT);
+        }
+      })
+      .catch(err => {
+        ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+        setIsSaving(false);
+      });
+    // } else {
+    //   await PostService.savePost(jwtToken, post.oid)
+    //     .then(response => {
+    //       ToastAndroid.show('Đã lưu thành công', ToastAndroid.SHORT);
+    //       setIsSaving(false);
+    //       setSaved(true);
+    //     })
+    //     .catch(err => {
+    //       ToastAndroid.show('Có lỗi xảy ra..', ToastAndroid.SHORT);
+    //       setIsSaving(false);
+    //     });
+    // }
   };
   const onUpvote = async () => {
     if (vote == 1) {
-      ToastAndroid.show('Bạn đã upvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã upvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(1);
@@ -240,16 +338,14 @@ function Post(props) {
       setUpvote(upvote + 1);
       setDownvote(downvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Post/post/upvote/' + post.oid, { id: post.oid })
-      .then(
-        response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),
-        1000
-      );
+    await PostService.upvote(post.oid).then(
+      response => ToastAndroid.show('Đã upvote', ToastAndroid.SHORT),
+      1000
+    );
   };
   const onDownvote = async () => {
     if (vote == -1) {
-      ToastAndroid.show('Bạn đã downvote cho bài viết này.', 1000);
+      ToastAndroid.show('Bạn đã downvote cho bài đăng này.', 1000);
       return;
     } else if (vote == 0) {
       setVote(-1);
@@ -259,23 +355,22 @@ function Post(props) {
       setDownvote(downvote + 1);
       setUpvote(upvote - 1);
     }
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Post/post/downvote/' + post.oid, { id: post.oid })
-      .then(
-        response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),
-        1000
-      );
+    await PostService.downvote(post.oid).then(
+      response => ToastAndroid.show('Đã downvote', ToastAndroid.SHORT),
+      1000
+    );
   };
   const pickImage = () => {
     ImagePicker.openPicker({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
       compressImageQuality: 1,
     }).then(async image => {
       if (image) {
+        image.isEdit = true;
         setImgComment(image);
       }
     });
@@ -283,29 +378,112 @@ function Post(props) {
   const cameraImage = () => {
     ImagePicker.openCamera({
       width: 800,
-      height: 1000,
+      height: 1100,
       mediaType: 'photo',
       cropping: true,
 
       compressImageQuality: 1,
     }).then(async image => {
       if (image) {
+        image.isEdit = true;
         setImgComment(image);
       }
     });
   };
+
+  const updateComment = async () => {
+    let image = '';
+    let img = '';
+    comments.forEach(x => {
+      if (idModal == x.oid) {
+        x.opacity = 0.5;
+        x.content = comment;
+        x.image = imgComment.path;
+      }
+    });
+    setSending(true);
+    ToastAndroid.show('Đang cập nhật bình luận ...', ToastAndroid.SHORT);
+    if (imgComment.isEdit) {
+      if (imgComment) {
+        image = imgComment;
+        const uri = image.path;
+        const filename = uuidv4();
+        const uploadUri =
+          Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        const task = storage()
+          .ref('comment/' + post.oid + '/' + filename)
+          .putFile(uploadUri);
+        // set progress state
+        task.on('state_changed', snapshot => {
+          console.log('uploading avatar..');
+        });
+        try {
+          await task.then(async response => {
+            await storage()
+              .ref(response.metadata.fullPath)
+              .getDownloadURL()
+              .then(async url => {
+                img = url;
+              });
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    } else img = imgComment.path;
+    await CommentService.updateComment(jwtToken, {
+      comment: comment,
+      img: img,
+      oid: idModal,
+    })
+      .then(response => {
+        comments.forEach(x => {
+          x.opacity = 1;
+        });
+
+        setImgComment('');
+        setComment('');
+        setIsEdit(false);
+
+        setSending(false);
+
+        Toast.show({
+          type: 'success',
+          position: 'top',
+          text1: 'Bình luận đã được sửa',
+          visibilityTime: 2000,
+        });
+      })
+      .catch(error => {
+        setSending(false);
+        console.log(error);
+      });
+  };
   const postComment = async () => {
     Keyboard.dismiss();
-
     let img = '';
-    if (comment == '' && imgComment == '') {
-      Alert.alert('Thông báo', 'Bạn chưa nhập bình luận..');
+    let image = '';
+    if (comment.trim() == '') {
+      showAlert('Thông báo', 'Bạn chưa nhập bình luận..');
+      return;
+    }
+    if (violenceWords.length > 0) {
+      if (violenceWords.filter(i => comment.includes(i.value)).length > 0) {
+        showAlert('Thiếu thông tin', 'Bình luận chứa từ ngữ không phù hợp.');
+        setIsLoading(false);
+        return;
+      }
+    }
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
+
+    if (isEdit) {
+      updateComment();
       return;
     }
     const tmp = {
-      author_avatar: curUser.avatar.image_hash,
-      author_name: curUser.first_name + curUser.last_name,
-      content: comment,
+      author_avatar: userInfo.avatar,
+      author_name: userInfo.first_name + userInfo.last_name,
+      content: comment.trim(),
       created_date: new Date(),
       downvote_count: 0,
       id: '',
@@ -318,8 +496,10 @@ function Post(props) {
       upvote_count: 0,
       opacity: 0.5,
       vote: 0,
+      author_field: null,
     };
-    setComments(comments.concat(tmp));
+    // setComments(comments.concat(tmp));
+    setComments([tmp, ...comments]);
     setSending(true);
     ToastAndroid.show('Đang tải bình luận lên...', ToastAndroid.SHORT);
     if (imgComment) {
@@ -349,20 +529,23 @@ function Post(props) {
       }
     }
 
-    await getAPI(curUser.jwtToken)
-      .post(api + 'Comment/add', {
-        content: comment,
-        image_hash: img,
-        post_id: post.oid,
-      })
+    await CommentService.createComment(jwtToken, {
+      comment: comment.trim(),
+      img: img,
+      oid: post.oid,
+    })
       .then(response => {
         setImgComment('');
         setComment('');
-        response.data.result.comment.opacity = 1;
-        setComments(comments.concat(response.data.result.comment));
+        response.data.result.opacity = 1;
+        response.data.result.vote = 0;
+        // setComments(comments.concat(response.data.result));
+        setComments([response.data.result, ...comments]);
         setSending(false);
+        if (typeof route.params.onComment == 'function')
+          route.params.onComment(commentCount + 1);
         setCommentCount(commentCount + 1);
-        route.params.onComment(commentCount + 1);
+
         Toast.show({
           type: 'success',
           position: 'top',
@@ -372,14 +555,17 @@ function Post(props) {
       })
       .catch(error => {
         setSending(false);
-        alert(error);
+        console.log(error);
       });
   };
+  const flatList = React.useRef(null);
 
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
+          ref={flatList}
+          extraData={comments}
           showsVerticalScrollIndicator={false}
           style={{ marginBottom: 50 }}
           data={comments}
@@ -392,7 +578,7 @@ function Post(props) {
           }}
           onEndReachedThreshold={0.5}
           renderItem={item => renderItem(item)}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item, index) => item.oid}
           ListHeaderComponent={() => (
             <Card containerStyle={styles.container}>
               <View>
@@ -417,6 +603,20 @@ function Post(props) {
                         <Text style={styles.txtAuthor}>{post.author_name}</Text>
                       </TouchableOpacity>
                       <View style={styles.rowFlexStart}>
+                        <View
+                          style={{
+                            marginRight: 4,
+                            paddingHorizontal: 4,
+                            paddingVertical: 2,
+                            borderRadius: 4,
+                            backgroundColor:
+                              post.post_type == 0 ? main_color : main_2nd_color,
+                          }}
+                        >
+                          <Text style={{ fontSize: 10, color: '#fff' }}>
+                            {post.post_type_name}
+                          </Text>
+                        </View>
                         <FontAwesome
                           name={'circle'}
                           size={8}
@@ -469,13 +669,20 @@ function Post(props) {
                   </View>
                 </View>
                 <View>
-                  <View style={styles.rowFlexStart}>
-                    <FontAwesome
+                  <View
+                    style={{
+                      flexWrap: 'wrap',
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {/* <FontAwesome
                       style={styles.iconTitle}
                       name={'angle-double-right'}
                       size={20}
                       color={main_color}
-                    />
+                    /> */}
                     <Text style={styles.txtTitle}>{post.title}</Text>
                   </View>
                   <Text style={styles.txtContent}>
@@ -519,16 +726,25 @@ function Post(props) {
                 </View>
 
                 <View style={styles.containerTag}>
-                  {post.fields.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => alert('tag screen')}
-                    >
-                      <View style={styles.btnTag}>
-                        <Text style={styles.txtTag}>{item.value}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                  {post.field
+                    ? post.field.map((item, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          onPress={() => {
+                            navigation.navigate(navigationConstants.search, {
+                              fieldId: item.field_id,
+                            });
+                          }}
+                        >
+                          <Badge
+                            item={{
+                              name: item.level_name,
+                              description: item.field_name,
+                            }}
+                          />
+                        </TouchableOpacity>
+                      ))
+                    : null}
                 </View>
 
                 <View style={styles.footer}>
@@ -551,7 +767,6 @@ function Post(props) {
 
                   <View style={styles.flex1}>
                     <Pressable
-                      onPress={() => alert('comment')}
                       style={({ pressed }) => [
                         { backgroundColor: pressed ? touch_color : '#fff' },
                         styles.btnVote,
@@ -561,7 +776,7 @@ function Post(props) {
                       <FontAwesome5
                         name={'comment-alt'}
                         size={22}
-                        color={main_color}
+                        color={main_2nd_color}
                       />
                     </Pressable>
                   </View>
@@ -585,8 +800,27 @@ function Post(props) {
               </View>
             </Card>
           )}
+          refreshControl={
+            <RefreshControl
+              colors={[main_color]}
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+              }}
+            />
+          }
           ListFooterComponent={() =>
-            isEnd ? (
+            stop ? (
+              <Text
+                style={{
+                  alignSelf: 'center',
+                  color: '#4f4f4f',
+                  marginBottom: 8,
+                }}
+              >
+                Không còn bình luận.
+              </Text>
+            ) : isEnd ? (
               <View style={{ marginVertical: 12 }}>
                 <ActivityIndicator size={'large'} color={main_color} />
               </View>
@@ -611,7 +845,7 @@ function Post(props) {
         ) : null}
       </SafeAreaView>
 
-      {imgComment != '' ? (
+      {/* {imgComment != '' ? (
         <View style={{ position: 'absolute', right: 0, bottom: 60 }}>
           <Image
             style={{
@@ -638,7 +872,7 @@ function Post(props) {
             <FontAwesome5 name={'times-circle'} size={20} color={'#fff'} />
           </TouchableOpacity>
         </View>
-      ) : null}
+      ) : null} */}
       <View style={styles.containerInput}>
         {showOption ? (
           <View style={styles.row}>
@@ -667,14 +901,104 @@ function Post(props) {
             <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
           </TouchableOpacity>
         )}
+        {/* {imgComment != '' ? (
+          <View>
+            <Image
+              style={{
+                height: 100,
+                width: 80,
+                alignSelf: 'flex-end',
+                margin: 4,
+                marginRight: 16,
+              }}
+              source={{ uri: imgComment.path }}
+            />
+            <TouchableOpacity
+              onPress={() => {
+                setImgComment('');
+              }}
+              style={{
+                position: 'absolute',
+                alignSelf: 'flex-end',
+                borderRadius: 30,
+                right: 10,
+                backgroundColor: '#ccc',
+              }}
+            >
+              <FontAwesome5 name={'times-circle'} size={20} color={'#fff'} />
+            </TouchableOpacity>
+          </View>
+        ) : null}
         <TextInput
           multiline={true}
           style={styles.input}
           onTouchEnd={() => setShowOption(false)}
           onChangeText={text => setComment(text)}
-          placeholder="Nhập j đi tml.."
+          placeholder="Nhập j đi ..."
           value={comment}
-        />
+        /> */}
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+            {imgComment != '' && imgComment != null ? (
+              <View>
+                <Image
+                  style={{
+                    height: 100,
+                    width: 80,
+                    alignSelf: 'flex-end',
+                    margin: 4,
+                    marginRight: 16,
+                  }}
+                  source={{ uri: imgComment.path }}
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    setImgComment('');
+                  }}
+                  style={{
+                    position: 'absolute',
+                    alignSelf: 'flex-end',
+                    borderRadius: 30,
+                    right: 10,
+                    backgroundColor: '#ccc',
+                  }}
+                >
+                  <FontAwesome5
+                    name={'times-circle'}
+                    size={20}
+                    color={'#fff'}
+                  />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+            {isEdit ? (
+              <View
+                style={{
+                  alignSelf: 'flex-end',
+                  backgroundColor: '#b90000',
+                  padding: 4,
+                  paddingHorizontal: 8,
+                  borderRadius: 8,
+                  marginBottom: 4,
+                }}
+              >
+                <TouchableOpacity onPress={() => resetComment()}>
+                  <Text style={{ fontSize: 16, color: '#fff' }}>
+                    Hủy sửa bình luận
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+          <TextInput
+            multiline={true}
+            style={styles.input}
+            onTouchEnd={() => setShowOption(false)}
+            onChangeText={text => setComment(text)}
+            placeholder="Nhập bình luận ..."
+            value={comment}
+          />
+        </View>
         {sending ? (
           <View style={styles.btnInputOption}>
             <FontAwesome5 name={'paper-plane'} size={24} color={'#ccc'} />
@@ -792,6 +1116,53 @@ function Post(props) {
         visible={visible}
         onRequestClose={() => setIsVisible(false)}
       />
+      <PostOptionModal
+        visible={postModalVisible}
+        id={post.oid}
+        onVisible={onPostVisibleCallBack}
+        saved={saved}
+        onSaveInPost={onSaveCallBack}
+        onDelete={onDeletePostCallback}
+      />
+      <CommentOptionModal
+        visible={modalVisible}
+        onSwipeOut={event => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+          return true;
+        }}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        id={idModal}
+        onVisible={onVisibleCallBack}
+        onEdit={onEditCallBack}
+        onDelete={onDeleteCallback}
+        onNotExist={onNotExist}
+      />
+      <Modal
+        visible={visibleAlert}
+        width={deviceWidth - 56}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              textStyle={{ fontSize: 14, color: main_color }}
+              text="Hủy"
+              onPress={() => setVisibleAlert(false)}
+            />
+          </ModalFooter>
+        }
+      >
+        <ModalContent>
+          <View>
+            <Text style={{ fontSize: 16, alignSelf: 'center' }}>
+              {bodyAlert}
+            </Text>
+          </View>
+        </ModalContent>
+      </Modal>
     </View>
   );
 }

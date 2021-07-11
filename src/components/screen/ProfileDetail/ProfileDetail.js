@@ -1,5 +1,5 @@
 import { useTheme, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import {
   Image,
   Text,
@@ -14,57 +14,16 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { logout } from 'actions/UserActions';
-import Button from 'components/common/Button';
-import TextStyles from 'helpers/TextStyles';
-import strings from 'localization';
-import { color } from 'react-native-reanimated';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import PostCard from '../../common/PostCard';
-import { getAPI } from '../../../apis/instance';
-import { api } from 'constants/route';
 import { getUser } from 'selectors/UserSelectors';
 import { useSelector } from 'react-redux';
-import ImagePicker from 'react-native-image-crop-picker';
 import navigationConstants from 'constants/navigation';
 import moment from 'moment';
-const user = {
-  name: 'Nguyễn Văn Nam',
-  follower: 20,
-  following: 21,
-  amountPost: 10,
-  school: 'Đại học Công nghệ thông tin - ĐHQG TPHCM',
-  specialized: 'Ngành kỹ thuật phần mềm',
-  graduation: 'Đã tốt nghiệp',
-};
+import UserService from 'controllers/UserService';
+import Badge from 'components/common/Badge';
 
-const list = [
-  {
-    id: '1',
-    title: 'Đây là title 1',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    id: '2',
-    title: 'Đây là title',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-  },
-  {
-    title: 'Đây là title 2',
-    author: 'Nguyễn Văn Nam',
-    content:
-      'Đây là contentttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt',
-    createdDate: '10 phut truoc',
-    id: '3',
-  },
-];
 const deviceWidth = Dimensions.get('window').width;
 const deviceHeight = Dimensions.get('window').height;
 
@@ -72,7 +31,7 @@ function ProfileDetail({ userId }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const route = useRoute();
-  const [data, setData] = useState([]);
+  const [data, setData] = useState(route.params.data);
   const [isLoading, setIsLoading] = useState(true);
   const curUser = useSelector(getUser);
   const [isMe, setIsMe] = useState(true);
@@ -80,22 +39,21 @@ function ProfileDetail({ userId }) {
   const [fields, setFields] = useState([]);
   const navigation = useNavigation();
   useEffect(() => {
-    if (route.params.id != curUser.oid) {
+    if (route.params.data.oid != curUser.oid) {
       setIsMe(false);
     }
     let isOut = false;
     const fetchData = async () => {
-      await getAPI(curUser.jwtToken)
-        .get(api + 'User/get/' + route.params.id)
+      await UserService.getUserById(curUser.jwtToken, route.params.data.oid)
         .then(response => {
           if (!isOut) {
             setData(response.data.result);
             setAvatar(response.data.result.avatar.image_hash);
-            setFields(response.data.result.fortes);
+            setFields(response.data.result.fields);
             setIsLoading(false);
           }
         })
-        .catch(error => alert(error));
+        .catch(error => console.log(error));
     };
     fetchData();
     return () => {
@@ -138,6 +96,29 @@ function ProfileDetail({ userId }) {
       </View>
     );
   }
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerRight: () => (
+        <View style={{ marginRight: 16 }}>
+          <TouchableOpacity
+            onPress={() => {
+              if (isMe)
+                navigation.navigate(navigationConstants.profileEdit, {
+                  data: data,
+                });
+            }}
+          >
+            {isMe ? (
+              <Icon name={'edit'} size={24} color={'#fff'} />
+            ) : (
+              <Icon name={'edit'} size={24} color={main_color} />
+            )}
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, data, isMe]);
   return (
     <View style={{ flex: 1 }}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -157,7 +138,7 @@ function ProfileDetail({ userId }) {
                   : { uri: avatar }
               }
             />
-            {isMe ? (
+            {/* {isMe ? (
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate(navigationConstants.profileEdit, {
@@ -174,8 +155,25 @@ function ProfileDetail({ userId }) {
                   <Icon name={'edit'} size={30} />
                 </View>
               </TouchableOpacity>
-            ) : null}
-
+            ) : (
+              <View
+                style={{
+                  alignSelf: 'flex-end',
+                  marginRight: 12,
+                  marginTop: 48,
+                }}
+              ></View>
+            )} */}
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: 'bold',
+                marginTop: 64,
+                alignSelf: 'center',
+              }}
+            >
+              {data ? data.first_name : null} {data ? data.last_name : null}
+            </Text>
             <View style={styles.containerAmount}>
               <GroupAmount amount={data.post_count} title={'Bài đăng'} />
               <GroupAmount amount={data.followers} title={'Người theo dõi'} />
@@ -200,6 +198,24 @@ function ProfileDetail({ userId }) {
             value={data.phone_number}
           />
           <Field
+            icon={'school'}
+            title={'Trường'}
+            value={
+              data.additional_infos.length < 1
+                ? ''
+                : data.additional_infos[0].information_value
+            }
+          />
+          <Field
+            icon={'graduation-cap'}
+            title={'Chuyên ngành'}
+            value={
+              data.additional_infos.length < 1
+                ? ''
+                : data.additional_infos[1].information_value
+            }
+          />
+          <Field
             icon={'location-arrow'}
             title={'Quận/Huyện'}
             value={data.address ? data.address.district : null}
@@ -209,30 +225,48 @@ function ProfileDetail({ userId }) {
             title={'Thành phố'}
             value={data.address ? data.address.city : null}
           />
-          <View style={styles.field}>
+          <View
+            style={{
+              marginHorizontal: 10,
+              marginVertical: 4,
+              backgroundColor: '#fff',
+              padding: 4,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+            }}
+          >
             <View
               style={{
                 width: 30,
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginRight: 12,
+                marginTop: 4,
               }}
             >
-              <Icon name={'city'} size={20} color={main_color} />
+              <Icon name={'icons'} size={20} color={main_color} />
             </View>
             <View>
-              <Text style={{ color: '#ccc', fontSize: 13 }}>Lĩnh vực</Text>
+              <Text style={{ color: '#ccc', fontSize: 13, marginBottom: 4 }}>
+                Lĩnh vực
+              </Text>
               <View style={styles.containerTag}>
-                {fields.map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => alert('tag screen')}
-                  >
-                    <View style={styles.btnTag}>
-                      <Text style={styles.txtTag}>{item.value}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                {fields.length < 1 ? (
+                  <Text>Chưa có thông tin</Text>
+                ) : (
+                  fields.map((item, index) => (
+                    <TouchableOpacity key={index}>
+                      <Badge
+                        item={{
+                          name: item.level_name,
+                          description: item.field_name,
+                        }}
+                      />
+                    </TouchableOpacity>
+                  ))
+                )}
               </View>
             </View>
           </View>
@@ -285,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginHorizontal: 8,
     marginBottom: 8,
-    marginTop: 80,
+    marginTop: 8,
   },
   txtAmount: {
     color: main_2nd_color,
@@ -336,8 +370,9 @@ const styles = StyleSheet.create({
   containerTag: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginBottom: 8,
+    // marginBottom: 8,
     flexWrap: 'wrap',
+    marginRight: 16,
   },
   btnTag: {
     backgroundColor: main_2nd_color,
@@ -353,6 +388,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#fff',
     textAlign: 'center',
+  },
+  headerLeft: {
+    marginLeft: 16,
+  },
+  headerRight: {
+    marginRight: 12,
   },
 });
 

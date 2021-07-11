@@ -16,7 +16,7 @@ import { useDispatch } from 'react-redux';
 import { logout } from '../../actions/UserActions';
 import { actionTypes, increaseChat, setChat } from 'actions/ChatAction';
 
-const { tabNav, profile, field, home, help, setting } = navigationConstants;
+const { tabNav, profile, field, home, help, setting, ranking, nearby ,newsfeed} = navigationConstants;
 function ItemDrawer({ icon, route }) {
   const navigation = useNavigation();
 
@@ -26,7 +26,7 @@ function ItemDrawer({ icon, route }) {
       label={route}
       labelStyle={styles.label}
       onPress={() => {
-        navigation.navigate(route);
+         navigation.navigate(route);
       }}
     />
   );
@@ -34,6 +34,8 @@ function ItemDrawer({ icon, route }) {
 function DrawerContent(props) {
   const dispatch = useDispatch();
   const curUser = useSelector(getUser);
+  const navigation = useNavigation();
+
   const logoutUser = () => {
     dispatch(logout(curUser.jwtToken));
     dispatch(setChat(0));
@@ -72,9 +74,13 @@ function DrawerContent(props) {
               icon={() => <Icon name="home" color={main_color} size={24} />}
               labelStyle={styles.label}
               label={home}
-              onPress={() => alert('sign out')}
-            />
+              onPress={() => {
+                navigation.navigate(newsfeed);
+             }}
+             />
             <ItemDrawer icon={'user-circle'} route={profile} />
+            <ItemDrawer icon={'trophy'} route={ranking} />
+            <ItemDrawer icon={'street-view'} route={nearby} />
             <ItemDrawer icon={'cog'} route={setting} />
             <ItemDrawer icon={'question-circle'} route={help} />
           </Drawer.Section>

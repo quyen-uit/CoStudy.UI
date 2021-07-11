@@ -22,8 +22,15 @@ const navigationConstants = {
   follower: 'Người theo dõi',
   following: 'Đang theo dõi',
   profileEdit: 'Chỉnh sửa thông tin',
-  search: 'Tìm kiếm'
-
+  search: 'Tìm kiếm',
+  pickField: 'Chọn lĩnh vực',
+  listField: 'Lĩnh vực',
+  report: 'Báo cáo',
+  video: 'Gọi',
+  ranking: 'Bảng xếp hạng',
+  forgot: 'Quên mật khẩu',
+  nearby: 'Tìm quanh đây',
+  helpPost: 'Người trợ giúp'
 };
 
 export default navigationConstants;
