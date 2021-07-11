@@ -323,7 +323,7 @@ function LeftMessage({ item, onViewImage, avatar, onLoading }) {
                       marginRight: 8,
                     }}
                   />
-                  <View style={{ flex: 1 }}>
+                  <View>
                     <Text
                       style={{
                         color: '#000',
@@ -854,7 +854,7 @@ function Conversation(props) {
           </View>
         ) : (
           <TouchableOpacity
-            style={styles.btnInputOption}
+            style={{marginHorizontal: 16}}
             onPress={() => setShowOption(true)}
           >
             <FontAwesome5 name={'angle-right'} size={24} color={main_color} />

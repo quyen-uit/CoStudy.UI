@@ -1,10 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet,Dimensions } from 'react-native';
 import {
   background_gray_color,
   main_2nd_color,
   main_color,
 } from 'constants/colorCommon';
-
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 const styles = StyleSheet.create({
   timeLeft: {
     justifyContent: 'center',
@@ -71,6 +72,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     alignSelf: 'center',
+    
   },
   boxRightMessage: {
     backgroundColor: main_color,

@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
   },
   btnInputOption: {
     marginHorizontal: 6,
+
   },
   btnTag: {
     backgroundColor: main_2nd_color,

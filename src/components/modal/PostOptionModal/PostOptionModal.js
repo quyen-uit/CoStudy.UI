@@ -61,12 +61,13 @@ const PostOptionModal = ({ ...rest }) => {
   const [visibleDelete, setVisibleDelete] = useState(false);
   const [isNotify, setIsNotify] = useState(true);
   useEffect(() => {
-    if (rest.visible == false) return;
     if (rest.id != null) {
       //setSaved(typeof rest.saved == 'undefined' ? null : rest.saved);
       setIsLoading(true);
 
-      const fetch = async () =>
+      const fetch = async () => {
+        if (rest.visible == false) return;
+
         await PostService.getPostById(curUser.jwtToken, rest.id)
           .then(res => {
             if (res.data.code == 404) {
@@ -81,6 +82,7 @@ const PostOptionModal = ({ ...rest }) => {
             }
           })
           .catch(err => console.log(err));
+      };
       fetch();
     }
     return () => {};
@@ -90,6 +92,7 @@ const PostOptionModal = ({ ...rest }) => {
     setList([]);
     let tmpList = [];
     const fetch = async () => {
+      if (rest.visible == false) return;
       await ChatService.getCurrentConversation(jwtToken).then(res => {
         res.data.result.conversations.forEach(item => {
           let tmp = { conversationId: '', name: '', avatar: '' };
@@ -112,7 +115,7 @@ const PostOptionModal = ({ ...rest }) => {
     };
     fetch();
     return () => {};
-  }, []);
+  }, [rest.visible]);
   const onNotify = async id => {
     rest.onVisible(false);
     if (isNotify)

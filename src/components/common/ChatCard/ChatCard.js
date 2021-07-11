@@ -48,16 +48,16 @@ function ChatCard(props) {
   });
 
   const onCallback = React.useCallback((value, date) => {
-    setContent(value);
-    setDate(date);
-    props.onCallback({
-      name: chat.name,
-      modified_date: date,
-      avatar: chat.avatar,
-      content: [value],
-      id: chat.id,
-      isUnread: false,
-    });
+  //   setContent(value);
+  //   setDate(date);
+  //   props.onCallback({
+  //     name: chat.name,
+  //     modified_date: date,
+  //     avatar: chat.avatar,
+  //     content: [value],
+  //     id: chat.id,
+  //     isUnread: false,
+  //   });
   });
   const onVisible = React.useCallback((value ) => {
     setModalVisible(value);
@@ -164,7 +164,7 @@ function ChatCard(props) {
               textStyle={{ fontSize: 14, color: 'red' }}
               text="Xóa"
               onPress={() => {
-                props.onDelete(chat.id);
+                //props.onDelete(chat.id);
                 setVisible(false);
               }}
             />

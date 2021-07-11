@@ -6,7 +6,10 @@ import {
   View,
   FlatList,
   RefreshControl,
+  TouchableOpacity,
+  ActivityIndicator,
   ToastAndroid,
+  Dimensions
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
@@ -18,7 +21,8 @@ import Toast from 'react-native-toast-message';
 import { setChat } from 'actions/ChatAction';
 import ChatService from 'controllers/ChatService';
 import UserService from 'controllers/UserService';
-
+const deviceWidth = Dimensions.get('window').width;
+const deviceHeight = Dimensions.get('window').height;
 function Chat() {
   const userInfo = useSelector(getBasicInfo);
   const jwtToken = useSelector(getJwtToken);
@@ -28,6 +32,7 @@ function Chat() {
   const navigation = useNavigation();
   const [listMes, setListMes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const onCallback = React.useCallback(conversation => {
     let userTemp = listMes.filter(i => i.id === conversation.id)[0];
@@ -54,11 +59,13 @@ function Chat() {
   });
   const onRefresh = React.useCallback(() => {
     let temp = [];
-
+    setIsLoading(true);
     setRefreshing(true);
     const fetchData1 = async () => {
       await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
+          setIsLoading(false);
+
           res.data.result.conversations.forEach(async item => {
             if (item.conversation.oid != null && item.messages.length > 0) {
               const obj = {};
@@ -160,11 +167,10 @@ function Chat() {
         ).message
       );
       // test
-      if (listMes.length < 1) return;
-      //let userTemp = listMes.filter(i => i.id === res.ConversationId)[0];
-      //let tmp = listMes.filter(i => i.id !== res.ConversationId);
+      //if (listMes.length < 1) return;
 
-      let userTemp = listMes.filter(i => i.id === res.conversation_id)[0];
+      console.log(res);
+      //let userTemp = listMes.filter(i => i.id === res.conversation_id)[0];
       let tmp = listMes.filter(i => i.id !== res.conversation_id);
 
       // setListMes([
@@ -182,16 +188,16 @@ function Chat() {
       if (res.sender_id == userInfo.id) {
         setListMes([
           {
-            name: userTemp.name,
+            name: res.sender_name,
             modified_date: res.created_date,
-            avatar: userTemp.avatar,
+            avatar: res.sender_avatar,
             content:
-              res.message_type == 3
-                ? 'Bài đăng'
+             res.message_type == 3
+                ? 'Bạn: Bài đăng'
                 : res.message_type == 1
-                ? 'Ảnh'
-                : res.content,
-            id: userTemp.id,
+                ? 'Bạn: Ảnh'
+                : 'Bạn: ' + res.content,
+            id: res.conversation_id,
             isUnread: false,
           },
           ...tmp,
@@ -199,16 +205,16 @@ function Chat() {
       } else {
         setListMes([
           {
-            name: userTemp.name,
+            name: res.sender_name,
             modified_date: res.created_date,
-            avatar: userTemp.avatar,
+            avatar: res.sender_avatar,
             content:
               res.message_type == 3
                 ? 'Bài đăng'
                 : res.message_type == 1
                 ? 'Ảnh'
                 : res.content,
-            id: userTemp.id,
+            id: res.conversation_id,
             isUnread: true,
           },
           ...tmp,
@@ -216,7 +222,7 @@ function Chat() {
         Toast.show({
           type: 'success',
           position: 'top',
-          text1: 'Bạn có tin nhắn mới từ ' + userTemp.name,
+          text1: 'Bạn có tin nhắn mới từ ' + res.sender_name,
           visibilityTime: 2000,
         });
       }
@@ -226,11 +232,15 @@ function Chat() {
     return unsubscribe;
   }, [listMes]);
   useEffect(() => {
+    setIsLoading(true);
+
     let isRender = true;
     let temp = [];
     const fetch = async () => {
       await ChatService.getCurrentConversation(jwtToken)
         .then(async res => {
+          setIsLoading(false);
+
           res.data.result.conversations.forEach(async item => {
             if (item.conversation.oid != null && item.messages.length > 0) {
               const obj = {};
@@ -323,21 +333,59 @@ function Chat() {
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
-      <FlatList
-        showsVerticalScrollIndicator={false}
-        data={listMes}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-        refreshControl={
-          <RefreshControl
-            colors={[main_color]}
-            refreshing={refreshing}
-            onRefresh={() => {
-              onRefresh();
+      {listMes.length > 0 ? (
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          data={listMes}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+          refreshControl={
+            <RefreshControl
+              colors={[main_color]}
+              refreshing={refreshing}
+              onRefresh={() => {
+                onRefresh();
+              }}
+            />
+          }
+        />
+      ) : (
+        <TouchableOpacity
+          onPress={() => {
+            onRefresh();
+            setIsLoading(true);
+          }}
+        >
+          <Text
+            style={{
+              alignSelf: 'center',
+              fontSize: 16,
+              color: '#616161',
+              marginBottom: deviceHeight/2,
             }}
+          >
+            Bạn chưa có tin nhắn nào, nhấn để làm mới.
+          </Text>
+        </TouchableOpacity>
+      )}
+      {isLoading ? (
+        <View
+          style={{
+            position: 'absolute',
+            justifyContent: 'center',
+            backgroundColor: '#cccccc',
+            opacity: 0.5,
+            width: deviceWidth,
+            height: deviceHeight - 20,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={main_color}
+            style={{ marginBottom: 100 }}
           />
-        }
-      />
+        </View>
+      ) : null}
     </View>
   );
 }
