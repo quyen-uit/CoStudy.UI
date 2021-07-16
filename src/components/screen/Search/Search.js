@@ -159,7 +159,8 @@ function Search() {
   const navigation = useNavigation();
   const [isFirst, setIsFirst] = useState(true);
   const [stop, setStop] = useState(false);
-
+  const [allowUp, setAllowUp] = useState(false);
+  const [offset, setOffset] = useState(0);
   const [isPostSearch, setIsPostSearch] = useState(true);
   // query
   const [search, setSearch] = useState('');
@@ -240,7 +241,9 @@ function Search() {
     setModalPostVisible(value);
   });
   const backAction = () => {
+    if (modalVisible == false) navigation.goBack();
     setModalVisible(false);
+
     return true;
   };
 
@@ -640,6 +643,12 @@ function Search() {
   const renderUserCard = ({ item }) => {
     return <UserCard item={item} />;
   };
+  const flatList = React.useRef(null);
+  const goToTop = () => {
+    setAllowUp(false);
+    setOffset(10000);
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
+  };
   return (
     <View>
       <View style={styles.header}>
@@ -652,8 +661,8 @@ function Search() {
           <Menu
             visible={visibleMenu}
             style={{
-              marginTop: 40,
-              marginLeft: 16,
+              top: 48,
+              left: 56,
               width: deviceWidth - 80,
               alignItems: 'stretch',
             }}
@@ -720,7 +729,10 @@ function Search() {
 
         <TouchableOpacity
           style={!isPostSearch ? styles.btnSelected : styles.btnNotSelected}
-          onPress={() => setIsPostSearch(false)}
+          onPress={() => {
+            setIsPostSearch(false);
+            setAllowUp(false);
+          }}
         >
           <Text style={styles.txtBtnNotSelected}>Mọi người</Text>
         </TouchableOpacity>
@@ -745,6 +757,17 @@ function Search() {
           <FlatList
             showsVerticalScrollIndicator={false}
             data={posts}
+            ref={flatList}
+            extraData={posts}
+            onScroll={e => {
+              if (
+                e.nativeEvent.contentOffset.y > 500 &&
+                e.nativeEvent.contentOffset.y > offset
+              ) {
+                setAllowUp(true);
+              } else setAllowUp(false);
+              setOffset(e.nativeEvent.contentOffset.y);
+            }}
             style={{ flexGrow: 0, marginBottom: 200 }}
             onEndReached={async () => {
               if (posts.length > 2) {
@@ -1736,7 +1759,14 @@ function Search() {
         onDelete={onDeleteCallback}
         onNotExist={onNotExist}
       />
-
+      {allowUp && isPostSearch ? (
+        <TouchableOpacity
+          onPress={() => goToTop()}
+          style={{ position: 'absolute', bottom: 124, right: 32 }}
+        >
+          <Icon name={'chevron-circle-up'} size={32} color={main_color} />
+        </TouchableOpacity>
+      ) : null}
       <ImageView
         images={[{ uri: imgView }]}
         imageIndex={0}

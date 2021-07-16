@@ -69,7 +69,8 @@ function ListPost() {
   // 0 main , 1 datetime
   const [modalOrder, setModalOrder] = useState(0);
   const [modalFilterVisible, setModalFilterVisible] = useState(false);
-
+  const [allowUp, setAllowUp] = useState(false);
+  const [offset, setOffset] = useState(0);
   const [rangeDate, setRangeDate] = useState({
     startDate: moment(moment.now()).subtract(1, 'months'),
     endDate: moment(moment.now()),
@@ -286,6 +287,11 @@ function ListPost() {
     );
   };
   const flatList = React.useRef(null);
+  const goToTop = () => {
+    setAllowUp(false);
+    setOffset(10000);
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
+  };
   return (
     <View>
       <View
@@ -337,6 +343,15 @@ function ListPost() {
         <SafeAreaView>
           <FlatList
             ref={flatList}
+            onScroll={e => {
+              if (
+                e.nativeEvent.contentOffset.y > 500 &&
+                e.nativeEvent.contentOffset.y > offset
+              ) {
+                setAllowUp(true);
+              } else setAllowUp(false);
+              setOffset(e.nativeEvent.contentOffset.y);
+            }}
             extraData={posts}
             showsVerticalScrollIndicator={false}
             data={posts}
@@ -410,6 +425,14 @@ function ListPost() {
           ) : null}
         </SafeAreaView>
       )}
+      {allowUp ? (
+        <TouchableOpacity
+          onPress={() => goToTop()}
+          style={{ position: 'absolute', bottom: 80, right: 32 }}
+        >
+          <Icon name={'chevron-circle-up'} size={32} color={main_color} />
+        </TouchableOpacity>
+      ) : null}
       <PostOptionModal
         visible={modalVisible}
         onSwipeOut={event => {

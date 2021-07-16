@@ -10,7 +10,7 @@ import Modal, {
   BottomModal,
   ModalFooter,
   SlideAnimation,
-  ModalButton
+  ModalButton,
 } from 'react-native-modals';
 import styles from './styles';
 import navigationConstants from 'constants/navigation';
@@ -30,7 +30,7 @@ function ReplyOptionModal({ ...rest }) {
   const [visibleDelete, setVisibleDelete] = useState(false);
   const [isMe, setIsMe] = useState(false);
   useEffect(() => {
-    if (rest.id != null) {
+    if (rest.id != null && rest.id != '') {
       CommentService.getReplyById(curUser.jwtToken, rest.id)
         .then(res => {
           if (res.data.code == 404) {
@@ -100,8 +100,8 @@ function ReplyOptionModal({ ...rest }) {
               onPress={() => setVisibleDelete(true)}
             >
               <View style={styles.optionContainer}>
-                <Icon name={'times'} color={main_color} size={24} />
-                <Text style={styles.txtOption}>   Xóa phản hồi</Text>
+                <Icon name={'times'} color={main_color} size={26} />
+                <Text style={styles.txtOption}>  Xóa phản hồi</Text>
               </View>
             </TouchableHighlight>
           </View>

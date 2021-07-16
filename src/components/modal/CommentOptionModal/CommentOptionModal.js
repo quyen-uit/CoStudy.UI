@@ -35,7 +35,7 @@ function CommentOptionModal({ ...rest }) {
   const [visibleDelete, setVisibleDelete] = useState(false);
   const [isMe, setIsMe] = useState(false);
   useEffect(() => {
-    if (rest.id != null) {
+    if (rest.id != null && rest.id != '') {
       CommentService.getCommentById(curUser.jwtToken, rest.id)
         .then(res => {
           if (res.data.code == 404) {
@@ -106,8 +106,8 @@ function CommentOptionModal({ ...rest }) {
               onPress={() => setVisibleDelete(true)}
             >
               <View style={styles.optionContainer}>
-                <Icon name={'times'} color={main_color} size={24} />
-                <Text style={styles.txtOption}>Xóa bình luận</Text>
+                <Icon name={'times'} color={main_color} size={26} />
+                <Text style={styles.txtOption}>  Xóa bình luận</Text>
               </View>
             </TouchableHighlight>
           </View>

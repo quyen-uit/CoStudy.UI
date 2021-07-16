@@ -115,8 +115,8 @@ function AppNavigator() {
           },
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              <TouchableOpacity >
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
           ),
@@ -152,8 +152,8 @@ function AppNavigator() {
           },
           headerRight: () => (
             <View style={styles.headerRight}>
-              <TouchableOpacity onPress={() => alert('search is clicked')}>
-                <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
           ),

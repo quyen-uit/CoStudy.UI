@@ -145,6 +145,9 @@ function Profile({ userId }) {
   const [isMe, setIsMe] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [allowUp, setAllowUp] = useState(false);
+  const [offset,setOffset] = useState(0);
+
   const onDeleteCallback = React.useCallback(value => {
     // setVisibleDelete(true);
     PostService.deletePost(curUser.jwtToken, idModal)
@@ -525,12 +528,25 @@ function Profile({ userId }) {
     });
   }, [navigation, data]);
   const flatList = React.useRef(null);
+  const goToTop = () => {
+    setAllowUp(false);
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
+  };
   return (
     <View style={{ flex: 1 }}>
       <View style={styles.container}>
         <SafeAreaView>
           <FlatList
             ref={flatList}
+            onScroll={e => {
+              if (e.nativeEvent.contentOffset.y > 500 && e.nativeEvent.contentOffset.y > offset) {
+                
+                setAllowUp(true)
+              }
+              else setAllowUp(false);
+              setOffset(e.nativeEvent.contentOffset.y);
+  
+            }}
             extraData={posts}
             style={{ flexGrow: 0 }}
             onEndReached={async () => {
@@ -936,6 +952,14 @@ function Profile({ userId }) {
             </View>
           </TouchableOpacity>
         </View>
+      ) : null}
+      {allowUp? (
+        <TouchableOpacity
+          onPress={() => goToTop()}
+          style={{ position: 'absolute', bottom: 32, right: 32 }}
+        >
+          <Icon name={'chevron-circle-up'} size={32} color={main_color} />
+        </TouchableOpacity>
       ) : null}
       <PostOptionModal
         visible={modalVisible}

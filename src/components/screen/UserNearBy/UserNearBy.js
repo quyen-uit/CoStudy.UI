@@ -104,7 +104,9 @@ function UserCard({ item }) {
             </TouchableOpacity>
             <View style={{ flexShrink: 1 }}>
               <Text style={styles.txtAuthor}>{item.full_name}</Text>
-              <Text style={styles.txtContent}>{+(Math.round(item.distance/1000 + "e+2")  + "e-2")} km</Text>
+              <Text style={styles.txtContent}>
+                {+(Math.round(item.distance / 1000 + 'e+2') + 'e-2')} km
+              </Text>
             </View>
           </View>
           {item.user_id == userInfo.id ? null : (
@@ -169,17 +171,17 @@ function UserNearBy() {
   const onVisibleCallBack = React.useCallback(value => {
     setModalPostVisible(value);
   });
-  const backAction = () => {
-    setModalVisible(false);
-    return true;
-  };
+  // const backAction = () => {
+  //   setModalVisible(false);
+  //   return true;
+  // };
 
-  useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', backAction);
+  // useEffect(() => {
+  //   BackHandler.addEventListener('hardwareBackPress', backAction);
 
-    return () =>
-      BackHandler.removeEventListener('hardwareBackPress', backAction);
-  }, []);
+  //   return () =>
+  //     BackHandler.removeEventListener('hardwareBackPress', backAction);
+  // }, []);
 
   useEffect(() => {
     let isRender = true;
@@ -203,6 +205,9 @@ function UserNearBy() {
                 });
               });
               setIsLoading(false);
+              response.data.result = response.data.result.filter(
+                i => i.user_id != userInfo.id
+              );
               setUsers([...response.data.result]);
               setSkip(skip + 10);
             });
@@ -231,6 +236,9 @@ function UserNearBy() {
             });
           });
           setIsLoading(false);
+          response.data.result = response.data.result.filter(
+            i => i.user_id != userInfo.id
+          );
           setUsers([...users, ...response.data.result]);
           setSkip(skip + 10);
         });
@@ -256,6 +264,9 @@ function UserNearBy() {
             });
           });
           setIsLoading(false);
+          response.data.result = response.data.result.filter(
+            i => i.user_id != userInfo.id
+          );
           setUsers(response.data.result);
           setSkip(10);
           setRefreshing(false);

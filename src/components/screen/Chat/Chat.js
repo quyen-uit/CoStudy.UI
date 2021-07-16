@@ -184,24 +184,25 @@ function Chat() {
       //   },
       //   ...tmp,
       // ]);
-
+          console.log(res);
       if (res.sender_id == userInfo.id) {
-        setListMes([
-          {
-            name: res.sender_name,
-            modified_date: res.created_date,
-            avatar: res.sender_avatar,
-            content:
-             res.message_type == 3
-                ? 'Bạn: Bài đăng'
-                : res.message_type == 1
-                ? 'Bạn: Ảnh'
-                : 'Bạn: ' + res.content,
-            id: res.conversation_id,
-            isUnread: false,
-          },
-          ...tmp,
-        ]);
+        // setListMes([
+        //   {
+        //     name: res.receiver_name,
+        //     modified_date: res.created_date,
+        //     avatar: res.receiver_avatar,
+        //     content:
+        //      res.message_type == 3
+        //         ? 'Bạn: Bài đăng'
+        //         : res.message_type == 1
+        //         ? 'Bạn: Ảnh'
+        //         : 'Bạn: ' + res.content,
+        //     id: res.conversation_id,
+        //     isUnread: false,
+        //   },
+        //   ...tmp,
+        // ]);
+        onRefresh();
       } else {
         setListMes([
           {

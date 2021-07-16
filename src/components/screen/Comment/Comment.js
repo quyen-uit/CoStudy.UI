@@ -146,8 +146,7 @@ function Comment(props) {
       })
         .then(async response => {
           if (!isOut) {
-            console.log(route.params.reply);
-            const a = response.data.result.map(async i => {
+             const a = response.data.result.map(async i => {
               i.opacity = 1;
               if (i.is_vote_by_current) i.vote = 1;
               else if (i.is_downvote_by_current) i.vote = -1;

@@ -155,7 +155,8 @@ function Post(props) {
   const [visibleAlert, setVisibleAlert] = useState(false);
   const [bodyAlert, setBodyAlert] = useState('');
   const [violenceWords, setViolenceWords] = useState([]);
-
+  const [allowUp, setAllowUp] = useState(false);
+  const [offset, setOffset] = useState(0);
   const showAlert = (title, body) => {
     setBodyAlert(body);
     setVisibleAlert(true);
@@ -559,12 +560,25 @@ function Post(props) {
       });
   };
   const flatList = React.useRef(null);
-
+  const goToTop = () => {
+    setAllowUp(false);
+    setOffset(10000);
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
+  };
   return (
     <View style={styles.largeContainer}>
       <SafeAreaView>
         <FlatList
           ref={flatList}
+          onScroll={e => {
+            if (
+              e.nativeEvent.contentOffset.y > 500 &&
+              e.nativeEvent.contentOffset.y > offset
+            ) {
+              setAllowUp(true);
+            } else setAllowUp(false);
+            setOffset(e.nativeEvent.contentOffset.y);
+          }}
           extraData={comments}
           showsVerticalScrollIndicator={false}
           style={{ marginBottom: 50 }}
@@ -1109,6 +1123,14 @@ function Post(props) {
             </View>
           </TouchableOpacity>
         </View>
+      ) : null}
+      {allowUp ? (
+        <TouchableOpacity
+          onPress={() => goToTop()}
+          style={{ position: 'absolute', bottom: 80, right: 32 }}
+        >
+          <Icon name={'chevron-circle-up'} size={32} color={main_color} />
+        </TouchableOpacity>
       ) : null}
       <ImageView
         images={[{ uri: imgView }]}

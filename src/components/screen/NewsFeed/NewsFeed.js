@@ -69,7 +69,8 @@ function NewsFeed() {
   const [modalVisible, setModalVisible] = useState(false);
   const [idModal, setIdModal] = useState(null);
   const [savedModal, setSavedModal] = useState();
- 
+  const [allowUp, setAllowUp] = useState(false);
+  const [offset,setOffset] = useState(0);
   const onViewImage = React.useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
@@ -251,7 +252,7 @@ function NewsFeed() {
                   content: route.params.content,
                   list: list,
                   fields: route.params.fields,
-                  type: route.params.type
+                  type: route.params.type,
                 })
                   .then(response1 => {
                     Toast.show({
@@ -352,6 +353,11 @@ function NewsFeed() {
     );
   };
   const flatList = React.useRef(null);
+  const goToTop = () => {
+    setAllowUp(false);
+    setOffset(10000);
+    flatList.current.scrollToOffset({ animated: true, offset: 0 });
+  };
 
   return (
     <View>
@@ -387,12 +393,21 @@ function NewsFeed() {
       <SafeAreaView>
         <FlatList
           ref={flatList}
+          onScroll={e => {
+            if (e.nativeEvent.contentOffset.y > 500 && e.nativeEvent.contentOffset.y > offset) {
+              
+              setAllowUp(true)
+            }
+            else setAllowUp(false);
+            setOffset(e.nativeEvent.contentOffset.y);
+
+          }}
           extraData={posts}
           showsVerticalScrollIndicator={false}
           data={posts}
           style={{ marginBottom: 110 }}
           onEndReached={async () => {
-            if (posts.length > 1) {
+             if (posts.length > 1) {
               setIsEnd(true);
               if (refreshing) {
                 setIsEnd(false);
@@ -459,6 +474,14 @@ function NewsFeed() {
           </View>
         ) : null}
       </SafeAreaView>
+      {allowUp? (
+        <TouchableOpacity
+          onPress={() => goToTop()}
+          style={{ position: 'absolute', bottom: 80, right: 32 }}
+        >
+          <Icon name={'chevron-circle-up'} size={32} color={main_color} />
+        </TouchableOpacity>
+      ) : null}
       <PostOptionModal
         visible={modalVisible}
         saved={savedModal}
