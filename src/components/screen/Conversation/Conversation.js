@@ -16,6 +16,7 @@ import {
   TextInput,
   RefreshControl,
   Keyboard,
+  useWindowDimensions 
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Conversation/styles';
@@ -54,16 +55,32 @@ import ImageView from 'react-native-image-viewing';
 import ChatService from 'controllers/ChatService';
 import navigationConstants from 'constants/navigation';
 import PostService from 'controllers/PostService';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+import { createThumbnail } from 'react-native-create-thumbnail';
+
+
 
 function RightMessage({ item, onViewImage, onDelete, onLoading }) {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const [showTime, setShowTime] = useState(false);
   const [visible, setVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
   const jwtToken = useSelector(getJwtToken);
-
+  const [thumb, setThumb] = useState(
+    'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/video_thumb.jpg?alt=media&token=45c63095-56af-4ee7-be2b-8b8a4b327145'
+  );
+  useEffect(() => {
+    if (item.message_type == 1 && item.content[0].media_type == 1)
+      createThumbnail({
+        url: item.content[0].image_hash,
+        timeStamp: 1000,
+      })
+        .then(async response => {
+          setThumb(response.path);
+        })
+        .catch(err => console.log({ err }));
+  }, [item.content[0]]);
   // const onUpvoteCallback = useCallback();
   // const onDownvoteCallback = useCallback();
   // const onCommentCallback = useCallback();
@@ -102,14 +119,47 @@ function RightMessage({ item, onViewImage, onDelete, onLoading }) {
 
         <View>
           {item.message_type == 1 ? (
-            <TouchableOpacity
-              onPress={() => onViewImage(true, item.content[0].image_hash)}
-            >
-              <Image
-                style={{ width: 200, height: 300, marginRight: 8 }}
-                source={{ uri: item.content[0].image_hash }}
-              />
-            </TouchableOpacity>
+            <View>
+              {item.content[0].media_type == 0 || item.content[0].media_type == null? (
+                <TouchableOpacity
+                  onPress={() => onViewImage(true, item.content[0].image_hash)}
+                >
+                  <Image
+                    style={{ width: 200, height: 300, marginRight: 8 }}
+                    source={{ uri: item.content[0].image_hash }}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate(navigationConstants.videoPlayer, {
+                      video: item.content[0].image_hash,
+                    })
+                  }
+                >
+                  <Image
+                    style={{ width: 200, height: 100, marginRight: 8 }}
+                    source={{
+                      uri: thumb,
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate(navigationConstants.videoPlayer, {
+                        video: item.content[0].image_hash,
+                      })
+                    }
+                    style={{
+                      position: 'absolute',
+                      alignSelf: 'center',
+                      top: 30,
+                    }}
+                  >
+                    <FontAwesome5 name={'play'} size={30} color={'#fff'} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              )}
+            </View>
           ) : item.message_type == 0 ? (
             <View style={styles.boxRightMessage}>
               <Text style={{ color: '#ffffff' }}>{item.content[0]}</Text>
@@ -214,6 +264,7 @@ function RightMessage({ item, onViewImage, onDelete, onLoading }) {
           setModalVisible(false);
         }}
         onDelete={onDelete1}
+
       />
       <Modal
         visible={visible}
@@ -251,6 +302,21 @@ function LeftMessage({ item, onViewImage, avatar, onLoading }) {
   const [showTime, setShowTime] = useState(false);
   const navigation = useNavigation();
   const jwtToken = useSelector(getJwtToken);
+  const [thumb, setThumb] = useState(
+    'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/video_thumb.jpg?alt=media&token=45c63095-56af-4ee7-be2b-8b8a4b327145'
+  );
+  useEffect(() => {
+    
+    if (item.message_type == 1 && item.content[0].media_type == 1)
+      createThumbnail({
+        url: item.content[0].image_hash,
+        timeStamp: 10000,
+      })
+        .then(async response => {
+          setThumb(response.path);
+        })
+        .catch(err => console.log({ err }));
+  }, [item.content[0]]);
   return (
     <TouchableOpacity onPress={() => setShowTime(!showTime)}>
       <View>
@@ -260,21 +326,61 @@ function LeftMessage({ item, onViewImage, avatar, onLoading }) {
           </View>
 
           {item.message_type == 1 ? (
-            <TouchableOpacity
-              onPress={() => onViewImage(true, item.content[0].image_hash)}
-            >
-              <Image
-                style={{
-                  width: 200,
-                  height: 300,
-                  marginLeft: 8,
-                  borderRadius: 8,
-                  borderWidth: 0.5,
-                  borderColor: main_color,
-                }}
-                source={{ uri: item.content[0].image_hash }}
-              />
-            </TouchableOpacity>
+            <View>
+              {item.content[0].media_type == 0 || item.content[0].media_type == null? (
+                <TouchableOpacity
+                  onPress={() => onViewImage(true, item.content[0].image_hash)}
+                >
+                  <Image
+                    style={{
+                      width: 200,
+                      height: 300,
+                      marginLeft: 8,
+                      borderRadius: 8,
+                      borderWidth: 0.5,
+                      borderColor: main_color,
+                    }}
+                    source={{ uri: item.content[0].image_hash }}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate(navigationConstants.videoPlayer, {
+                      video: item.content[0].image_hash,
+                    })
+                  }
+                >
+                  <Image
+                    style={{
+                      width: 200,
+                      height: 100,
+                      marginLeft: 8,
+                      borderRadius: 8,
+                      borderWidth: 0.5,
+                      borderColor: main_color,
+                    }}
+                    source={{
+                      uri: thumb,
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate(navigationConstants.videoPlayer, {
+                        video: item.content[0].image_hash,
+                      })
+                    }
+                    style={{
+                      position: 'absolute',
+                      alignSelf: 'center',
+                      top: 30,
+                    }}
+                  >
+                    <FontAwesome5 name={'play'} size={30} color={'#fff'} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              )}
+            </View>
           ) : item.message_type == 0 ? (
             <View style={styles.shirk1}>
               <View style={styles.boxMessage}>
@@ -375,9 +481,13 @@ function LeftMessage({ item, onViewImage, avatar, onLoading }) {
   );
 }
 function Conversation(props) {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
+
   const route = useRoute();
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
+  const [isImage, setIsImage] = useState(true);
 
   const [showOption, setShowOption] = useState(true);
   const [listMes, setListMes] = useState([]);
@@ -463,6 +573,9 @@ function Conversation(props) {
   // useEffect(() => {
   //   flatListRef.current.scrollToEnd({ animated: true, duration: 1000 });
   // }, [message]);
+  const onVisible = React.useCallback((value ) => {
+    setModalVisible(value);
+  });
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       if (
@@ -477,7 +590,6 @@ function Conversation(props) {
           JSON.stringify(JSON.parse(JSON.stringify(remoteMessage)).data)
         ).message
       );
-      console.log(res);
       if (res.sender_id == userInfo.id) return;
       // if (route.params?.callback)
       // if (res.MediaContent == null) {
@@ -627,160 +739,127 @@ function Conversation(props) {
 
   const pickImage = () => {
     setSending(true);
-    if (route.params?.callback) route.params.callback('Bạn: Ảnh', new Date());
 
-    ImagePicker.openPicker({
-      width: 800,
-      height: 1100,
-      mediaType: 'photo',
-      cropping: true,
+    if (isImage) {
+      ImagePicker.openPicker({
+        width: 800,
+        height: 1100,
+        mediaType: 'photo',
+        cropping: true,
 
-      compressImageQuality: 1,
-    }).then(async image => {
+        compressImageQuality: 1,
+      }).then(async image => {
+        image.mediaType = 0;
+        if (route.params?.callback)
+          route.params.callback('Bạn: Ảnh', new Date());
+        await sendImage(image);
+      });
+    } else {
+      ImagePicker.openPicker({
+        mediaType: 'video',
+      }).then(async image => {
+        if (route.params?.callback)
+          route.params.callback('Bạn: Video', new Date());
+
+        image.mediaType = 1;
+        await sendImage(image);
+      });
+    }
+  };
+  const sendImage = async image => {
+    if (image) {
+      const tmp = {
+        id: '',
+        sender_id: userInfo.id,
+        content: [{ image_hash: image.path }],
+        message_type: 1,
+        created_date: new Date(),
+        modified_date: new Date(),
+        sending: true,
+      };
+      setListMes([tmp, ...listMes]);
+      ///
       if (image) {
-        const tmp = {
-          id: '',
-          sender_id: userInfo.id,
-          content: [{ image_hash: image.path }],
-          message_type: 1,
-          created_date: new Date(),
-          modified_date: new Date(),
-          sending: true,
-        };
-        setListMes([tmp, ...listMes]);
-        ///
-        if (image) {
-          const uri = image.path;
-          const filename = uuidv4();
-          const uploadUri =
-            Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-          const task = storage()
-            .ref(
-              'conversation/' +
-                conversation_id +
-                '/' +
-                userInfo.id +
-                '/' +
-                filename
-            )
-            .putFile(uploadUri);
-          // set progress state
-          task.on('state_changed', snapshot => {
-            console.log('uploading avatar..');
-          });
-          try {
-            await task.then(async response => {
-              await storage()
-                .ref(response.metadata.fullPath)
-                .getDownloadURL()
-                .then(async url => {
-                  await ChatService.createImageMessage(jwtToken, {
-                    conversation_id: conversation_id,
-                    url: url,
-                  })
-                    .then(response => {
-                      const tmp = {
-                        id: '',
-                        sender_id: userInfo.id,
-                        content: [{ image_hash: image.path }],
-                        message_type: 1,
-                        created_date: new Date(),
-                        modified_date: new Date(),
-                        sending: false,
-                      };
-                      setListMes([tmp, ...listMes]);
-                      setSending(false);
+        const uri = image.path;
+        const filename = uuidv4();
+        const uploadUri =
+          Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+        const task = storage()
+          .ref(
+            'conversation/' +
+              conversation_id +
+              '/' +
+              userInfo.id +
+              '/' +
+              filename
+          )
+          .putFile(uploadUri);
+        // set progress state
+        task.on('state_changed', snapshot => {
+          console.log('uploading avatar..');
+        });
+        try {
+          await task.then(async response => {
+            await storage()
+              .ref(response.metadata.fullPath)
+              .getDownloadURL()
+              .then(async url => {
+                await ChatService.createImageMessage(jwtToken, {
+                  conversation_id: conversation_id,
+                  url: url,
+                  mediaType: image.mediaType
+                 })
+                  .then(response => {
+                    const tmp = {
+                      id: '',
+                      sender_id: userInfo.id,
+                      content: [
+                        { image_hash: image.path, media_type: image.mediaType },
+                      ],
+                      message_type: 1,
+                      created_date: new Date(),
+                      modified_date: new Date(),
+                      sending: false,
+                    };
+                    setListMes([tmp, ...listMes]);
+                    setSending(false);
 
-                      //setListMes([...listMes, response.data.result]);
-                    })
-                    .catch(err => console.log(err));
-                });
-            });
-          } catch (e) {
-            console.error(e);
-            setSending(false);
-          }
+                    //setListMes([...listMes, response.data.result]);
+                  })
+                  .catch(err => console.log(err));
+              });
+          });
+        } catch (e) {
+          console.error(e);
+          setSending(false);
         }
       }
-    });
+    }
   };
   const cameraImage = () => {
     setSending(true);
-    if (route.params?.callback) route.params.callback('Bạn: Ảnh', new Date());
-    ImagePicker.openCamera({
-      width: 800,
-      height: 1100,
-      mediaType: 'photo',
-      cropping: true,
+    if (isImage)
+      ImagePicker.openCamera({
+        width: 800,
+        height: 1100,
+        mediaType: 'photo',
+        cropping: true,
 
-      compressImageQuality: 1,
-    }).then(async image => {
-      if (image) {
-        const tmp = {
-          id: '',
-          sender_id: userInfo.id,
-          content: [{ image_hash: image.path }],
-          message_type: 1,
-          created_date: new Date(),
-          modified_date: new Date(),
-          sending: true,
-        };
-        setListMes([tmp, ...listMes]);
-        ///
-        if (image) {
-          const uri = image.path;
-          const filename = uuidv4();
-          const uploadUri =
-            Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
-          const task = storage()
-            .ref(
-              'conversation/' +
-                conversation_id +
-                '/' +
-                userInfo.id +
-                '/' +
-                filename
-            )
-            .putFile(uploadUri);
-          // set progress state
-          task.on('state_changed', snapshot => {
-            console.log('uploading avatar..');
-          });
-          try {
-            await task.then(async response => {
-              await storage()
-                .ref(response.metadata.fullPath)
-                .getDownloadURL()
-                .then(async url => {
-                  await ChatService.createImageMessage(jwtToken, {
-                    conversation_id: conversation_id,
-                    url: url,
-                  })
-                    .then(response => {
-                      const tmp = {
-                        id: '',
-                        sender_id: userInfo.id,
-                        content: [{ image_hash: image.path }],
-                        message_type: 1,
-                        created_date: new Date(),
-                        modified_date: new Date(),
-                        sending: false,
-                      };
-                      setListMes([tmp, ...listMes]);
-                      setSending(false);
-
-                      //setListMes([...listMes, response.data.result]);
-                    })
-                    .catch(err => console.log(err));
-                });
-            });
-          } catch (e) {
-            console.error(e);
-            setSending(false);
-          }
-        }
-      }
-    });
+        compressImageQuality: 1,
+      }).then(async image => {
+        image.mediaType = 0;
+        if (route.params?.callback)
+          route.params.callback('Bạn: Ảnh', new Date());
+        await sendImage(image);
+      });
+    else {
+      ImagePicker.openCamera({ mediaType: 'video' }).then(async image => {
+        image.mediaType = 1;
+        if (route.params?.callback)
+          route.params.callback('Bạn: Video', new Date());
+        await sendImage(image);
+      });
+    }
   };
   const fetchData = async () => {
     await ChatService.getAllMessage(jwtToken, {
@@ -838,23 +917,28 @@ function Conversation(props) {
             <TouchableOpacity style={styles.btnInputOption}>
               <FontAwesome5 name={'plus-circle'} size={24} color={main_color} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.btnInputOption}>
-              <FontAwesome5
-                name={'square-root-alt'}
-                size={24}
-                color={main_color}
-              />
+            <TouchableOpacity
+              onPress={() => {
+                setIsImage(false);
+                setChosing(true);
+              }}
+              style={styles.btnInputOption}
+            >
+              <FontAwesome5 name={'video'} size={24} color={main_color} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.btnInputOption}
-              onPress={() => setChosing(true)}
+              onPress={() => {
+                setIsImage(true);
+                setChosing(true);
+              }}
             >
               <FontAwesome5 name={'images'} size={24} color={main_color} />
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity
-            style={{marginHorizontal: 16}}
+            style={{ marginHorizontal: 16 }}
             onPress={() => setShowOption(true)}
           >
             <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
@@ -901,7 +985,7 @@ function Conversation(props) {
           >
             <View
               style={{
-                marginTop: 100,
+                marginTop: deviceHeight < deviceWidth ? 0 : 100,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -1017,6 +1101,10 @@ function Conversation(props) {
           setModalVisible(false);
         }}
         onDelete={onDelete}
+        onVisible={onVisible}
+        name={route.params.name}
+        conversationId={route.params.id}
+        callId={route.params.callId}
       />
       <Modal
         visible={deleteVisible}

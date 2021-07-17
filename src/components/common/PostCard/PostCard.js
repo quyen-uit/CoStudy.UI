@@ -9,6 +9,7 @@ import {
   ScrollView,
   ToastAndroid,
   Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import styles from 'components/common/PostCard/styles';
 import { Card } from 'react-native-elements';
@@ -40,17 +41,23 @@ import axios from 'axios';
 import { api } from 'constants/route';
 import { RotationGestureHandler } from 'react-native-gesture-handler';
 import Badge from '../Badge';
+import { createThumbnail } from 'react-native-create-thumbnail';
+
 function PostCard(props) {
+  const navigate = useNavigation();
   const post = props.post;
   const userId = props.userId;
   const [isVote, setIsVote] = useState(false);
   const navigation = useNavigation();
   const [author, setAuthor] = useState();
-
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const jwtToken = useSelector(getJwtToken);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
-
+  const [thumb, setThumb] = useState(
+    'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/video_thumb.jpg?alt=media&token=45c63095-56af-4ee7-be2b-8b8a4b327145'
+  );
   // like, comment
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
@@ -77,9 +84,21 @@ function PostCard(props) {
   ]);
 
   useEffect(() => {
+    if (
+      post.image_contents.length > 0 &&
+      post.image_contents[0].media_type == 1
+    )
+      createThumbnail({
+        url: post.image_contents[0].image_hash,
+        timeStamp: 1000,
+      })
+        .then(response => {
+          setThumb(response.path);
+        })
+        .catch(err => console.log({ err }));
     const fetchData = async () => {};
     fetchData();
-  }, []);
+  }, [post.image_contents]);
   const GoToPost = () => {
     PostService.getPostById(jwtToken, post.oid)
       .then(res => {
@@ -149,7 +168,7 @@ function PostCard(props) {
         style={styles.card}
       >
         <View>
-          <View style={styles.header}>
+          <View style={{ ...styles.header, width: deviceWidth - 34 }}>
             <View style={styles.headerAvatar}>
               <TouchableOpacity onPress={() => GoToProfile()}>
                 <Image
@@ -159,15 +178,14 @@ function PostCard(props) {
                   }}
                 />
               </TouchableOpacity>
-              <View> 
+              <View>
                 <View style={styles.containerHeader}>
                   <TouchableOpacity onPress={() => GoToProfile()}>
                     <Text style={styles.txtAuthor}>{post.author_name}</Text>
                   </TouchableOpacity>
-                  
                 </View>
                 <View style={styles.rowFlexStart}>
-                <View
+                  <View
                     style={{
                       marginRight: 4,
                       paddingHorizontal: 4,
@@ -181,7 +199,7 @@ function PostCard(props) {
                       {post.post_type_name}
                     </Text>
                   </View>
-                
+
                   <FontAwesome name={'circle'} size={8} color={active_color} />
                   <Text style={styles.txtCreateDate}>
                     {moment(new Date()).diff(
@@ -202,7 +220,7 @@ function PostCard(props) {
                         ) + ' giờ trước'
                       : moment(post.created_date).format('hh:mm DD-MM-YYYY')}
                   </Text>
-                 </View>
+                </View>
               </View>
             </View>
 
@@ -240,18 +258,52 @@ function PostCard(props) {
           </View>
 
           {post.image_contents.length > 0 ? (
-            <TouchableOpacity
-              onPress={() =>
-                props.onViewImage(true, post.image_contents[0].image_hash)
-              }
-            >
-              <Image
-                style={styles.imgContent}
-                source={{
-                  uri: post.image_contents[0].image_hash,
-                }}
-              />
-            </TouchableOpacity>
+            <View>
+              {post.image_contents[0].media_type == 0 ||
+              post.image_contents[0].media_type == null ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    props.onViewImage(true, post.image_contents[0].image_hash)
+                  }
+                >
+                  <Image
+                    style={styles.imgContent}
+                    source={{
+                      uri: post.image_contents[0].image_hash,
+                    }}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate(navigationConstants.videoPlayer, {
+                      video: post.image_contents[0].image_hash,
+                    })
+                  }
+                >
+                  <Image
+                    style={styles.imgContent}
+                    source={{
+                      uri: thumb,
+                    }}
+                  />
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate(navigationConstants.videoPlayer, {
+                        video: post.image_contents[0].image_hash,
+                      })
+                    }
+                    style={{
+                      position: 'absolute',
+                      alignSelf: 'center',
+                      top: 90,
+                    }}
+                  >
+                    <FontAwesome5 name={'play'} size={30} color={'#fff'} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              )}
+            </View>
           ) : null}
 
           {post.field ? (

@@ -25,6 +25,7 @@ import {
   StyleSheet,
   SafeAreaView,
   FlatList,
+  useWindowDimensions,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { getUser, getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
@@ -35,10 +36,6 @@ import 'react-native-get-random-values';
 import UserService from 'controllers/UserService';
 import Point from 'components/common/Point';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
-const colWidth = deviceWidth / 6;
-
 import Modal, {
   ModalContent,
   BottomModal,
@@ -47,6 +44,8 @@ import Modal, {
 
 function Ranking() {
   const jwtToken = useSelector(getJwtToken);
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
 
   const navigation = useNavigation();
   const route = useRoute();
@@ -159,7 +158,11 @@ function Ranking() {
         </View>
         <View style={{ alignItems: 'center' }}>
           <Text style={{ color: main_2nd_color }}>Hạng</Text>
-          <Text style={{ color: main_2nd_color, fontWeight: 'bold', fontSize: 18 }}>{item.index}</Text>
+          <Text
+            style={{ color: main_2nd_color, fontWeight: 'bold', fontSize: 18 }}
+          >
+            {item.index}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -204,126 +207,134 @@ function Ranking() {
           >
             {title}
           </Text>
-          <View style={{ paddingBottom: 8 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-              }}
-            >
-              <View style={{ ...styles.col, marginTop: 32 }}>
-                <TouchableOpacity onPress={() => goToProfile(list[1].user_id)}>
-                  <Image
-                    style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 32,
-                      borderColor: '#fff',
-                      borderWidth: 1,
-                    }}
-                    source={{ uri: list[1].user_avatar }}
-                  />
-                  <View
-                    style={{
-                      backgroundColor: main_2nd_color,
-                      width: 20,
-                      height: 20,
-                      borderRadius: 12,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      position: 'absolute',
-                      right: 0,
-                      bottom: 0,
-                    }}
+          {deviceWidth < deviceHeight ? (
+            <View style={{ paddingBottom: 8 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                }}
+              >
+                <View style={{ ...styles.col, marginTop: 32 }}>
+                  <TouchableOpacity
+                    onPress={() => goToProfile(list[1].user_id)}
                   >
-                    <Text style={{ color: 'white' }}>2</Text>
-                  </View>
-                </TouchableOpacity>
-                <Text style={{ marginTop: 4, color: '#fff' }}>
-                  {list[1].user_name}
-                </Text>
-                <Point point={list[1].total_point} />
-              </View>
-              <View style={{ ...styles.col }}>
-                <View>
-                  <TouchableOpacity onPress={() => goToProfile(list[0].user_id)}>
-                    <Image
-                      style={{
-                        width: 88,
-                        height: 88,
-                        borderRadius: 44,
-                        borderColor: '#ede437',
-                        borderWidth: 1,
-                      }}
-                      source={{ uri: list[0].user_avatar }}
-                    />
                     <Image
                       style={{
                         width: 64,
-                        height: 48,
-                        position: 'absolute',
-                        top: -24,
-                        right: -20,
-                        transform: [{ rotate: '408deg' }],
+                        height: 64,
+                        borderRadius: 32,
+                        borderColor: '#fff',
+                        borderWidth: 1,
                       }}
-                      source={require('../../../assets/crown.png')}
+                      source={{ uri: list[1].user_avatar }}
                     />
+                    <View
+                      style={{
+                        backgroundColor: main_2nd_color,
+                        width: 20,
+                        height: 20,
+                        borderRadius: 12,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        position: 'absolute',
+                        right: 0,
+                        bottom: 0,
+                      }}
+                    >
+                      <Text style={{ color: 'white' }}>2</Text>
+                    </View>
                   </TouchableOpacity>
-                  <View
-                    style={{
-                      backgroundColor: '#ede437',
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      position: 'absolute',
-                      right: 0,
-                      bottom: 0,
-                    }}
-                  >
-                    <Text style={{ color: 'white' }}>1</Text>
-                  </View>
+                  <Text style={{ marginTop: 4, color: '#fff' }}>
+                    {list[1].user_name}
+                  </Text>
+                  <Point point={list[1].total_point} />
                 </View>
-                <Text style={{ marginTop: 4, color: '#fff' }}>
-                  {list[0].user_name}
-                </Text>
-                <Point point={list[0].total_point} />
-              </View>
-              <View style={{ ...styles.col, marginTop: 32 }}>
-                <TouchableOpacity onPress={() => goToProfile(list[2].user_id)}>
-                  <Image
-                    style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: 32,
-                      borderColor: '#fff',
-                      borderWidth: 1,
-                    }}
-                    source={{ uri: list[2].user_avatar }}
-                  />
-                  <View
-                    style={{
-                      backgroundColor: '#4ced37',
-                      width: 20,
-                      height: 20,
-                      borderRadius: 12,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      position: 'absolute',
-                      right: 0,
-                      bottom: 0,
-                    }}
-                  >
-                    <Text style={{ color: 'white' }}>3</Text>
+                <View style={{ ...styles.col }}>
+                  <View>
+                    <TouchableOpacity
+                      onPress={() => goToProfile(list[0].user_id)}
+                    >
+                      <Image
+                        style={{
+                          width: 88,
+                          height: 88,
+                          borderRadius: 44,
+                          borderColor: '#ede437',
+                          borderWidth: 1,
+                        }}
+                        source={{ uri: list[0].user_avatar }}
+                      />
+                      <Image
+                        style={{
+                          width: 64,
+                          height: 48,
+                          position: 'absolute',
+                          top: -24,
+                          right: -20,
+                          transform: [{ rotate: '408deg' }],
+                        }}
+                        source={require('../../../assets/crown.png')}
+                      />
+                    </TouchableOpacity>
+                    <View
+                      style={{
+                        backgroundColor: '#ede437',
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        position: 'absolute',
+                        right: 0,
+                        bottom: 0,
+                      }}
+                    >
+                      <Text style={{ color: 'white' }}>1</Text>
+                    </View>
                   </View>
-                </TouchableOpacity>
-                <Text style={{ marginTop: 4, color: '#fff' }}>
-                  {list[2].user_name}
-                </Text>
-                <Point point={list[2].total_point} />
+                  <Text style={{ marginTop: 4, color: '#fff' }}>
+                    {list[0].user_name}
+                  </Text>
+                  <Point point={list[0].total_point} />
+                </View>
+                <View style={{ ...styles.col, marginTop: 32 }}>
+                  <TouchableOpacity
+                    onPress={() => goToProfile(list[2].user_id)}
+                  >
+                    <Image
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 32,
+                        borderColor: '#fff',
+                        borderWidth: 1,
+                      }}
+                      source={{ uri: list[2].user_avatar }}
+                    />
+                    <View
+                      style={{
+                        backgroundColor: '#4ced37',
+                        width: 20,
+                        height: 20,
+                        borderRadius: 12,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        position: 'absolute',
+                        right: 0,
+                        bottom: 0,
+                      }}
+                    >
+                      <Text style={{ color: 'white' }}>3</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={{ marginTop: 4, color: '#fff' }}>
+                    {list[2].user_name}
+                  </Text>
+                  <Point point={list[2].total_point} />
+                </View>
               </View>
             </View>
-          </View>
+          ) : null}
           <View
             style={{
               flex: 1,
@@ -377,7 +388,15 @@ function Ranking() {
                   </View>
                   <View style={{ alignItems: 'center' }}>
                     <Text style={{ color: '#fff' }}>Hạng</Text>
-                    <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>{current.index}</Text>
+                    <Text
+                      style={{
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        fontSize: 18,
+                      }}
+                    >
+                      {current.index}
+                    </Text>
                   </View>
                 </View>
               )}
@@ -498,13 +517,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  indexCol: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: 'bold',
-    width: colWidth,
-    textAlign: 'center',
-    paddingTop: 16,
-    color: '#fff',
-  },
+  // indexCol: {
+  //   flex: 1,
+  //   fontSize: 24,
+  //   fontWeight: 'bold',
+  //   width: colWidth,
+  //   textAlign: 'center',
+  //   paddingTop: 16,
+  //   color: '#fff',
+  // },
 });

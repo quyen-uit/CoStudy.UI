@@ -13,6 +13,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   TextInput,
+  useWindowDimensions
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 
@@ -38,11 +39,11 @@ import Modal, {
   ModalFooter,
 } from 'react-native-modals';
 import UserService from 'controllers/UserService';
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 
 function ProfileEdit({ userId }) {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const route = useRoute();
   const navigation = useNavigation();
   const { colors } = useTheme();

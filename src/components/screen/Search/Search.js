@@ -18,6 +18,7 @@ import {
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
+  useWindowDimensions
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from './styles';
@@ -30,8 +31,7 @@ import PostCard from '../../common/PostCard';
 import { Badge } from 'react-native-elements';
 import ImageView from 'react-native-image-viewing';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 import Modal, {
   ModalContent,
   BottomModal,
@@ -152,6 +152,8 @@ function UserCard({ item }) {
 }
 
 function Search() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const { colors } = useTheme();
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);

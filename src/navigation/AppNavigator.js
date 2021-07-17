@@ -47,6 +47,7 @@ import Report from 'components/screen/Report';
 import Ranking from 'components/screen/Ranking';
 import UserNearBy from 'components/screen/UserNearBy';
 import HelpPost from 'components/screen/HelpPost';
+import VideoPlayer from 'components/screen/VideoPlayer';
 const Stack = createStackNavigator();
 
 const {
@@ -69,6 +70,7 @@ const {
   ranking,
   nearby,
   helpPost,
+  videoPlayer
 } = navigationConstants;
 
 function AppNavigator() {
@@ -230,6 +232,29 @@ function AppNavigator() {
             <View style={styles.headerRight}>
               <TouchableOpacity onPress={() => alert('search is clicked')}>
                 <Icon name={'ellipsis-h'} size={24} color={'#fff'} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={videoPlayer}
+        component={VideoPlayer}
+        options={{
+          title: videoPlayer,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: main_color,
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            alignSelf: 'center',
+          },
+
+          headerRight: () => (
+            <View style={styles.headerRight}>
+              <TouchableOpacity>
+                <Icon name={'ellipsis-h'} size={24} color={main_color} />
               </TouchableOpacity>
             </View>
           ),

@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     margin: 8,
     marginBottom: 4,
-    width: deviceWidth - 34,
+    // width: deviceWidth - 34,
     justifyContent: 'space-between'
    },
   headerAvatar: {

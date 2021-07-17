@@ -13,6 +13,7 @@ import {
   Dimensions,
   Keyboard,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Following/styles';
@@ -24,8 +25,6 @@ import moment from 'moment';
 import FollowService from 'controllers/FollowService';
 import ChatService from 'controllers/ChatService';
 import { TextInput } from 'react-native';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 
 function UserCard({ item }) {
   const jwtToken = useSelector(getJwtToken);
@@ -178,6 +177,8 @@ function UserCard({ item }) {
   );
 }
 function Following() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [listMes, setListMes] = useState([]);
@@ -215,7 +216,7 @@ function Following() {
   };
   return (
     <View style={[{ flex: 1, justifyContent: 'flex-end' }]}>
-      <View style={{  justifyContent: 'center', marginBottom: 4 }}>
+      <View style={{ justifyContent: 'center', marginBottom: 4 }}>
         <TextInput
           style={{
             alignSelf: 'stretch',

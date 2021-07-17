@@ -39,6 +39,7 @@ class ChatService {
         {
           image_url: params.url,
           image_hash: params.url,
+          media_type: params.mediaType
         },
       ],
       message_type: 1

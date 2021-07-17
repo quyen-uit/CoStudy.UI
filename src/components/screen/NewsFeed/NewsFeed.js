@@ -11,6 +11,7 @@ import {
   ToastAndroid,
   SafeAreaView,
   Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
@@ -40,10 +41,13 @@ import { AuthService } from 'components/videocall/services';
 import ConnectyCube from 'react-native-connectycube';
 import { api } from 'constants/route';
 import axios from 'axios';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+import Video from 'react-native-video';
+
+ 
 
 function NewsFeed() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -70,7 +74,7 @@ function NewsFeed() {
   const [idModal, setIdModal] = useState(null);
   const [savedModal, setSavedModal] = useState();
   const [allowUp, setAllowUp] = useState(false);
-  const [offset,setOffset] = useState(0);
+  const [offset, setOffset] = useState(0);
   const onViewImage = React.useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
@@ -233,11 +237,12 @@ function NewsFeed() {
                       .getDownloadURL()
                       .then(url => {
                         list = [
-                          ...list,
                           {
                             discription: image.discription,
                             image_hash: url,
+                            media_type: image.mediaType,
                           },
+                          ...list,
                         ];
                       });
                   });
@@ -264,7 +269,6 @@ function NewsFeed() {
                     let tmp = response1.data.result;
                     tmp.vote = 0;
                     tmp.saved = false;
-
                     if (isRender) setPosts([tmp, ...resPost.data.result]);
                   })
                   .catch(error => console.log(error));
@@ -394,20 +398,20 @@ function NewsFeed() {
         <FlatList
           ref={flatList}
           onScroll={e => {
-            if (e.nativeEvent.contentOffset.y > 500 && e.nativeEvent.contentOffset.y > offset) {
-              
-              setAllowUp(true)
-            }
-            else setAllowUp(false);
+            if (
+              e.nativeEvent.contentOffset.y > 500 &&
+              e.nativeEvent.contentOffset.y > offset
+            ) {
+              setAllowUp(true);
+            } else setAllowUp(false);
             setOffset(e.nativeEvent.contentOffset.y);
-
           }}
           extraData={posts}
           showsVerticalScrollIndicator={false}
           data={posts}
           style={{ marginBottom: 110 }}
           onEndReached={async () => {
-             if (posts.length > 1) {
+            if (posts.length > 1) {
               setIsEnd(true);
               if (refreshing) {
                 setIsEnd(false);
@@ -474,7 +478,7 @@ function NewsFeed() {
           </View>
         ) : null}
       </SafeAreaView>
-      {allowUp? (
+      {allowUp ? (
         <TouchableOpacity
           onPress={() => goToTop()}
           style={{ position: 'absolute', bottom: 80, right: 32 }}

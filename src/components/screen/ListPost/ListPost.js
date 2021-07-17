@@ -15,6 +15,7 @@ import {
   RefreshControl,
   ToastAndroid,
   SafeAreaView,
+  useWindowDimensions,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
@@ -33,11 +34,11 @@ import PostService from 'controllers/PostService';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 import DateRangePicker from '../../common/DateRangePicker';
 import moment from 'moment';
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 
 function ListPost() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
 

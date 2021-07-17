@@ -74,6 +74,7 @@ function ChatCard(props) {
       callback: onCallback,
       avatar: chat.avatar,
       name: chat.name,
+      callId: chat.call_id
     });
   };
   return (

@@ -17,6 +17,7 @@ import {
   Dimensions,
   ActivityIndicator,
   RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import styles from 'components/screen/Post/styles';
@@ -63,9 +64,11 @@ import {
   ModalButton,
   ModalContent,
 } from 'react-native-modals';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+import { createThumbnail } from 'react-native-create-thumbnail';
+
 function Post(props) {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const navigation = useNavigation();
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
@@ -157,6 +160,7 @@ function Post(props) {
   const [violenceWords, setViolenceWords] = useState([]);
   const [allowUp, setAllowUp] = useState(false);
   const [offset, setOffset] = useState(0);
+  const [listImg, setListImg] = useState([]);
   const showAlert = (title, body) => {
     setBodyAlert(body);
     setVisibleAlert(true);
@@ -228,7 +232,27 @@ function Post(props) {
       route.params.onVote(vote);
     }
   }, [downvote]);
-
+  useEffect(() => {
+    console.log(post.image_contents);
+    let tmp = [];
+    post.image_contents.forEach(item => {
+      if (item.media_type == 1)
+        createThumbnail({
+          url: item.image_hash,
+          timeStamp: 1000,
+        })
+          .then(response => {
+            item.thumb = response.path;
+            tmp.push(item);
+          })
+          .catch(err => console.log({ err }));
+      else {
+        tmp.push(item);
+      }
+    });
+    setListImg(tmp);
+    console.log(listImg);
+  }, []);
   useEffect(() => {
     setIsLoading(true);
     setStop(false);
@@ -706,18 +730,50 @@ function Post(props) {
 
                 <View>
                   {post.image_contents
-                    ? post.image_contents.map((item, index) => {
-                        return (
-                          <View
-                            style={{
-                              marginHorizontal: 16,
-                              borderBottomColor: main_color,
-                              borderBottomWidth: 0.5,
-                            }}
-                            key={index}
-                          >
-                            <TouchableOpacity
-                              onPress={() => onViewImage(true, item.image_hash)}
+                    ? listImg.map((item, index) => {
+                        if (item.media_type == 0 || item.media_type == null)
+                          return (
+                            <View
+                              style={{
+                                marginHorizontal: 16,
+                                borderBottomColor: main_color,
+                                borderBottomWidth: 0.5,
+                              }}
+                              key={index}
+                            >
+                              <TouchableOpacity
+                                onPress={() =>
+                                  onViewImage(true, item.image_hash)
+                                }
+                              >
+                                <Image
+                                  style={{
+                                    width: '100%',
+                                    height: 400,
+                                    alignSelf: 'center',
+                                    marginVertical: 8,
+                                  }}
+                                  source={{ uri: item.image_hash }}
+                                />
+                              </TouchableOpacity>
+
+                              {item.description != null ? (
+                                <Text style={styles.txtDes}>
+                                  {item.discription}
+                                </Text>
+                              ) : null}
+                            </View>
+                          );
+                        else
+                          return (
+                            <View
+                              key={index}
+                              style={{
+                                marginHorizontal: 16,
+                                borderBottomColor: main_color,
+                                borderBottomWidth: 0.5,
+                                justifyContent: 'center',
+                              }}
                             >
                               <Image
                                 style={{
@@ -726,15 +782,36 @@ function Post(props) {
                                   alignSelf: 'center',
                                   marginVertical: 8,
                                 }}
-                                source={{ uri: item.image_hash }}
+                                source={{
+                                  uri:
+                                    typeof item.thumb == 'undefined'
+                                      ? 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/video_thumb.jpg?alt=media&token=45c63095-56af-4ee7-be2b-8b8a4b327145'
+                                      : item.thumb,
+                                }}
                               />
-                            </TouchableOpacity>
-
-                            <Text style={styles.txtDes}>
-                              {item.discription}
-                            </Text>
-                          </View>
-                        );
+                              <TouchableOpacity
+                                onPress={() =>
+                                  navigation.navigate(
+                                    navigationConstants.videoPlayer,
+                                    {
+                                      video: item.image_hash,
+                                    }
+                                  )
+                                }
+                                style={{
+                                  position: 'absolute',
+                                  alignSelf: 'center',
+                                }}
+                              >
+                                <Icon name={'play'} size={30} color={'#fff'} />
+                              </TouchableOpacity>
+                              {item.description != null ? (
+                                <Text style={styles.txtDes}>
+                                  {item.discription}
+                                </Text>
+                              ) : null}
+                            </View>
+                          );
                       })
                     : null}
                 </View>
@@ -909,7 +986,7 @@ function Post(props) {
           </View>
         ) : (
           <TouchableOpacity
-            style={{marginHorizontal: 16}}
+            style={{ marginHorizontal: 16 }}
             onPress={() => setShowOption(true)}
           >
             <FontAwesome5 name={'angle-right'} size={24} color={main_color} />
@@ -1045,7 +1122,7 @@ function Post(props) {
           >
             <View
               style={{
-                marginTop: 100,
+                marginTop: deviceHeight < deviceWidth ? 0 : 100,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}

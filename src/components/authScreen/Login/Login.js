@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { actionTypes, login, loginGoogle } from 'actions/UserActions';
@@ -40,11 +41,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ConnectyCube from 'react-native-connectycube';
 import { AuthService } from 'components/videocall/services';
 import { api } from 'constants/route';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 GoogleSignin.configure();
 
 function Login() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
@@ -125,10 +126,15 @@ function Login() {
           }}
         >
           <View style={styles.container}>
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={styles.imgLogo}
-            />
+            {deviceHeight < deviceWidth ? <Image
+                source={require('../../../assets/logo.png')}
+                style={{width: 80, height: 40}}
+              />: (
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.imgLogo}
+              />
+            )}
             <View style={styles.formContainer}>
               <TextField
                 accessibilityHint={strings.emailHint}

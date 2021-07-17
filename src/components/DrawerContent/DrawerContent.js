@@ -91,7 +91,7 @@ function DrawerContent(props) {
           icon={({ color, size }) => (
             <Icon name="sign-out-alt" color={main_2nd_color} size={size} />
           )}
-          label="Sign Out"
+          label="Đăng xuất"
           onPress={() => logoutUser()}
         />
       </Drawer.Section>

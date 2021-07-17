@@ -30,7 +30,8 @@ const navigationConstants = {
   ranking: 'Bảng xếp hạng',
   forgot: 'Quên mật khẩu',
   nearby: 'Tìm quanh đây',
-  helpPost: 'Người trợ giúp'
+  helpPost: 'Người trợ giúp',
+  videoPlayer: 'Video'
 };
 
 export default navigationConstants;

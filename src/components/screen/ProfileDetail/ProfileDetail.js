@@ -12,6 +12,7 @@ import {
   SafeAreaView,
   StyleSheet,
   ActivityIndicator,
+  useWindowDimensions
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { main_2nd_color, main_color, touch_color } from 'constants/colorCommon';
@@ -23,11 +24,11 @@ import navigationConstants from 'constants/navigation';
 import moment from 'moment';
 import UserService from 'controllers/UserService';
 import Badge from 'components/common/Badge';
-
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 
 function ProfileDetail({ userId }) {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const route = useRoute();

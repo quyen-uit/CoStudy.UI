@@ -21,8 +21,7 @@ import {
   Alert,
   Dimensions,
   ActivityIndicator,
-  StyleSheet,
-  ToastAndroid,
+  useWindowDimensions
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Report/styles';
@@ -38,8 +37,7 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 import Modal, {
   ModalContent,
   BottomModal,
@@ -49,7 +47,8 @@ import Badge from 'components/common/Badge';
 
 function Report() {
   const jwtToken = useSelector(getJwtToken);
-
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const navigation = useNavigation();
   const route = useRoute();
   const [content, setContent] = useState();

@@ -9,6 +9,7 @@ import {
   Dimensions,
   TouchableOpacity,
   RefreshControl,
+  useWindowDimensions
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/Notify/styles';
@@ -33,9 +34,10 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { Button, Menu, Divider, Provider } from 'react-native-paper';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 function Notify() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const jwtToken = useSelector(getJwtToken);
   const userInfo = useSelector(getBasicInfo);
   const [isLoading, setIsLoading] = useState(false);

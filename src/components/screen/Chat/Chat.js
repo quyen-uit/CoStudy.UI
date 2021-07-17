@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ToastAndroid,
-  Dimensions
+  Dimensions,
+  useWindowDimensions
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
@@ -21,12 +22,12 @@ import Toast from 'react-native-toast-message';
 import { setChat } from 'actions/ChatAction';
 import ChatService from 'controllers/ChatService';
 import UserService from 'controllers/UserService';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 function Chat() {
   const userInfo = useSelector(getBasicInfo);
   const jwtToken = useSelector(getJwtToken);
-
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -184,7 +185,7 @@ function Chat() {
       //   },
       //   ...tmp,
       // ]);
-          console.log(res);
+      console.log(res);
       if (res.sender_id == userInfo.id) {
         // setListMes([
         //   {
@@ -276,13 +277,21 @@ function Chat() {
                   obj.content = 'Bạn: ' + item.messages[0].content[0];
                 else if (item.messages[0].message_type == 3)
                   obj.content = 'Bạn: Bài đăng';
-                else obj.content = 'Bạn: Hình ảnh';
+                else {
+                  if (item.messages[0].content[0].media_type == 0)
+                    obj.content = 'Bạn: Hình ảnh';
+                  else obj.content = 'Bạn: Video';
+                }
               } else {
                 if (item.messages[0].message_type == 0)
                   obj.content = item.messages[0].content[0];
                 else if (item.messages[0].message_type == 3)
                   obj.content = 'Bài đăng';
-                else obj.content = 'Hình ảnh';
+                else {
+                  if (item.messages[0].content[0].media_type == 0)
+                    obj.content = 'Hình ảnh';
+                  else obj.content = 'Video';
+                }
               }
               temp.push({
                 name: obj.name,
@@ -362,7 +371,7 @@ function Chat() {
               alignSelf: 'center',
               fontSize: 16,
               color: '#616161',
-              marginBottom: deviceHeight/2,
+              marginBottom: deviceHeight / 2,
             }}
           >
             Bạn chưa có tin nhắn nào, nhấn để làm mới.

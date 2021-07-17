@@ -20,6 +20,7 @@ import {
   TextInput,
   Alert,
   Dimensions,
+  useWindowDimensions,
   ActivityIndicator,
   StyleSheet,
   ToastAndroid,
@@ -49,9 +50,8 @@ import { v4 as uuidv4 } from 'uuid';
 import storage from '@react-native-firebase/storage';
 import Toast from 'react-native-toast-message';
 import { Button, Menu, Divider, Provider } from 'react-native-paper';
+import { createThumbnail } from 'react-native-create-thumbnail';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
 import Modal, {
   ModalContent,
   BottomModal,
@@ -60,14 +60,17 @@ import Modal, {
   SlideAnimation,
 } from 'react-native-modals';
 import Badge from 'components/common/Badge';
-
+import Video from 'react-native-video';
 function Create() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const jwtToken = useSelector(getJwtToken);
 
   const navigation = useNavigation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState();
   const [listImg, setListImg] = useState([]);
+
   const [data, setData] = useState([]);
   const [fieldPickers, setFieldPickers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +90,7 @@ function Create() {
   const [bodyAlert, setBodyAlert] = useState('');
   const [type, setType] = useState({ name: 'Câu hỏi', type: 0 });
   const [visibleMenu, setVisibleMenu] = useState(false);
-
+  const [isImage, setIsImage] = useState(true);
   const showAlert = (title, body) => {
     setBodyAlert(body);
     setVisibleAlert(true);
@@ -202,32 +205,72 @@ function Create() {
   //   console.log(listImg.length);
   // }, [listImg]);
   const pickImage = () => {
-    ImagePicker.openPicker({
-      width: 800,
-      height: 1100,
-      mediaType: 'photo',
-      cropping: true,
-      compressImageQuality: 1,
-    }).then(image => {
-      if (image) {
-        image.isEdit = false;
-        setListImg([...listImg, image]);
-      }
-    });
+    if (isImage) {
+      ImagePicker.openPicker({
+        width: 800,
+        height: 1100,
+        mediaType: 'photo',
+        cropping: true,
+        compressImageQuality: 1,
+      }).then(image => {
+        if (image) {
+          image.isEdit = false;
+          image.mediaType = 0;
+          setListImg([...listImg, image]);
+        }
+      });
+    } else {
+      ImagePicker.openPicker({
+        mediaType: 'video',
+      }).then(image => {
+        if (image) {
+          image.isEdit = false;
+          image.mediaType = 1;
+          createThumbnail({
+            url: image.path,
+            timeStamp: 10000,
+          })
+            .then(response => {
+              image.thumbnail = response.path;
+              setListImg([...listImg, image]);
+            })
+            .catch(err => console.log({ err }));
+        }
+      });
+    }
   };
   const cameraImage = () => {
-    ImagePicker.openCamera({
-      width: 800,
-      height: 1100,
-      mediaType: 'photo',
-      cropping: true,
-      compressImageQuality: 1,
-    }).then(image => {
-      if (image) {
+    if (isImage) {
+      ImagePicker.openCamera({
+        width: 800,
+        height: 1100,
+        mediaType: 'photo',
+        cropping: true,
+        compressImageQuality: 1,
+      }).then(image => {
+        if (image) {
+          image.isEdit = false;
+          image.mediaType = 0;
+          setListImg([...listImg, image]);
+        }
+      });
+    } else {
+      ImagePicker.openCamera({
+        mediaType: 'video',
+      }).then(image => {
         image.isEdit = false;
-        setListImg([...listImg, image]);
-      }
-    });
+        image.mediaType = 1;
+        createThumbnail({
+          url: image.path,
+          timeStamp: 10000,
+        })
+          .then(response => {
+            image.thumbnail = response.path;
+            setListImg([...listImg, image]);
+          })
+          .catch(err => console.log({ err }));
+      });
+    }
   };
 
   const upload = async () => {
@@ -279,6 +322,7 @@ function Create() {
                     {
                       discription: image.discription.trim(),
                       image_hash: url,
+                      media_type: image.mediaType,
                     },
                   ];
                 });
@@ -289,7 +333,11 @@ function Create() {
         } else {
           list = [
             ...list,
-            { discription: image.discription.trim(), image_hash: image.path },
+            {
+              discription: image.discription.trim(),
+              image_hash: image.path,
+              media_type: image.mediaType,
+            },
           ];
         }
       });
@@ -453,7 +501,10 @@ function Create() {
                   }}
                 >
                   <Text
-                    style={{ color: route.params.isEdit ? '#000' : '#fff', marginHorizontal: 4 }}
+                    style={{
+                      color: route.params.isEdit ? '#000' : '#fff',
+                      marginHorizontal: 4,
+                    }}
                   >
                     {type.name}
                   </Text>
@@ -535,55 +586,135 @@ function Create() {
               value={content}
             />
           </View>
+
           <View style={styles.listImage}>
             {listImg
               ? listImg.map((item, index) => {
-                  return (
-                    <View
-                      style={{
-                        marginHorizontal: 16,
-                        borderBottomColor: main_color,
-                        borderBottomWidth: 0.5,
-                      }}
-                      key={index}
-                    >
-                      <Image
+                  if (item.mediaType == 0)
+                    return (
+                      <View
                         style={{
-                          width: '100%',
-                          height: 400,
-                          alignSelf: 'center',
-                          marginVertical: 8,
+                          marginHorizontal: 16,
+                          borderBottomColor: main_color,
+                          borderBottomWidth: 0.5,
                         }}
-                        source={{
-                          uri: item.path,
-                        }}
-                      />
-                      <TouchableOpacity
-                        onPress={() => {
-                          setListImg(
-                            listImg.filter(
-                              item => listImg.indexOf(item) != index
-                            )
-                          );
-                        }}
+                        key={index}
+                      >
+                        <Image
+                          style={{
+                            width: '100%',
+                            height: 400,
+                            alignSelf: 'center',
+                            marginVertical: 8,
+                          }}
+                          source={{
+                            uri: item.path,
+                          }}
+                        />
+                        <TouchableOpacity
+                          onPress={() => {
+                            setListImg(
+                              listImg.filter(
+                                item => listImg.indexOf(item) != index
+                              )
+                            );
+                          }}
+                          style={{
+                            position: 'absolute',
+                            alignSelf: 'flex-end',
+                            borderRadius: 30,
+                            margin: 8,
+                            padding: 8,
+                            backgroundColor: '#ccc',
+                          }}
+                        >
+                          <Icon
+                            name={'times-circle'}
+                            size={30}
+                            color={'#fff'}
+                          />
+                        </TouchableOpacity>
+
+                        <TextInput
+                          onChangeText={text =>
+                            (item.discription = text.trim())
+                          }
+                          placeholder={'Nhập mô tả..'}
+                        />
+                      </View>
+                    );
+                  else {
+                    return (
+                      <View
+                        key={index}
                         style={{
-                          position: 'absolute',
-                          alignSelf: 'flex-end',
-                          borderRadius: 30,
-                          margin: 8,
-                          padding: 8,
-                          backgroundColor: '#ccc',
+                          marginHorizontal: 16,
+                          borderBottomColor: main_color,
+                          borderBottomWidth: 0.5,
+                          justifyContent: 'center',
                         }}
                       >
-                        <Icon name={'times-circle'} size={30} color={'#fff'} />
-                      </TouchableOpacity>
+                        <Image
+                          style={{
+                            width: '100%',
+                            height: 400,
+                            alignSelf: 'center',
+                            marginVertical: 8,
+                          }}
+                          source={{
+                            uri: item.thumbnail,
+                          }}
+                        />
+                        <TouchableOpacity
+                          onPress={() => {
+                            setListImg(
+                              listImg.filter(
+                                item => listImg.indexOf(item) != index
+                              )
+                            );
+                          }}
+                          style={{
+                            position: 'absolute',
+                            alignSelf: 'flex-end',
+                            borderRadius: 30,
+                            margin: 8,
+                            padding: 8,
+                            top: 24,
+                            backgroundColor: '#ccc',
+                          }}
+                        >
+                          <Icon
+                            name={'times-circle'}
+                            size={30}
+                            color={'#fff'}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate(
+                              navigationConstants.videoPlayer,
+                              {
+                                video: item.path,
+                              }
+                            )
+                          }
+                          style={{
+                            position: 'absolute',
+                            alignSelf: 'center',
+                          }}
+                        >
+                          <Icon name={'play'} size={30} color={'#fff'} />
+                        </TouchableOpacity>
 
-                      <TextInput
-                        onChangeText={text => (item.discription = text.trim())}
-                        placeholder={'Nhập mô tả..'}
-                      />
-                    </View>
-                  );
+                        <TextInput
+                          onChangeText={text =>
+                            (item.discription = text.trim())
+                          }
+                          placeholder={'Nhập mô tả..'}
+                        />
+                      </View>
+                    );
+                  }
                 })
               : null}
           </View>
@@ -635,11 +766,27 @@ function Create() {
           <TouchableHighlight
             underlayColor={touch_color}
             style={styles.btnInputOption}
-            onPress={() => setChosing(true)}
+            onPress={() => {
+              setChosing(true);
+              setIsImage(true);
+            }}
           >
             <View style={styles.flex}>
               <Icon name={'images'} size={24} color={main_color} />
               <Text style={styles.txtField}>Ảnh</Text>
+            </View>
+          </TouchableHighlight>
+          <TouchableHighlight
+            underlayColor={touch_color}
+            style={styles.btnInputOption}
+            onPress={() => {
+              setChosing(true);
+              setIsImage(false);
+            }}
+          >
+            <View style={styles.flex}>
+              <Icon name={'video'} size={24} color={main_color} />
+              <Text style={styles.txtField}>Video</Text>
             </View>
           </TouchableHighlight>
         </View>

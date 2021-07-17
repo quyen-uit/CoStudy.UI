@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Keyboard,
+  useWindowDimensions,
   Image,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -24,8 +25,7 @@ import moment from 'moment';
 import ChatService from 'controllers/ChatService';
 import { TextInput } from 'react-native';
 import PostService from 'controllers/PostService';
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 
 function UserCard({ item }) {
   const jwtToken = useSelector(getJwtToken);
@@ -111,6 +111,8 @@ function UserCard({ item }) {
   );
 }
 function HelpPost() {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const [list, setList] = useState([]);
   const [user, setUser] = useState([])
   const [isLoading, setIsLoading] = useState(true);

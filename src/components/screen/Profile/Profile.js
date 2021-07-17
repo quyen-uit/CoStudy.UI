@@ -11,6 +11,7 @@ import {
   Platform,
   SafeAreaView,
   ToastAndroid,
+  useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
 import styles from 'components/screen/Profile/styles';
@@ -43,8 +44,7 @@ import ImageView from 'react-native-image-viewing';
 import Badge from 'components/common/Badge';
 import PostOptionModal from 'components/modal/PostOptionModal/PostOptionModal';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+
 function GroupAmount(props) {
   return (
     <View>
@@ -100,6 +100,8 @@ const fields = [
   },
 ];
 function Profile({ userId }) {
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const [posts, setPosts] = useState([]);

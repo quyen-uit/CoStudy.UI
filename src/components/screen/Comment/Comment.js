@@ -13,6 +13,7 @@ import {
   Keyboard,
   ToastAndroid,
   Pressable,
+  useWindowDimensions,
   SafeAreaView,
   TextInput,
 } from 'react-native';
@@ -46,13 +47,13 @@ import {
 } from 'react-native-modals';
 import ImageView from 'react-native-image-viewing';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 function Comment(props) {
   const route = useRoute();
   const userInfo = useSelector(getBasicInfo);
   const jwtToken = useSelector(getJwtToken);
-
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const [showOption, setShowOption] = useState(true);
   const [data, setData] = useState(route.params.comment);
   const [isLoading, setIsLoading] = useState(false);

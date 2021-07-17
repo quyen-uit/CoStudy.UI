@@ -17,6 +17,7 @@ import {
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
+  useWindowDimensions
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import styles from 'components/screen/ListField/styles';
@@ -41,8 +42,7 @@ import { actionTypes, update } from 'actions/UserActions';
 import UserService from 'controllers/UserService';
 import PostService from 'controllers/PostService';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 
 const fields = [
   {
@@ -61,7 +61,8 @@ function ListField() {
   // const userInfo = useSelector(getBasicInfo);
 
   // const dispatch = useDispatch();
-
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const navigation = useNavigation();
   const route = useRoute();
   const [isLoading, setIsLoading] = useState(true);

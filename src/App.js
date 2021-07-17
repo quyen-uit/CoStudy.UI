@@ -1,5 +1,12 @@
 import React, { useEffect } from 'react';
-import { useColorScheme, LogBox, Image } from 'react-native';
+import {
+  useColorScheme,
+  LogBox,
+  Image,
+  View,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import RNBootSplash from 'react-native-bootsplash';
 import { enableScreens } from 'react-native-screens';
 import { Provider } from 'react-redux';
@@ -18,6 +25,7 @@ import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
 import { AuthService } from 'components/videocall/services';
 import { Provider as PaperProvider } from 'react-native-paper';
+import Video from 'react-native-video';
 
 enableScreens();
 
@@ -83,7 +91,34 @@ function App() {
       <ModalPortal />
       </PaperProvider>
     </Provider>
+    // <View style={{ flex: 1 }}>
+    //   <Video
+    //     source={{
+    //       uri:
+    //         'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/test%2Fvideo.mp4?alt=media&token=8ec461c7-b521-4e30-b523-e33c804f2829',
+    //     }} // Can be a URL or a local file.
+    //     ref={ref => {
+    //       this.player = ref;
+    //     }} // Store reference
+    //     fullscreen={true}
+    //     onBuffer={this.onBuffer} // Callback when remote video is buffering
+    //     onError={this.videoError} // Callback when video cannot be loaded
+    //     resizeMode={'contain'}
+    //     paused={true}
+    //     style={styles.backgroundVideo}
+    //   />
+    // </View>
   );
 }
 
+// Later on in your styles..
+var styles = StyleSheet.create({
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
+});
 export default App;

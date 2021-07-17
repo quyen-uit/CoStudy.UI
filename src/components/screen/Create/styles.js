@@ -2,6 +2,13 @@ import { main_color, main_2nd_color } from 'constants/colorCommon';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
   container: {
     flex: 1,
     justifyContent: 'space-around',
@@ -18,19 +25,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomColor: main_color,
     borderBottomWidth: 0.5,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   title: {
     paddingHorizontal: 8,
     paddingBottom: 4,
     borderBottomColor: main_color,
     borderBottomWidth: 0.5,
-   },
+  },
   content: {
     paddingHorizontal: 8,
-    marginVertical: 4
+    marginVertical: 4,
   },
-  listImage: {  },
+  listImage: {},
   field: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -43,18 +50,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     borderTopColor: main_color,
     borderTopWidth: 1,
-     
+
     backgroundColor: '#fff',
-   
   },
   picker: {
-     
     padding: 4,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-   },
+  },
   //img
   imgAvatar: {
     width: 40,
@@ -89,14 +94,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginRight: 4,
   },
-  btnInputOption: {flex: 1, paddingVertical: 8},
+  btnInputOption: { flex: 1, paddingVertical: 8 },
   flex: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 4
+    marginVertical: 4,
   },
-  txtField: { marginLeft: 8,fontSize: 16, color: main_color, fontWeight: 'bold' },
+  txtField: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: main_color,
+    fontWeight: 'bold',
+  },
 });
 
 export default styles;

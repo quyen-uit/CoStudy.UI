@@ -12,7 +12,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
-  TextInput
+  TextInput,
+  useWindowDimensions
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import styles from 'components/screen/Follower/styles';
@@ -25,8 +26,7 @@ import FollowService from 'controllers/FollowService';
 import UserService from 'controllers/UserService';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
-const deviceWidth = Dimensions.get('window').width;
-const deviceHeight = Dimensions.get('window').height;
+ 
 
 function UserCard({ item }) {
   const jwtToken = useSelector(getJwtToken);
@@ -136,6 +136,8 @@ function Follower() {
   // const { colors } = useTheme();
   // const [modalVisible, setModalVisible] = useState(false);
   // const [listMes, setListMes] = useState([]);
+  const deviceWidth = useWindowDimensions().width;
+  const deviceHeight = useWindowDimensions().height;
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const route = useRoute();
