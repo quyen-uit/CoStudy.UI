@@ -41,7 +41,7 @@ import axios from 'axios';
 import { api } from 'constants/route';
 import { RotationGestureHandler } from 'react-native-gesture-handler';
 import Badge from '../Badge';
-import { createThumbnail } from 'react-native-create-thumbnail';
+import Video from 'react-native-video';
 
 function PostCard(props) {
   const navigate = useNavigation();
@@ -55,9 +55,9 @@ function PostCard(props) {
   const jwtToken = useSelector(getJwtToken);
   const [isUp, setIsUp] = useState(false);
   const [isDown, setIsDown] = useState(false);
-  const [thumb, setThumb] = useState(
-    'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/video_thumb.jpg?alt=media&token=45c63095-56af-4ee7-be2b-8b8a4b327145'
-  );
+  // const [thumb, setThumb] = useState(
+  //   'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/video_thumb.jpg?alt=media&token=45c63095-56af-4ee7-be2b-8b8a4b327145'
+  // );
   // like, comment
   const [upvote, setUpvote] = useState(post.upvote);
   const [downvote, setDownvote] = useState(post.downvote);
@@ -83,22 +83,21 @@ function PostCard(props) {
     post.is_save_by_current,
   ]);
 
-  useEffect(() => {
-    if (
-      post.image_contents.length > 0 &&
-      post.image_contents[0].media_type == 1
-    )
-      createThumbnail({
-        url: post.image_contents[0].image_hash,
-        timeStamp: 1000,
-      })
-        .then(response => {
-          setThumb(response.path);
-        })
-        .catch(err => console.log({ err }));
-    const fetchData = async () => {};
-    fetchData();
-  }, [post.image_contents]);
+  // useEffect(() => {
+  //   if (
+  //     post.image_contents.length > 0 &&
+  //     post.image_contents[0].media_type == 1
+  //   )
+  //     createThumbnail({
+  //       url: post.image_contents[0].image_hash,
+  //      })
+  //       .then(response => {
+  //         setThumb(response.path);
+  //       })
+  //       .catch(err => console.log({ err }));
+  //   const fetchData = async () => {};
+  //   fetchData();
+  // }, [post.image_contents]);
   const GoToPost = () => {
     PostService.getPostById(jwtToken, post.oid)
       .then(res => {
@@ -159,6 +158,7 @@ function PostCard(props) {
   const GoToProfile = () => {
     navigation.push(navigationConstants.profile, { id: post.author_id });
   };
+  const videoRef = React.useRef(null);
 
   return (
     <Card containerStyle={styles.container}>
@@ -201,25 +201,29 @@ function PostCard(props) {
                   </View>
 
                   <FontAwesome name={'circle'} size={8} color={active_color} />
-                  <Text style={styles.txtCreateDate}>
-                    {moment(new Date()).diff(
-                      moment(post.created_date),
-                      'minutes'
-                    ) < 60
-                      ? moment(new Date()).diff(
-                          moment(post.created_date),
-                          'minutes'
-                        ) + ' phút trước'
-                      : moment(new Date()).diff(
-                          moment(post.created_date),
-                          'hours'
-                        ) < 24
-                      ? moment(new Date()).diff(
-                          moment(post.created_date),
-                          'hours'
-                        ) + ' giờ trước'
-                      : moment(post.created_date).format('hh:mm DD-MM-YYYY')}
-                  </Text>
+                  {!post.is_recommended ? (
+                    <Text style={styles.txtCreateDate}>
+                      {moment(new Date()).diff(
+                        moment(post.created_date),
+                        'minutes'
+                      ) < 60
+                        ? moment(new Date()).diff(
+                            moment(post.created_date),
+                            'minutes'
+                          ) + ' phút trước'
+                        : moment(new Date()).diff(
+                            moment(post.created_date),
+                            'hours'
+                          ) < 24
+                        ? moment(new Date()).diff(
+                            moment(post.created_date),
+                            'hours'
+                          ) + ' giờ trước'
+                        : moment(post.created_date).format('hh:mm DD-MM-YYYY')}
+                    </Text>
+                  ) : (
+                    <Text style={styles.txtCreateDate}>Được gợi ý</Text>
+                  )}
                 </View>
               </View>
             </View>
@@ -282,10 +286,8 @@ function PostCard(props) {
                   }
                 >
                   <Image
+                    source={{ uri: post.image_contents[0].image_url }}
                     style={styles.imgContent}
-                    source={{
-                      uri: thumb,
-                    }}
                   />
                   <TouchableOpacity
                     onPress={() =>

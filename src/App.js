@@ -25,7 +25,6 @@ import Login from 'components/authScreen/Login';
 import { main_color } from 'constants/colorCommon';
 import { AuthService } from 'components/videocall/services';
 import { Provider as PaperProvider } from 'react-native-paper';
-import Video from 'react-native-video';
 
 enableScreens();
 

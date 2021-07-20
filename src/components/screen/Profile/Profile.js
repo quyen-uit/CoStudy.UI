@@ -118,6 +118,7 @@ function Profile({ userId }) {
   ///image view
   const [imgView, setImgView] = useState();
   const [visible, setIsVisible] = useState(false);
+  const [isImage, setIsImage] = useState(false);
   const onViewImage = React.useCallback((value, uri) => {
     setIsVisible(true);
     setImgView(uri);
@@ -876,7 +877,7 @@ function Profile({ userId }) {
           >
             <View
               style={{
-                marginTop: 100,
+                marginTop: deviceHeight < deviceWidth ? 0 : 100,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -884,7 +885,7 @@ function Profile({ userId }) {
               <Text
                 style={{ fontSize: 30, fontWeight: 'bold', color: main_color }}
               >
-                Bạn muốn chọn ảnh từ
+                Bạn muốn chọn {isImage ? 'ảnh' : 'video'} từ
               </Text>
               <TouchableOpacity
                 onPress={() => {

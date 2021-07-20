@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   ToastAndroid,
   Dimensions,
-  useWindowDimensions
+  useWindowDimensions,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getJwtToken, getBasicInfo } from 'selectors/UserSelectors';
@@ -22,7 +22,7 @@ import Toast from 'react-native-toast-message';
 import { setChat } from 'actions/ChatAction';
 import ChatService from 'controllers/ChatService';
 import UserService from 'controllers/UserService';
- 
+
 function Chat() {
   const userInfo = useSelector(getBasicInfo);
   const jwtToken = useSelector(getJwtToken);
@@ -111,13 +111,21 @@ function Chat() {
                   obj.content = 'Bạn: ' + item.messages[0].content[0];
                 else if (item.messages[0].message_type == 3)
                   obj.content = 'Bạn: Bài đăng';
-                else obj.content = 'Bạn: Hình ảnh';
+                else {
+                  if (item.messages[0].content[0].media_type == 0)
+                    obj.content = 'Bạn: Hình ảnh';
+                  else obj.content = 'Bạn: Video';
+                }
               } else {
                 if (item.messages[0].message_type == 0)
                   obj.content = item.messages[0].content[0];
                 else if (item.messages[0].message_type == 3)
                   obj.content = 'Bài đăng';
-                else obj.content = 'Hình ảnh';
+                else {
+                  if (item.messages[0].content[0].media_type == 0)
+                    obj.content = 'Hình ảnh';
+                  else obj.content = 'Video';
+                }
               }
               temp.push({
                 name: obj.name,
@@ -185,7 +193,6 @@ function Chat() {
       //   },
       //   ...tmp,
       // ]);
-      console.log(res);
       if (res.sender_id == userInfo.id) {
         // setListMes([
         //   {
@@ -205,6 +212,11 @@ function Chat() {
         // ]);
         onRefresh();
       } else {
+        let text = '';
+        if (res.message_type == 1) {
+          if (res.content[0].MediaType == 0) text = 'Ảnh';
+          else text = 'Video';
+        }
         setListMes([
           {
             name: res.sender_name,
@@ -214,13 +226,16 @@ function Chat() {
               res.message_type == 3
                 ? 'Bài đăng'
                 : res.message_type == 1
-                ? 'Ảnh'
+                ? text
                 : res.content,
             id: res.conversation_id,
             isUnread: true,
           },
           ...tmp,
         ]);
+        if (res.message_type != 3 && res.message_type != 1) {
+          if (res.content == 'Cuộc gọi video.') return;
+        }
         Toast.show({
           type: 'success',
           position: 'top',

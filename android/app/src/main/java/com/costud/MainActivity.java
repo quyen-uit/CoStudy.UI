@@ -1,4 +1,4 @@
-package com.costudy;
+package com.costud;
 
 import android.os.Bundle;
 
@@ -13,7 +13,7 @@ public class MainActivity extends ReactActivity {
      */
     @Override
     protected String getMainComponentName() {
-        return "costudy";
+        return "CoStudy";
     }
 
     @Override

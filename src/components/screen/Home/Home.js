@@ -6,7 +6,7 @@ import RTCViewGrid from '../../videocall/components/VideoScreen/RTCViewGrid';
 import { CallService, AuthService } from '../../videocall/services';
 import ToolBar from '../../videocall/components/VideoScreen/ToolBar';
 import UsersSelect from '../../videocall/components/VideoScreen/UsersSelect';
- import { users } from '../../videocall/config';
+import { users } from '../../videocall/config';
 import { connect } from 'react-redux';
 import navigationConstants from 'constants/navigation';
 
@@ -202,7 +202,12 @@ class VideoScreen extends React.Component {
     //     })
     //     .catch(this.hideInomingCallModal);
   };
-
+  getName = id => {
+    if (id == 4398134) return 'Quyên';
+    else if (id == 4413786) return 'Thắng';
+    else if (id == 4414831) return 'Trung';
+    else return '';
+  };
   render() {
     const {
       localStream,
@@ -213,9 +218,10 @@ class VideoScreen extends React.Component {
       isIncomingCall,
     } = this.state;
 
-    // const initiatorName = isIncomingCall
-    //   ? CallService.getUserById(this._session.initiatorID, 'name')
-    //   : '';
+    const initiatorName = isIncomingCall
+      ? this.getName(this._session.initiatorID)
+      : '';
+
     const localStreamItem = localStream
       ? [{ userId: 'localStream', stream: localStream }]
       : [];
@@ -228,7 +234,7 @@ class VideoScreen extends React.Component {
         <AwesomeAlert
           show={isIncomingCall}
           showProgress={true}
-          title={`Bạn có cuộc gọi video ...`}
+          title={`Bạn có cuộc gọi video từ ${initiatorName}`}
           closeOnTouchOutside={false}
           closeOnHardwareBackPress={true}
           showCancelButton={true}

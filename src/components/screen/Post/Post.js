@@ -232,27 +232,26 @@ function Post(props) {
       route.params.onVote(vote);
     }
   }, [downvote]);
-  useEffect(() => {
-    console.log(post.image_contents);
-    let tmp = [];
-    post.image_contents.forEach(item => {
-      if (item.media_type == 1)
-        createThumbnail({
-          url: item.image_hash,
-          timeStamp: 1000,
-        })
-          .then(response => {
-            item.thumb = response.path;
-            tmp.push(item);
-          })
-          .catch(err => console.log({ err }));
-      else {
-        tmp.push(item);
-      }
-    });
-    setListImg(tmp);
-    console.log(listImg);
-  }, []);
+  // useEffect(() => {
+  //   let tmp = [];
+  //   post.image_contents.forEach(item => {
+  //     if (item.media_type == 1)
+  //       createThumbnail({
+  //         url: item.image_hash,
+  //         timeStamp: 1000,
+  //       })
+  //         .then(response => {
+  //           item.thumb = response.path;
+  //           tmp.push(item);
+  //         })
+  //         .catch(err => console.log({ err }));
+  //     else {
+  //       tmp.push(item);
+  //     }
+  //   });
+  //   setListImg(tmp);
+
+  // }, []);
   useEffect(() => {
     setIsLoading(true);
     setStop(false);
@@ -730,7 +729,7 @@ function Post(props) {
 
                 <View>
                   {post.image_contents
-                    ? listImg.map((item, index) => {
+                    ? post.image_contents.map((item, index) => {
                         if (item.media_type == 0 || item.media_type == null)
                           return (
                             <View
@@ -757,7 +756,7 @@ function Post(props) {
                                 />
                               </TouchableOpacity>
 
-                              {item.description != null ? (
+                              {item.discription != null ? (
                                 <Text style={styles.txtDes}>
                                   {item.discription}
                                 </Text>
@@ -783,10 +782,7 @@ function Post(props) {
                                   marginVertical: 8,
                                 }}
                                 source={{
-                                  uri:
-                                    typeof item.thumb == 'undefined'
-                                      ? 'https://firebasestorage.googleapis.com/v0/b/costudy-c5390.appspot.com/o/video_thumb.jpg?alt=media&token=45c63095-56af-4ee7-be2b-8b8a4b327145'
-                                      : item.thumb,
+                                  uri: item.image_url,
                                 }}
                               />
                               <TouchableOpacity
@@ -805,7 +801,7 @@ function Post(props) {
                               >
                                 <Icon name={'play'} size={30} color={'#fff'} />
                               </TouchableOpacity>
-                              {item.description != null ? (
+                              {item.discription != null ? (
                                 <Text style={styles.txtDes}>
                                   {item.discription}
                                 </Text>
@@ -1130,7 +1126,7 @@ function Post(props) {
               <Text
                 style={{ fontSize: 30, fontWeight: 'bold', color: main_color }}
               >
-                Bạn muốn chọn ảnh từ
+                Bạn muốn chọn {isImage ? 'ảnh' : 'video'} từ
               </Text>
               <TouchableOpacity
                 onPress={() => {

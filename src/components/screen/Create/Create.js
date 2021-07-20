@@ -101,6 +101,7 @@ function Create() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
+      title: route.params.isEdit ? 'Sửa bài đăng' : 'Tạo bài đăng',
       headerRight: () => (
         <View style={styles.headerRight}>
           {isLoading ? (
@@ -110,7 +111,7 @@ function Create() {
           ) : (
             <TouchableOpacity onPress={() => upload()}>
               <Text style={{ color: '#fff', fontSize: 20, marginRight: 12 }}>
-                Đăng
+                {route.params.isEdit ? 'Sửa' : 'Đăng'}
               </Text>
             </TouchableOpacity>
           )}
@@ -163,14 +164,20 @@ function Create() {
                     });
                 });
                 setFieldPickers(response.data.result);
-                console.log(fieldPickers);
-                setListImg(
-                  resPost.data.result.image_contents.map(item => ({
+                let listTmp = [];
+                let number = 0;
+                resPost.data.result.image_contents.forEach(item => {
+                  listTmp.push({
                     path: item.image_hash,
-                    discription: item.discription.trim(),
+                    discription: item.discription,
                     isEdit: true,
-                  }))
-                );
+                    mediaType: item.media_type,
+                    image_url: item.image_url ? item.image_url : '',
+                    modificationDate: number++
+                  });
+                });
+                setListImg(listTmp);
+                 
               })
               .catch(error => console.log(error));
           } else {
@@ -185,7 +192,6 @@ function Create() {
           }
         })
         .catch(error => console.log(error));
-
       const getLevels = await LevelService.getLevels(jwtToken, 0, 5)
         .then(response => {
           setLevelList(response.data.result);
@@ -226,15 +232,8 @@ function Create() {
         if (image) {
           image.isEdit = false;
           image.mediaType = 1;
-          createThumbnail({
-            url: image.path,
-            timeStamp: 10000,
-          })
-            .then(response => {
-              image.thumbnail = response.path;
-              setListImg([...listImg, image]);
-            })
-            .catch(err => console.log({ err }));
+          image.image_url = image.path;
+          setListImg([...listImg, image]);
         }
       });
     }
@@ -260,15 +259,8 @@ function Create() {
       }).then(image => {
         image.isEdit = false;
         image.mediaType = 1;
-        createThumbnail({
-          url: image.path,
-          timeStamp: 10000,
-        })
-          .then(response => {
-            image.thumbnail = response.path;
-            setListImg([...listImg, image]);
-          })
-          .catch(err => console.log({ err }));
+        image.image_url = image.path;
+        setListImg([...listImg, image]);
       });
     }
   };
@@ -316,15 +308,56 @@ function Create() {
               await storage()
                 .ref(response.metadata.fullPath)
                 .getDownloadURL()
-                .then(url => {
-                  list = [
-                    ...list,
-                    {
-                      discription: image.discription.trim(),
-                      image_hash: url,
-                      media_type: image.mediaType,
-                    },
-                  ];
+                .then(async url => {
+                  if (image.mediaType == 0) {
+                    list = [
+                      ...list,
+                      {
+                        discription: image.discription,
+                        image_hash: url,
+                        media_type: image.mediaType,
+                      },
+                    ];
+                  } else {
+                    await createThumbnail({
+                      url: image.path,
+                    })
+                      .then(async response => {
+                        const uri1 = response.path;
+                        const filename1 = uuidv4();
+                        const uploadUri1 =
+                          Platform.OS === 'ios'
+                            ? uri1.replace('file://', '')
+                            : uri1;
+                        const task1 = storage()
+                          .ref('post/' + userInfo.id + '/thumb/' + filename1)
+                          .putFile(uploadUri1);
+                        // set progress state
+                        task1.on('state_changed', snapshot => {});
+                        try {
+                          await task1.then(async response1 => {
+                            await storage()
+                              .ref(response1.metadata.fullPath)
+                              .getDownloadURL()
+                              .then(url1 => {
+                                list = [
+                                  ...list,
+                                  {
+                                    discription: image.discription,
+                                    image_hash: url,
+                                    media_type: image.mediaType,
+                                    image_url: url1,
+                                    modificationDate: image.modificationDate
+                                  },
+                                ];
+                              });
+                          });
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      })
+                      .catch(err => console.log({ err }));
+                  }
                 });
             });
           } catch (e) {
@@ -334,9 +367,11 @@ function Create() {
           list = [
             ...list,
             {
-              discription: image.discription.trim(),
+              discription: image.discription,
               image_hash: image.path,
               media_type: image.mediaType,
+              image_url: image.image_url,
+              modificationDate: image.modificationDate
             },
           ];
         }
@@ -347,6 +382,7 @@ function Create() {
           tempFields.push({ field_id: item.oid, level_id: item.level_id });
       });
       Promise.all(promises).then(async () => {
+        list = list.sort((a,b) => a.modificationDate - b.modificationDate);
         await PostService.updatePost(jwtToken, {
           oid: route.params.postId,
           title: title,
@@ -396,7 +432,7 @@ function Create() {
       if (item.isPick == true)
         tempFields.push({ field_id: item.oid, level_id: item.level_id });
     });
-
+   
     navigation.navigate(navigationConstants.tabNav, {
       screen: navigationConstants.newsfeed,
       params: {
@@ -621,10 +657,11 @@ function Create() {
                           }}
                           style={{
                             position: 'absolute',
-                            alignSelf: 'flex-end',
                             borderRadius: 30,
                             margin: 8,
                             padding: 8,
+                            top: 8,
+                            right: 0,
                             backgroundColor: '#ccc',
                           }}
                         >
@@ -637,7 +674,7 @@ function Create() {
 
                         <TextInput
                           onChangeText={text =>
-                            (item.discription = text.trim())
+                            (item.discription = text != '' ? text.trim() : text)
                           }
                           placeholder={'Nhập mô tả..'}
                         />
@@ -645,8 +682,13 @@ function Create() {
                     );
                   else {
                     return (
-                      <View
+                      <TouchableOpacity
                         key={index}
+                        onPress={() =>
+                          navigation.navigate(navigationConstants.videoPlayer, {
+                            video: item.path,
+                          })
+                        }
                         style={{
                           marginHorizontal: 16,
                           borderBottomColor: main_color,
@@ -662,7 +704,7 @@ function Create() {
                             marginVertical: 8,
                           }}
                           source={{
-                            uri: item.thumbnail,
+                            uri: item.image_url,
                           }}
                         />
                         <TouchableOpacity
@@ -677,9 +719,9 @@ function Create() {
                             position: 'absolute',
                             alignSelf: 'flex-end',
                             borderRadius: 30,
-                            margin: 8,
                             padding: 8,
-                            top: 24,
+                            top: 16,
+                            right: 8,
                             backgroundColor: '#ccc',
                           }}
                         >
@@ -708,11 +750,11 @@ function Create() {
 
                         <TextInput
                           onChangeText={text =>
-                            (item.discription = text.trim())
+                            (item.discription = text != '' ? text.trim() : text)
                           }
                           placeholder={'Nhập mô tả..'}
                         />
-                      </View>
+                      </TouchableOpacity>
                     );
                   }
                 })
@@ -980,7 +1022,7 @@ function Create() {
           >
             <View
               style={{
-                marginTop: 100,
+                marginTop: deviceHeight < deviceWidth ? 0 : 100,
                 justifyContent: 'center',
                 alignItems: 'center',
               }}
@@ -988,7 +1030,7 @@ function Create() {
               <Text
                 style={{ fontSize: 30, fontWeight: 'bold', color: main_color }}
               >
-                Bạn muốn chọn ảnh từ
+                Bạn muốn chọn {isImage ? 'ảnh' : 'video'} từ
               </Text>
               <TouchableOpacity
                 onPress={() => {

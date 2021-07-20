@@ -28,7 +28,7 @@ class ChatService {
     return await getAPI(jwtToken).post(api + 'Message/message/add', {
       conversation_id: params.conversation_id,
       content: [params.message],
-      message_type: 0
+      message_type: 0,
     });
   }
 
@@ -37,19 +37,19 @@ class ChatService {
       conversation_id: params.conversation_id,
       image: [
         {
-          image_url: params.url,
+          image_url: params.thumb,
           image_hash: params.url,
-          media_type: params.mediaType
+          media_type: params.mediaType,
         },
       ],
-      message_type: 1
+      message_type: 1,
     });
   }
   static async createPostMessage(jwtToken, params) {
     return await getAPI(jwtToken).post(api + 'Message/message/add', {
       conversation_id: params.conversation_id,
       post_id: params.post_id,
-      message_type: 3
+      message_type: 3,
     });
   }
   static async getAllMessage(jwtToken, params) {
@@ -69,6 +69,9 @@ class ChatService {
       participants: [{ member_id: oid }],
       name: '',
     });
+  }
+  static  getNameByCallId(jwtToken, id) {
+    return   getAPI(jwtToken).get(api + `User​/call-id​/${id}`);
   }
 }
 

@@ -30,7 +30,7 @@ class PostService {
   // }
   static async getTimeline(jwtToken, skip, count) {
     // return await getAPI(jwtToken).post(api + `Post/timeline/skip/${skip}/count/${count}`);
-    return await getAPI(jwtToken).post(api + `Post/news-feed`, {
+    return await getAPI(jwtToken).post(api + `Post/news-feed?OnlyFollow=false&OnlyPersonalField=true&Arrange=0`, {
       skip: skip,
       count: count,
       from_date: '2020-06-11T12:57:49.993Z',

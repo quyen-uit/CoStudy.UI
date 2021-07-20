@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   imgContent: {
     marginTop: 8,
-
+backgroundColor: '#000',
     width: '100%',
     height: 200,
   },

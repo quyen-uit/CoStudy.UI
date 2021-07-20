@@ -140,12 +140,12 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.costudy"
+        applicationId "com.costud"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        resValue "string", "build_config_package", "com.costudy"
+        resValue "string", "build_config_package", "com.costud"
         vectorDrawables.useSupportLibrary = true
          targetSdkVersion 27
     }
@@ -175,8 +175,8 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://facebook.github.io/react-native/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
-            // signingConfig signingConfigs.release
+            // signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

@@ -42,8 +42,7 @@ import ConnectyCube from 'react-native-connectycube';
 import { api } from 'constants/route';
 import axios from 'axios';
 import Video from 'react-native-video';
-
- 
+import { createThumbnail } from 'react-native-create-thumbnail';
 
 function NewsFeed() {
   const deviceWidth = useWindowDimensions().width;
@@ -235,15 +234,60 @@ function NewsFeed() {
                     await storage()
                       .ref(response.metadata.fullPath)
                       .getDownloadURL()
-                      .then(url => {
-                        list = [
-                          {
-                            discription: image.discription,
-                            image_hash: url,
-                            media_type: image.mediaType,
-                          },
-                          ...list,
-                        ];
+                      .then(async url => {
+                        if (image.mediaType == 0) {
+                          list = [
+                            ...list,
+                            {
+                              discription: image.discription,
+                              image_hash: url,
+                              media_type: image.mediaType,
+                              modificationDate: image.modificationDate
+                            },
+                          ];
+                          return;
+                        }
+                        await createThumbnail({
+                          url: image.path,
+                        })
+                          .then(async response => {
+                            const uri1 = response.path;
+                            const filename1 = uuidv4();
+                            const uploadUri1 =
+                              Platform.OS === 'ios'
+                                ? uri1.replace('file://', '')
+                                : uri1;
+                            const task1 = storage()
+                              .ref(
+                                'post/' + userInfo.id + '/thumb/' + filename1
+                              )
+                              .putFile(uploadUri1);
+                            // set progress state
+                            task1.on('state_changed', snapshot => {});
+                            try {
+                              await task1.then(async response1 => {
+                                await storage()
+                                  .ref(response1.metadata.fullPath)
+                                  .getDownloadURL()
+                                  .then(url1 => {
+                                    list = [
+                                      ...list,
+                                      {
+                                        discription: image.discription,
+                                        image_hash: url,
+                                        media_type: image.mediaType,
+                                        image_url: url1,
+                                        modificationDate: image.modificationDate
+
+                                      },
+                                    ];
+                                  });
+                              });
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          })
+                          .catch(err => console.log({ err }));
                       });
                   });
                 } catch (e) {
@@ -252,6 +296,7 @@ function NewsFeed() {
               });
 
               Promise.all(promises).then(async () => {
+                list = list.sort((a,b) => a.modificationDate - b.modificationDate);
                 await PostService.createPost(jwtToken, {
                   title: route.params.title,
                   content: route.params.content,

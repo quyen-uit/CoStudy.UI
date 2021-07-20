@@ -99,7 +99,7 @@ function ChatOptionModal({ ...rest }) {
             <Text style={styles.txtOption}>Xóa hội thoại</Text>
           </View>
         </TouchableHighlight> */}
-        <TouchableHighlight
+        {/* <TouchableHighlight
           underlayColor={'#000'}
           onPress={() => {
             rest.onVisible(false);
@@ -114,7 +114,7 @@ function ChatOptionModal({ ...rest }) {
             />
             <Text style={styles.txtOption}>  Báo cáo</Text>
           </View>
-        </TouchableHighlight>
+        </TouchableHighlight> */}
       </ModalContent>
     </BottomModal>
   );

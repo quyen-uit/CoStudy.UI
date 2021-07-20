@@ -242,7 +242,7 @@ function AppNavigator() {
         component={VideoPlayer}
         options={{
           title: videoPlayer,
-          headerShown: true,
+          headerShown: false,
           headerStyle: {
             backgroundColor: main_color,
           },

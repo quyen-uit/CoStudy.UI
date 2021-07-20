@@ -1,4 +1,4 @@
-package com.costudy;
+package com.costud;
 
 import android.app.Application;
 import android.content.Context;
